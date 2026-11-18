@@ -1,0 +1,3 @@
+# Data klinis dan data kantong tidak pernah dihapus
+
+Retensi RME minimal 25 tahun (Permenkes 24/2022 Pasal 39). Dokumen mutu dan data mentah UPD disimpan 10 tahun (BPOM 11/2025 butir 10.21). Data ketertelusuran donor ↔ resipien disimpan "sesuai peraturan", tanpa angka. Karena itu aplikasi tidak menyediakan penghapusan atau purge otomatis. Kesalahan diperbaiki dengan entri koreksi beralasan, sedangkan nilai lamanya tetap terbaca di jejak audit; status dibatalkan atau diakhiri, tidak dihapus. Pemusnahan arsip setelah masa retensi, bila suatu saat diperlukan, adalah prosedur DBA yang terdokumentasi, bukan fitur aplikasi.

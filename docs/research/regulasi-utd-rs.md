@@ -1,6 +1,6 @@
 # Riset Regulasi — Aplikasi UTD-RS (Bank Darah / Unit Transfusi Darah Rumah Sakit)
 
-> Status: DRAF (sedang ditulis). Tanggal riset: 2026-11-18.
+> Status: selesai (versi 1). Tanggal riset: 2026-11-18.
 > Aturan: hanya sumber primer; setiap klaim diberi URL + pasal/bagian. Klaim yang tidak bisa diverifikasi ditandai **[TIDAK TERVERIFIKASI]**.
 > Teks pasal dibaca langsung dari PDF resmi (diunduh dari peraturan.bpk.go.id / peraturan.go.id / jdih.kemkes.go.id dan dikonversi ke teks). Nomor halaman "hlm." merujuk ke nomor halaman cetak di PDF.
 
@@ -274,4 +274,199 @@ https://satusehat.kemkes.go.id/platform/docs/id/interoperability/upd/
 - **Celah untuk BDRS**: modul UPD berhenti pada distribusi ke fasyankes. **Tidak ditemukan** playbook SATUSEHAT khusus untuk sisi BDRS/transfusi pasien (permintaan darah, crossmatch, pemberian transfusi, reaksi transfusi). Modul Rawat Inap/IGD memuat pengiriman tindakan (`ServiceRequest`, `Procedure`, `Observation`) dan pemeriksaan penunjang laboratorium, tetapi tanpa ketentuan transfusi khusus (dicek 2026-11-18 pada https://satusehat.kemkes.go.id/platform/docs/id/interoperability/rawat-inap-new/). → Pertanyaan terbuka.
 - Pemetaan yang **diusulkan** (bukan ketentuan resmi; perlu validasi Kemenkes): permintaan darah → `ServiceRequest`; sampel pratransfusi → `Specimen`; golongan darah/crossmatch → `Observation`/`DiagnosticReport`; kantong yang diterima dari UTD → `BiologicallyDerivedProduct` (identifier dari UTD); pemberian transfusi → `Procedure` (dengan reference ke produk); reaksi transfusi → `Condition`/`Observation` (FHIR R4 `AdverseEvent` tidak tercantum di daftar resource SATUSEHAT).
 
-(§5 dst. menyusul)
+
+## 5. UU 27/2022 tentang Pelindungan Data Pribadi (PDP)
+
+Sumber: https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022 (status Berlaku; diundangkan 17 Oktober 2022, LN 2022/196).
+- **Data kesehatan = data pribadi spesifik**: "data dan informasi kesehatan" (juga data biometrik, genetika, data anak) — Pasal 4 ayat (2) huruf a. Data donor & resipien (golongan darah, hasil IMLTD, diagnosis, reaksi transfusi) termasuk kategori ini.
+- **Dasar pemrosesan** tidak hanya persetujuan: juga kewajiban hukum, kepentingan vital, pelaksanaan tugas pelayanan publik, dst. — Pasal 20 ayat (2). Untuk pelayanan transfusi, dasar utamanya kemungkinan kewajiban hukum (PP 28/2024, Permenkes 24/2022) dan kepentingan vital; persetujuan tindakan medis adalah rezim terpisah (PP 28/2024 Pasal 778 ayat (3)). *Pemilihan dasar hukum per tujuan pemrosesan perlu diputuskan DPO RS.*
+- Bila berbasis **persetujuan**: wajib menyampaikan legalitas, tujuan, jenis data, **jangka waktu retensi**, rincian informasi, jangka waktu pemrosesan, hak subjek — Pasal 21; persetujuan tertulis atau terekam, elektronik atau nonelektronik — Pasal 22. Persetujuan donor juga disyaratkan PP 28/2024 Pasal 279 ayat (2).
+- Penarikan persetujuan → hentikan pemrosesan maks. **3×24 jam** — Pasal 40; penundaan/pembatasan maks. 3×24 jam — Pasal 41 (tunduk pada kewajiban retensi lain).
+- **Perekaman seluruh kegiatan pemrosesan** data pribadi — Pasal 31; subjek berhak akses data **beserta rekam jejak pemrosesan** — Pasal 32 ayat (1). (Requirement: log akses/baca, bukan hanya log perubahan.)
+- **DPIA wajib** untuk pemrosesan berisiko tinggi, termasuk **data spesifik** dan skala besar — Pasal 34 ayat (1)–(2) huruf b–c.
+- Kewajiban keamanan teknis-operasional, kerahasiaan, pengawasan pihak yang terlibat, mencegah akses tidak sah dengan sistem keamanan yang andal — Pasal 35–39.
+- **Notifikasi kegagalan PDP: tertulis paling lambat 3×24 jam kepada subjek data dan lembaga**, minimal memuat data yang terungkap, kapan & bagaimana, upaya penanganan & pemulihan; dalam hal tertentu juga ke masyarakat — Pasal 46 ayat (1)–(3).
+- **Pejabat/petugas PDP (DPO) wajib** bila pemrosesan untuk pelayanan publik, pemantauan sistematis skala besar, atau kegiatan inti berupa pemrosesan **data spesifik skala besar** — Pasal 53 ayat (1); tugas DPO — Pasal 54. PP 28/2024 Pasal 986 ayat (7) huruf c juga mensyaratkan penunjukan petugas PDP dalam SIK.
+- Masa penyesuaian **2 tahun sejak diundangkan** (→ 17 Oktober 2024; sudah berlaku penuh) — Pasal 74.
+- **Peraturan pelaksana**: sumber sekunder menyebut **PP 33/2026** tentang Peraturan Pelaksanaan UU 27/2022 (dikabarkan diundangkan 16 Juli 2026). **[TIDAK TERVERIFIKASI]** — tidak ditemukan di peraturan.bpk.go.id maupun peraturan.go.id per 2026-11-18. Isi teknis (format notifikasi, DPIA, lembaga PDP) harus dicek ulang.
+- Selaras: PP 71/2019 Pasal 14 ayat (5) — PSE wajib memberitahu secara tertulis pemilik data bila terjadi kegagalan pelindungan data pribadi.
+
+## 6. Keamanan sistem elektronik
+
+### 6.1 PP 71/2019 tentang Penyelenggaraan Sistem dan Transaksi Elektronik
+https://peraturan.bpk.go.id/Details/122030/pp-no-71-tahun-2019 (Berlaku; mencabut PP 82/2012)
+- PSE terdiri dari **lingkup publik** (instansi & institusi yang ditunjuk instansi) dan **lingkup privat** (antara lain yang diatur/diawasi kementerian) — Pasal 2. *RSUD/RS pemerintah kemungkinan PSE lingkup publik; RS swasta lingkup privat (diawasi Kemenkes)* — interpretasi.
+- **Wajib pendaftaran PSE sebelum sistem digunakan** — Pasal 6 ayat (1)–(2).
+- Perangkat lunak harus terjamin keamanan & keandalan serta keberlanjutan layanan — Pasal 8.
+- Prinsip pelindungan data pribadi; pemusnahan kecuali masih dalam masa retensi — Pasal 14 ayat (1) huruf g; notifikasi kegagalan — Pasal 14 ayat (5).
+- PSE lingkup publik: wajib **rencana keberlangsungan kegiatan**, dan **wajib mengelola/memproses/menyimpan sistem & data di wilayah Indonesia** (kecuali teknologi tidak tersedia) — Pasal 20 ayat (1)–(3). Privat boleh di luar negeri dengan syarat — Pasal 21.
+- **Wajib rekam jejak audit atas seluruh kegiatan penyelenggaraan sistem elektronik** — Pasal 22 ayat (1); penjelasan: memelihara log transaksi sesuai kebijakan retensi, fungsi jejak audit untuk mendeteksi penyusupan yang **direviu berkala** — Penjelasan Pasal 22 ayat (1).
+- Prosedur & sarana pengamanan; laporan insiden serius ke aparat penegak hukum & K/L terkait — Pasal 24; menampilkan kembali dokumen elektronik utuh sesuai masa retensi — Pasal 25; menjaga kerahasiaan, keutuhan, keautentikan, keteraksesan, ketersediaan, dan **dapat ditelusurinya** informasi — Pasal 26 ayat (1).
+
+### 6.2 Permenkominfo 5/2020 (PSE Lingkup Privat) jo. Permenkominfo 10/2021
+- Status BPK: **Berlaku**, diubah dengan Permenkominfo 10/2021 (hanya mengubah Pasal 47 tenggat pendaftaran). https://peraturan.bpk.go.id/Details/203049/permenkominfo-no-5-tahun-2020 ; https://peraturan.bpk.go.id/Details/203121/permenkominfo-no-10-tahun-2021 . (Kementerian kini bernama Komdigi; tidak ditemukan Permen Komdigi pengganti di database BPK per tanggal riset.)
+- Setiap PSE lingkup privat **wajib mendaftar** (termasuk yang diatur/diawasi K/L) sebelum sistem digunakan, **melalui OSS** — Pasal 2 ayat (1)–(3), Pasal 3 ayat (1)–(2). Formulir memuat gambaran sistem, kewajiban keamanan informasi, PDP, **uji kelaikan sistem**, data pribadi yang diproses, lokasi pemrosesan/penyimpanan — Pasal 3 ayat (3)–(4). Perubahan informasi wajib dilaporkan — Pasal 5.
+- **Siapa yang mendaftar**: PSE adalah pihak yang menyediakan/mengelola/mengoperasikan sistem. Untuk deploy on-prem, **operatornya adalah RS**; vendor perangkat lunak hanya menjadi PSE bila mengoperasikan layanan (mis. SaaS/remote). Interpretasi — konfirmasi ke Komdigi/bagian hukum RS.
+
+### 6.3 BSSN
+- **Peraturan BSSN 8/2020 tentang Sistem Pengamanan dalam Penyelenggaraan Sistem Elektronik** (Berlaku) — https://peraturan.bpk.go.id/Details/174285/peraturan-bssn-no-8-tahun-2020 . Pengamanan melalui **SMPI** (sistem manajemen pengamanan informasi) — Pasal 2; berlaku untuk PSE publik & privat — Pasal 4–5; **kategori sistem elektronik strategis/tinggi/rendah** via **penilaian mandiri** yang dilaporkan ke BSSN — Pasal 6–8; standar: strategis wajib SNI ISO/IEC 27001 + standar BSSN/K/L; tinggi: SNI ISO/IEC 27001 dan/atau standar BSSN + standar K/L; rendah: SNI ISO/IEC 27001 atau standar BSSN — Pasal 9; persiapan dapat memakai **Indeks KAMI** — Pasal 12. PP 71/2019 Pasal 24 ayat (4) mendelegasikan pengaturan sistem pengamanan ke BSSN.
+- **Peraturan BSSN 1/2024 tentang Pengelolaan Insiden Siber** (Berlaku; mencabut Peraturan BSSN 10/2020) — https://peraturan.bpk.go.id/Details/291240/peraturan-bssn-no-1-tahun-2024 . PSE selain penyelenggara IIV juga **membentuk Tim Tanggap Insiden Siber (TTIS) organisasi** — Pasal 8; setiap insiden siber (minimal risiko tinggi) **wajib dilaporkan** TTIS organisasi ke TTIS sektoral dengan tembusan TTIS nasional, memuat kontak, deskripsi, kronologi, dampak — Pasal 15 ayat (1)–(4); untuk **IIV paling lambat 1×24 jam** — Pasal 15 ayat (5)–(6).
+- Status RS sebagai **Infrastruktur Informasi Vital (IIV)** sektor kesehatan (Perpres 82/2022) — **[TIDAK TERVERIFIKASI]**, tidak dibaca.
+- PP 28/2024 Pasal 791–792 (SMKI & penanganan insiden siber di fasyankes) dan Pasal 986 (sertifikasi keandalan, audit berkala) — lihat §3.
+
+## 7. Integrasi SIMRS dan BPJS
+
+### 7.1 SIMRS
+- **Permenkes 82/2013 tentang SIMRS — DICABUT** oleh **Permenkes 6/2026 tentang Rumah Sakit** (ditetapkan 4 Juni 2026, diundangkan 12 Juni 2026, BN 2026 No. 382), Pasal 84 huruf h. Ikut dicabut: Permenkes 1171/2011 tentang Sistem Informasi Rumah Sakit (huruf e) dan Permenkes 3/2020 Klasifikasi & Perizinan RS (huruf q). JDIH: https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-82-tahun-2013 (Status: Tidak Berlaku; "Dicabut: Permenkes 6/2026") ; PDF Permenkes 6/2026: https://jdih.kemkes.go.id/storage/documents/pdfs/2026permenkes006.pdf
+- Permenkes 6/2026: pelayanan RS paling sedikit meliputi **pelayanan darah** (Pasal 13 ayat (1) huruf h), yang **dapat diberikan melalui kerja sama dengan pihak ketiga** (Pasal 13 ayat (2)); RS wajib menyelenggarakan rekam medis (daftar kewajiban RS, Pasal 36 ayat (1) huruf h); **setiap RS wajib pencatatan & pelaporan semua kegiatan penyelenggaraan RS dalam SIK yang terintegrasi dengan SIKN**, dan memperbarui data bila berubah — Pasal 74; pedoman teknis ditetapkan Menteri — Pasal 75.
+  - *Potensi ketegangan*: Permenkes 6/2026 Pasal 13 ayat (2) membolehkan pelayanan darah melalui pihak ketiga, sedangkan Permenkes 83/2014 Pasal 40 ayat (1) mewajibkan setiap RS memiliki BDRS. Belum ada pernyataan resmi; perlu dikonfirmasi.
+- Dengan dicabutnya Permenkes 82/2013, tidak ada lagi standar SIMRS spesifik (mis. kewajiban open source / kode sumber) dari regulasi itu; acuan integrasi kini PP 28/2024 Pasal 780 huruf d–e, 781, 947 (standar data & interoperabilitas Menteri), Permenkes 24/2022 Pasal 5 & 21, dan Permenkes 6/2026 Pasal 74.
+- Permenkes 91/2015 §7.2.1: SI BDRS "perlu diintegrasikan dengan sistem informasi yang ada di UTD" agar ketersediaan darah di UTD & kebutuhan di BDRS selaras; §7.4.1: jejaring informasi idealnya memakai SIM pelayanan darah yang sama; §7.5.2: integrasi ke SIK mengikuti persyaratan Kemenkes.
+
+### 7.2 BPJS Kesehatan
+- Dokumentasi teknis bridging BPJS (V-Claim, dsb.) berada di situs BPJS yang **tidak termasuk daftar sumber primer yang diizinkan** brief ini; tidak diteliti.
+- SATUSEHAT memiliki modul "Pembiayaan Kesehatan Klaim BPJS Kesehatan" (v2, 24 Agustus 2026: pengiriman hanya sampai Invoice) — https://satusehat.kemkes.go.id/platform/docs/id/interoperability/klaim-bpjs/ ; tidak dianalisis rinci.
+- Biaya: Pemerintah Pusat menetapkan **biaya pengganti pengolahan darah (BPPD)** — PP 28/2024 Pasal 288 ayat (2); BPPD di BDRS paling tinggi 50% dari BPPD per kantong UTD metode konvensional, ditetapkan direktur RS — Permenkes 83/2014 Pasal 52. Hubungan dengan tarif INA-CBG/klaim BPJS **[TIDAK TERVERIFIKASI]**.
+- Relevansi untuk utd-rs: kemungkinan cukup mengekspor item tagihan (jumlah kantong, jenis komponen, BPPD) ke SIMRS/billing RS; bridging langsung BPJS sebaiknya di luar lingkup.
+
+## 8. Requirement untuk utd-rs
+
+Notasi sumber: PP28 = PP 28/2024; PMK83 = Permenkes 83/2014; PMK91 = Permenkes 91/2015 (Lampiran); BPOM11 = Peraturan BPOM 11/2025 (Lampiran); PMK24 = Permenkes 24/2022; PMK6 = Permenkes 6/2026; UUPDP = UU 27/2022; PP71 = PP 71/2019; BSSN8 = Peraturan BSSN 8/2020; BSSN1 = Peraturan BSSN 1/2024; SS = dokumentasi SATUSEHAT.
+Tanda **[UPD]** = hanya berlaku bila RS juga menyelenggarakan UTD/UPD (penerimaan donor, uji saring, pengolahan).
+
+### 8.1 Requirement fungsional (FR)
+
+| ID | Requirement | Sumber |
+|---|---|---|
+| FR-01 | Formulir permintaan darah elektronik dengan field wajib: identitas pasien (nama lengkap, tgl lahir, no. RM, jenis kelamin), ruang, tgl permintaan & rencana transfusi, diagnosis, indikasi, jenis permintaan (elektif/rutin/darurat), Hb/trombosit, golongan darah, riwayat transfusi & reaksi, jenis & volume komponen, DPJP + tanda tangan, pengambil sampel + tanda tangan; permintaan darurat dengan alasan; validasi kelengkapan (tolak/kembalikan bila tidak lengkap) | PMK91 §5.6.1–5.6.2 |
+| FR-02 | Penerimaan sampel di BDRS: cek kecocokan identitas formulir vs label sampel, kondisi sampel (lisis, bekuan, volume, label), **usia sampel** (EDTA 18–25 °C ≤24 jam; EDTA 4 °C ≤3 hari; serum/plasma 4 °C ≤1 minggu) dengan blokir otomatis bila kedaluwarsa | PMK91 §5.6.2 |
+| FR-03 | Pencatatan golongan ABO (cell & serum grouping) dan Rh pasien **pada setiap permintaan**, deteksi diskrepansi dengan riwayat → wajib sampel ulang sebelum pengeluaran darah | PMK91 §5.7.3 A |
+| FR-04 | Pemeriksaan ulang ABO/Rh donor dari selang kantong pada setiap permintaan; diskrepansi → status kantong "dikembalikan ke UTD" + laporan | PMK91 §5.7.3 (pemeriksaan ulang donor) |
+| FR-05 | Aturan kompatibilitas ABO/Rh (termasuk Rh-neg, weak D/DVI/Del sebagai Rh-neg untuk pasien, override darurat dengan persetujuan dokter tercatat) yang dapat dikonfigurasi oleh penanggung jawab BDRS | PMK91 §5.7.1, §5.7.3 A |
+| FR-06 | Lembar kerja uji silang serasi: mayor, minor, autokontrol per kantong (tanpa pooling), fase I–III atau immediate-spin bila skrining antibodi donor negatif; konfirmasi CCC untuk tube test; interpretasi tabel (kompatibel / inkompatibel / hanya PRC) + tindak lanjut & rujukan sampel | PMK91 §5.7.3 B–C, §5.13; PMK83 Pasal 41 ayat (1) huruf c–d |
+| FR-07 | Aturan per komponen apakah crossmatch wajib/minor-saja/tidak perlu dapat dikonfigurasi (karena PMK91 §5.7.3 B vs §6.1 F–G berbeda) | PMK91 §5.7.3 B, §6.1 |
+| FR-08 | Penyimpanan sampel resipien+donor pasca crossmatch 7 hari, dengan pengingat pemusnahan sampel | PMK91 §5.7.5 |
+| FR-09 | Penerimaan darah dari UTD: scan barcode label kantong, cek jumlah/jenis/golongan/**tgl kedaluwarsa dari label UTD**/dokumen/suhu min-maks transport/kondisi kantong & label; cetak **berita acara serah terima** | PMK91 §5.4.2, §5.5.2 no. 3 |
+| FR-10 | Parser label yang dapat dikonfigurasi (ISBT 128 **dan** format barcode lokal UTD/PMI); nomor kantong unik sebagai kunci ketertelusuran | BPOM11 butir 6.18–6.21; Aneks 1 butir 65–67; PMK91 §3.3 |
+| FR-11 | Inventaris stok per komponen & golongan, status kantong (karantina/tersedia/dipesan/crossmatch/keluar/ditransfusikan/dikembalikan/dimusnahkan), **FEFO**, peringatan mendekati kedaluwarsa, blokir pengeluaran kantong kedaluwarsa | PMK91 §3.10.1, §5.5.2; PMK83 Pasal 41 ayat (1) huruf b |
+| FR-12 | Perhitungan kedaluwarsa ulang untuk komponen yang dicairkan/dibuka (FFP/cryo dicairkan: maks. 6 jam untuk transfusi; FFP 2–6 °C maks. 24 jam), tercatat siapa yang mengubah & alasan | PMK91 §5.5.2 no. 4, §6.1 F–G |
+| FR-13 | Log suhu tiap alat simpan (manual & integrasi data logger), pencatatan pembersihan, cek alarm (tanggal, jam, petugas) terhubung ke ID/nomor seri alat; insiden kegagalan suhu → penilaian status setiap kantong terdampak | PMK91 §3.10.1 E, §3.10.2 |
+| FR-14 | Pengeluaran darah ke ruangan: catat jam keluar, petugas pengantar terlatih (bukan keluarga), peringatan **30 menit** sejak keluar; bila transfusi ditunda >3×24 jam darah dapat dialokasikan ulang | PMK91 §5.8.2, §5.6.1 no. 5; PMK83 Pasal 33 |
+| FR-15 | Verifikasi samping tempat tidur oleh **dua petugas** (scan gelang pasien + kantong): nama, tgl lahir, no. RM, jenis kelamin, golongan; nomor kantong, kedaluwarsa, hasil uji pratransfusi, kondisi kantong, jam keluar; ketidakcocokan → blokir + laporan **Kejadian Nyaris Cedera** | PMK91 §6.1.2 |
+| FR-16 | Dokumentasi transfusi di RME: persetujuan, alasan/target, dokter peminta, hasil verifikasi + nama dua verifikator, jenis/volume, nomor kantong, ABO/Rh, jam mulai per kantong, pemasang; observasi tanda vital saat mulai, 15 menit, selesai, 4 jam pasca (rawat inap)/1 jam (rawat jalan) | PMK91 §6.1.5; PP28 Pasal 778 ayat (3) |
+| FR-17 | Pelaporan & penelusuran reaksi transfusi: keluhan tertulis dari ruangan, penerimaan sisa kantong + sampel pasca transfusi, identifikasi kantong (nomor, ABO/Rh, komponen, sisa volume, IMLTD & crossmatch beserta waktu/metode/petugas), cek silang arsip permintaan, pemeriksaan ulang, kesimpulan, validasi tanda tangan pemeriksa & penanggung jawab BDRS, kirim ke **tim keselamatan pasien** | PMK91 §5.9; PMK83 Pasal 41 ayat (1) huruf f |
+| FR-18 | Ketertelusuran dua arah: dari nomor kantong → pasien penerima (dan sebaliknya), termasuk kantong yang dikembalikan/dimusnahkan; dukungan **look-back** (notifikasi UTD tentang donor reaktif → daftar pasien penerima & dokter perawat) | PMK91 §2.17 F; BPOM11 butir 1.52–1.57, 10.17; Aneks 1 butir 18 |
+| FR-19 | Pengembalian darah ke UTD dengan alasan terstruktur (kelebihan stok, kedaluwarsa, bocor, selang putus, rusak, tidak sesuai permintaan, salah label) dan bukti penyimpanan sesuai | PMK91 §5.10; PMK83 Pasal 41 ayat (1) huruf g, Pasal 56 ayat (2) |
+| FR-20 | Pemusnahan: daftar darah kedaluwarsa/tidak layak, **laporan darah kedaluwarsa**, berita acara pemusnahan atau serah ke UTD sebagai limbah medis | PP28 Pasal 297; PMK91 §5.5.2 no. 5–8; PMK83 Pasal 34 |
+| FR-21 | Perencanaan kebutuhan darah tahunan (metode rerata mingguan 26 minggu / harian / moving average per ABO-Rh), stok minimal & ideal; ekspor laporan ke UTD | PMK83 Pasal 43; PMK91 §5.3; PP28 Pasal 292 |
+| FR-22 | Permintaan darah rutin/khusus/darurat ke UTD (tertulis/elektronik), termasuk darah langka (Rh-neg) dengan data rujukan yang dipersyaratkan | PMK91 §5.4.1, §5.12 |
+| FR-23 | Laporan bulanan BDRS **Formulir 3** (poin A–E: permintaan ke UTD, pemberian oleh UTD, pemakaian per bagian, reaksi transfusi, darah kembali) ke direktur RS & UTD; data tahunan Formulir 2 poin G | PMK83 Pasal 51; PMK91 §7.2.2 |
+| FR-24 | Indikator mutu: rasio **C:T** (peringatan >2,5), kebutuhan tidak terpenuhi, darah kedaluwarsa, kebijakan Type & Screen/MSBOS yang dapat dikonfigurasi | PMK91 §5.11 |
+| FR-25 | Pencatatan & pelaporan **ketersediaan darah** melalui SIK terintegrasi SIKN (antarmuka keluar yang dapat dikonfigurasi, menunggu spesifikasi Kemenkes) | PP28 Pasal 299; PMK6 Pasal 74 |
+| FR-26 | Integrasi dengan SIMRS/RME RS (identitas pasien/no. RM, order, hasil, dokumentasi transfusi) via API standar; tidak menduplikasi master pasien | PMK24 Pasal 5; PP28 Pasal 780 huruf d–e, 781 |
+| FR-27 | Klien SATUSEHAT: OAuth2 client credentials, pemilihan lingkungan sandbox/production per konfigurasi, cache token sesuai `expires_in`, backoff saat gagal auth (rate limit 1/menit), antrian kirim ulang | SS Autentikasi & Akses Token; SS Endpoint Information |
+| FR-28 | Pemetaan FHIR: `BiologicallyDerivedProduct` (identifier sistem blood-bag-number, productCategory/productCode, expirationDate, statusDetail distribusi/pemusnahan), `SupplyDelivery`, `Observation` (golongan darah, IMLTD), `ServiceRequest`, `Specimen`, `Procedure`, `Encounter`; dirancang mengikuti modul UPD (saat ini **hanya sandbox**) | SS Modul UPD v1.0; SS BiologicallyDerivedProduct |
+| FR-29 **[UPD]** | Registrasi & seleksi donor: NIK, nama, alamat, tgl lahir, kontak; kuesioner & pemeriksaan; status diterima/ditolak sementara (durasi)/ditolak permanen; **pencekalan donor** yang otomatis mencegah pelulusan komponen | BPOM11 butir 6.16–6.22, 4.46; Aneks 2 butir 40; SS Modul UPD |
+| FR-30 **[UPD]** | Uji saring IMLTD minimal HIV, HBsAg, HCV, sifilis per donasi; karantina hingga hasil ada; verifikasi independen entri manual; idealnya interface alat→SMI; produk reaktif tidak dapat diluluskan | PMK91 §3.8; BPOM11 butir 6.128; Aneks 2 butir 27–28 |
+| FR-31 **[UPD]** | Pengolahan komponen & pelabelan (isi label minimal PMK91 §3.7.2), pelulusan produk hanya oleh personel berwenang dengan tanda tangan elektronik | PMK91 §3.7.2, §2.17 G; BPOM11 butir 10.28–10.29; Aneks 2 butir 45 |
+| FR-32 **[UPD]** | Laporan UTD triwulanan & tahunan (Formulir 1–3) | PMK83 Pasal 35 |
+| FR-33 | Modul BDRS tidak menyediakan alur "uji saring IMLTD ulang" untuk darah dari UTD (hanya menampilkan hasil UTD) | PMK83 Pasal 44 |
+| FR-34 | Koreksi data klinis: jendela 2×24 jam untuk pemberi layanan; lewat itu memerlukan persetujuan PMIK/pimpinan; nilai lama tetap terbaca + alasan | PMK24 Pasal 30 ayat (5)–(7); BPOM11 butir 10.18 |
+
+### 8.2 Requirement non-fungsional (NFR)
+
+| ID | Kategori | Requirement | Sumber |
+|---|---|---|---|
+| NFR-01 | Keamanan – akses | RBAC dengan hak **input / perbaikan / lihat** (+ cetak, rilis) per peran; pemberian/perubahan/pencabutan hak akses **dicatat**; hak ditetapkan pimpinan RS | PMK24 Pasal 30; BPOM11 Aneks 2 butir 35, 38; PMK91 §2.20 A.7 |
+| NFR-02 | Keamanan – autentikasi | Login individual (tanpa akun bersama), kebijakan kata sandi/pergantian berkala atau MFA; sesi timeout | BPOM11 Aneks 2 butir 35; PMK91 §2.20 A.7 a, §7.4.2 C |
+| NFR-03 | Audit trail | Audit trail **append-only** untuk create/update/delete data GxP & klinis: siapa, kapan (tanggal+waktu), nilai lama/baru, **alasan perubahan**; termasuk entri manual & pengeluaran komponen; dapat diekspor ke format terbaca dan **direviu berkala** | BPOM11 Aneks 2 butir 31, 39; Bab 4 butir 4.45; PMK91 §2.20 A.9, B.3 c; PP71 Pasal 22 |
+| NFR-04 | Audit trail – akses | Log **baca/akses** data pribadi spesifik dan rekam jejak pemrosesan yang dapat diberikan ke subjek data | UUPDP Pasal 31, 32 ayat (1) |
+| NFR-05 | Integritas data | Prinsip data integrity (PIC/S): data mentah ditetapkan, pencatatan saat kegiatan, verifikasi independen (dual entry/second person) untuk data kritis, *built-in checks* pada antarmuka, cetakan menandai data yang telah diubah | BPOM11 butir 10.1, 10.6, 10.16; Aneks 2 butir 23–24, 27, 30 |
+| NFR-06 | Tanda tangan elektronik | TTE terhubung permanen ke catatan, bertanggal & berwaktu, keamanannya terkendali; dipakai untuk pelulusan, validasi laporan reaksi, verifikasi bedside | BPOM11 Aneks 2 butir 44–45; PMK24 Pasal 31 |
+| NFR-07 | Validasi sistem (CSV) | Paket validasi: URS/SKP tertelusur, deskripsi sistem & aliran data, analisis risiko, skenario uji (limit, error handling), laporan validasi, uji restorasi backup, uji barcode scanner, uji kinerja jumlah pengguna maksimum, validasi migrasi data; status tervalidasi dijaga (change control, revalidasi berkala) | BPOM11 Aneks 2 butir 4–5, 12–22, 32–34; PMK91 §2.20 A.2–A.6, B |
+| NFR-08 | Manajemen rilis | Setiap pembaruan perangkat lunak (termasuk image Docker) dievaluasi, diverifikasi saat instalasi, disetujui, didokumentasikan; catatan rilis & versi tercatat | BPOM11 Aneks 2 butir 43; PMK91 §2.20 A.13 |
+| NFR-09 | Backup | Backup periodik otomatis, **salinan di lokasi berbeda dari lokasi RS (off-site)**, terenkripsi, diberi ID, diuji restorasinya secara berkala; dituangkan dalam SPO | PMK24 Pasal 20 ayat (4)–(5); PMK91 §2.20 A.10, §7.4.2 C; BPOM11 Aneks 2 butir 26, 41 |
+| NFR-10 | Retensi | Retensi dapat dikonfigurasi per jenis data; default **≥ 25 tahun** sejak kunjungan terakhir untuk data tertaut pasien; ≥ 10 tahun untuk dokumen mutu & data mentah UPD; ≥ 5 tahun catatan pengambilan donor; pemusnahan hanya setelah masa retensi dan tercatat | PMK24 Pasal 39; BPOM11 butir 10.21; PMK91 §2.14; PP71 Pasal 14 ayat (1) huruf g |
+| NFR-11 | Arsip | Data lama tetap dapat ditampilkan utuh & terbaca sampai akhir retensi, termasuk setelah upgrade/migrasi (uji keterbacaan) | PP71 Pasal 25; BPOM11 butir 10.23, Aneks 2 butir 47; PMK91 §7.4.2 C |
+| NFR-12 | Ketersediaan | Target ketersediaan tinggi untuk layanan 24/7 (bank darah melayani IGD); rencana keberlangsungan, **prosedur manual cadangan saat downtime** diuji melalui simulasi; mode baca-saja/cetak darurat stok & golongan darah | PP71 Pasal 20 ayat (1); BPOM11 Aneks 2 butir 26, 46; PMK91 §2.20 A.11; PP28 Pasal 985 |
+| NFR-13 | Kerahasiaan | Enkripsi in-transit (TLS) dan at-rest untuk data kesehatan; minimisasi data; kerahasiaan donor dijaga (identitas donor tidak ditampilkan ke pengguna klinis tanpa kebutuhan) | PMK24 Pasal 29, 32; UUPDP Pasal 4, 35–39; PMK91 §2.20 A.7; BPOM11 butir 6.16 |
+| NFR-14 | Insiden & notifikasi | Dukungan alur insiden: deteksi (log keamanan), pelaporan internal ke TTIS RS, data untuk notifikasi kegagalan PDP **≤ 3×24 jam** (data terdampak, kapan/bagaimana, upaya pemulihan) | UUPDP Pasal 46; PP71 Pasal 14 ayat (5), Pasal 24; BSSN1 Pasal 8, 15; PP28 Pasal 792 |
+| NFR-15 | SMKI | Dokumentasi pendukung SMPI/SNI ISO/IEC 27001 (risk register, kontrol akses, logging) dan penilaian mandiri kategori sistem BSSN; dukungan DPIA | BSSN8 Pasal 6–12; PP28 Pasal 791, 986; UUPDP Pasal 34 |
+| NFR-16 | Lokalisasi data | Seluruh data & backup disimpan di wilayah Indonesia; bila memakai pihak ketiga, penyedia dengan fasilitas di dalam negeri + NDA + akses penuh RS | PP71 Pasal 20 ayat (2); PMK24 Pasal 22 |
+| NFR-17 | Deploy Docker on-prem | Image versi tetap (tag/digest), konfigurasi via env/secret (client secret SATUSEHAT tidak di image), infrastruktur (host, DB, jaringan) dapat dikualifikasi (IQ/OQ), dokumentasi arsitektur fisik/logis, persyaratan lingkungan server; dapat berjalan tanpa internet (antrian sinkronisasi SATUSEHAT) | BPOM11 Aneks 2 butir 4, 17, 26; PMK91 §2.20 A.12; PMK24 Pasal 20 ayat (3) huruf a |
+| NFR-18 | Pihak ketiga / vendor | Perjanjian formal vendor (instalasi, pemeliharaan, akses jarak jauh) dengan tanggung jawab jelas; dokumentasi mutu pengembang tersedia untuk auditor/inspektur | BPOM11 Aneks 2 butir 7–10; PMK91 §7.2.1 |
+| NFR-19 | Interoperabilitas | API berbasis standar (HL7 FHIR R4) dan terminologi sesuai SATUSEHAT (LOINC, SNOMED CT, kode TK Kemenkes); kompatibel dengan variabel & metadata Kemenkes | PP28 Pasal 780 huruf d–e, 947; PMK24 Pasal 21; SS Modul UPD |
+| NFR-20 | Aksesibilitas & usability | UI dapat dipakai di stasiun kerja lab dan tablet bedside, mendukung pemindai barcode; **tidak ditemukan regulasi aksesibilitas digital spesifik** dalam sumber yang dibaca — rekomendasi praktik baik WCAG 2.1 AA (bukan kewajiban hukum yang terverifikasi) | (praktik baik; lihat §11) |
+| NFR-21 | Kinerja | Mampu melayani jumlah pengguna maksimum yang ditetapkan dalam validasi; respon cepat untuk alur darurat (pencarian stok, cetak label crossmatch) | PMK91 §2.20 A.5 f |
+| NFR-22 | Waktu | Sinkronisasi waktu server (NTP) agar cap waktu audit trail & pemantauan 30 menit/6 jam akurat | turunan dari BPOM11 Aneks 2 butir 39, 44; PMK91 §5.8.2 |
+
+## 9. Pertanyaan terbuka
+
+1. **Lingkup**: apakah utd-rs hanya **BDRS** (terima darah dari UTD PMI/UTD lain, crossmatch, distribusi internal) atau juga **UTD-RS/UPD** (RS menerima donor, uji saring IMLTD, pengolahan komponen)? Bila UPD → CPOB BPOM penuh, sertifikasi CPOB, dan FR-29–FR-32 berlaku.
+2. **Apakah RS menerima donor** (termasuk donor pengganti keluarga pasien)? Berdampak pada data donor (NIK), PDP, dan modul SATUSEHAT UPD.
+3. Siapa **UTD mitra** dan format **label/barcode** kantongnya (ISBT 128 atau format lokal PMI)? Apakah UTD menyediakan data elektronik (API/file) untuk penerimaan kantong?
+4. Aturan crossmatch untuk TC/FFP/cryo: ikuti §5.7.3 (minor) atau §6.1 (tidak perlu)? Siapa yang menetapkan konfigurasi (penanggung jawab BDRS/komite transfusi)?
+5. **Kanal pelaporan nasional**: PP 28/2024 Pasal 299 mewajibkan pelaporan ketersediaan darah via SIK terintegrasi SIKN — aplikasi/endpoint apa yang dipakai Kemenkes untuk BDRS (SATUSEHAT? aplikasi Kemenkes lain)? Belum ditemukan spesifikasinya.
+6. **SATUSEHAT untuk BDRS**: modul UPD (v1.0, 17 Nov 2026) baru di sandbox dan berhenti di distribusi. Apakah Kemenkes akan merilis modul transfusi pasien/BDRS? Perlukah utd-rs mengirim data transfusi pasien sekarang (via modul rawat inap generik) atau menunggu?
+7. Apakah utd-rs mengirim ke SATUSEHAT **langsung** (sebagai sistem RME mitra terdaftar) atau **melalui SIMRS** RS? Ini menentukan siapa pemegang client_id/secret dan registrasi "Sistem RME" di SATUSEHAT.
+8. Status **Permenkes pengganti 83/2014 & 91/2015** (delegasi PP 28/2024 Pasal 303) — apakah sedang disusun? Perlu pemantauan berkala JDIH Kemenkes.
+9. Ketegangan **Permenkes 6/2026 Pasal 13 ayat (2)** (pelayanan darah dapat lewat pihak ketiga) vs **Permenkes 83/2014 Pasal 40** (setiap RS wajib BDRS) — bagaimana posisi RS target?
+10. Jenis RS target: **pemerintah (PSE lingkup publik)** atau **swasta (lingkup privat)**? Menentukan kewajiban pendaftaran PSE, lokalisasi data, dan kategori BSSN.
+11. Apakah RS sudah punya **DPO**, TTIS, dan SMKI/ISO 27001? utd-rs perlu menyesuaikan dokumen pendukungnya.
+12. **Retensi**: apakah RS menetapkan retensi lebih panjang (mis. seumur hidup untuk data look-back)? Regulasi CPOB merujuk "sesuai peraturan perundang-undangan" tanpa angka untuk data ketertelusuran.
+13. Verifikasi isi **PP 33/2026** (pelaksana UU PDP) bila memang ada — format notifikasi, DPIA, dan kewajiban DPO yang lebih rinci.
+14. Integrasi dengan **alat lab** (gel card reader, analyzer golongan darah) dan **data logger suhu** — merek/protokol apa yang dipakai RS?
+15. Apakah perlu ekspor biaya (BPPD) ke billing SIMRS/klaim BPJS, dan bagaimana tarifnya ditetapkan di RS target?
+
+## 10. Daftar sumber (dibaca langsung)
+
+**Undang-undang / PP**
+- UU 17/2023 tentang Kesehatan — https://peraturan.bpk.go.id/Details/258028/uu-no-17-tahun-2023 (halaman status; teks pasal tidak dikutip)
+- PP 28/2024 — https://peraturan.bpk.go.id/Details/294077/pp-no-28-tahun-2024 ; PDF https://peraturan.bpk.go.id/Download/353434/PP%20Nomor%2028%20Tahun%202024.pdf (Pasal 279–303, 777–792, 945–987, 1169–1170)
+- PP 7/2011 (status dicabut) — https://peraturan.bpk.go.id/Details/5129/pp-no-7-tahun-2011
+- UU 27/2022 PDP — https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022
+- PP 71/2019 PSTE — https://peraturan.bpk.go.id/Details/122030/pp-no-71-tahun-2019
+
+**Peraturan Menteri / Badan**
+- Permenkes 83/2014 — https://peraturan.go.id/files/bn1756-2014.pdf ; status https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-83-tahun-2014
+- Permenkes 91/2015 — https://peraturan.bpk.go.id/Download/107583/Permenkes%20Nomor%2091%20Tahun%202015.pdf ; status https://peraturan.bpk.go.id/Details/116661/permenkes-no-91-tahun-2015 ; https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-91-tahun-2015
+- Peraturan BPOM 11/2025 — https://peraturan.bpk.go.id/Details/320018/peraturan-bpom-no-11-tahun-2025 ; PDF https://peraturan.bpk.go.id/Download/381648/peraturan-bpom-no-11-tahun-2025.pdf
+- Perka BPOM 10/2017 (dicabut) — https://peraturan.bpk.go.id/Details/220303/perka-bpom-no-10-tahun-2017
+- Siaran pers BPOM HM.01.1.2.05.25.124 — https://www.pom.go.id/siaran-pers/bpom-ubah-suai-pedoman-cpob-jamin-standar-mutu-dan-keamanan-produk-darah
+- Permenkes 24/2022 Rekam Medis — https://peraturan.bpk.go.id/Details/245544 ; PDF https://peraturan.bpk.go.id/Download/301563/Permenkes%20Nomor%2024%20Tahun%202022.pdf
+- Permenkes 6/2026 tentang Rumah Sakit — https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-6-tahun-2026 ; PDF https://jdih.kemkes.go.id/storage/documents/pdfs/2026permenkes006.pdf
+- Permenkes 82/2013 SIMRS (dicabut) — https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-82-tahun-2013
+- Kepmenkes HK.01.07/MENKES/133/2023 (SATUSEHAT) — https://jdih.kemkes.go.id/storage/documents/pdfs/2023kepmenkes133.pdf
+- Permenkominfo 5/2020 — https://peraturan.bpk.go.id/Details/203049/permenkominfo-no-5-tahun-2020 ; Permenkominfo 10/2021 — https://peraturan.bpk.go.id/Details/203121/permenkominfo-no-10-tahun-2021
+- Peraturan BSSN 8/2020 — https://peraturan.bpk.go.id/Details/174285/peraturan-bssn-no-8-tahun-2020
+- Peraturan BSSN 1/2024 — https://peraturan.bpk.go.id/Details/291240/peraturan-bssn-no-1-tahun-2024 ; BSSN 10/2020 (dicabut) — https://peraturan.bpk.go.id/Details/174287
+
+**SATUSEHAT (dokumentasi resmi Kemenkes, diakses 2026-11-18, portal v7.23)**
+- Autentikasi — https://satusehat.kemkes.go.id/platform/docs/id/api-catalogue/authentication/
+- Akses Token — https://satusehat.kemkes.go.id/platform/docs/id/api-catalogue/authentication/apis/token/
+- Endpoint Information — https://satusehat.kemkes.go.id/platform/docs/id/postman-workshop/endpoint-information/
+- Kode Akses API Sandbox/Production — https://satusehat.kemkes.go.id/platform/docs/id/api-code/access-sandbox/ ; https://satusehat.kemkes.go.id/platform/docs/id/api-code/access-production/
+- Modul UPD — https://satusehat.kemkes.go.id/platform/docs/id/interoperability/upd/
+- Resource BiologicallyDerivedProduct — https://satusehat.kemkes.go.id/platform/docs/id/fhir/resources/biologically-derived-product/
+- Lampiran terminologi UPD — https://satusehat.kemkes.go.id/platform/docs/id/terminology/lampiran-terminologi/upd/ (diunduh, tidak dianalisis rinci)
+- Modul Rawat Inap — https://satusehat.kemkes.go.id/platform/docs/id/interoperability/rawat-inap-new/ ; Klaim BPJS — https://satusehat.kemkes.go.id/platform/docs/id/interoperability/klaim-bpjs/
+
+**WHO**
+- WHO (2016) *A guide to establishing a national haemovigilance system*, ISBN 978-92-4-154984-4 — https://www.who.int/publications/i/item/9789241549844 (hanya halaman katalog yang dicek; menegaskan ketertelusuran sebagai prasyarat hemovigilans nasional — Bab 3 daftar isi). Isi PDF **tidak dibaca**.
+
+## 11. Sumber / klaim yang tidak terverifikasi
+
+| Item | Status | Catatan |
+|---|---|---|
+| PP 33/2026 (pelaksana UU 27/2022 PDP) | **TIDAK TERVERIFIKASI** | Hanya muncul di sumber sekunder (blog/database pihak ketiga). Tidak ditemukan di peraturan.bpk.go.id maupun peraturan.go.id (404) per 2026-11-18. |
+| Kepmenkes HK.01.07/MENKES/1313/2023 Standar Akreditasi UTD | Status Berlaku dicek di JDIH; **isi tidak dibaca** | https://jdih.kemkes.go.id/documents/keputusan-menteri-kesehatan-nomor-hk0107menkes13132023 |
+| Permenkes 92/2015 | Tidak dibaca | Judul dari daftar BPK saja |
+| Permenkes 18/2022 (Satu Data Kesehatan melalui SIK) | Hanya metadata (BPK Details/245539), isi tidak dibaca | Dirujuk sebagai dasar Kepmenkes 133/2023 |
+| Perpres 82/2022 (Pelindungan IIV) & status RS sebagai IIV | **TIDAK TERVERIFIKASI** | Tidak dibaca |
+| Permenkes 11/2017 (Keselamatan Pasien) – pelaporan insiden nasional | **TIDAK TERVERIFIKASI** | Disebut hanya sebagai rujukan kemungkinan; status/isi tidak dicek |
+| Isi Formulir 1–3 Lampiran Permenkes 83/2014 (kolom per kolom) | Tidak dibaca rinci | Ada di PDF BN 1756/2014 |
+| Bridging BPJS (V-Claim dsb.), tarif BPPD dalam INA-CBG | **TIDAK TERVERIFIKASI** | Di luar daftar sumber primer brief |
+| Regulasi aksesibilitas digital (WCAG/UU 8/2016) untuk aplikasi RS | **TIDAK TERVERIFIKASI** | Tidak ditemukan kewajiban spesifik dalam sumber yang dibaca |
+| WHO haemovigilance guide (isi) | Hanya halaman katalog | — |
+| Interpretasi: Permenkes 24/2022 tetap berlaku pasca PP 28/2024; CPOB tidak berlaku langsung pada BDRS; PSE on-prem = RS | **Interpretasi peneliti** | Perlu konfirmasi bagian hukum RS / Kemenkes / BPOM / Komdigi |
+| Nomor halaman Permenkes 91/2015 | Diambil dari penanda halaman PDF; beberapa bagian dirujuk dengan nomor subbab saja | — |

@@ -1,0 +1,3 @@
+# Aturan klinis yang tidak konsisten di regulasi dijadikan konfigurasi, dengan bawaan yang lebih ketat
+
+Permenkes 91/2015 bertentangan dengan dirinya sendiri. §5.7.3 mewajibkan uji silang minor untuk TC/FFP/kriopresipitat, sedangkan §6.1 menyebutnya tidak perlu; tabel masa simpan FFP juga punya dua versi. Kami menyimpan aturan per komponen di tabel `aturan_komponen` (uji silang yang wajib, suhu simpan, masa pakai setelah dicairkan), yang diubah oleh penanggung jawab BDRS dengan jejak audit. Bawaannya mengikuti versi yang lebih ketat demi keselamatan pasien. Tanggal kedaluwarsa kantong tidak dihitung aplikasi: nilainya diambil dari label UTD (§5.5.2 no. 3), dan aplikasi hanya mempersingkatnya saat kantong dicairkan atau dibuka.
