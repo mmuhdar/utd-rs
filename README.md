@@ -96,36 +96,48 @@ Untuk RS yang juga mengambil darah donor (CPOB BPOM). Mode ini diaktifkan di **D
 
 ## Tech stack
 
+<p>
+  <img src="docs/ikon/rust.svg" width="40" height="40" alt="Rust" title="Rust">&nbsp;
+  <img src="docs/ikon/tokio.svg" width="40" height="40" alt="Tokio" title="Tokio">&nbsp;
+  <img src="docs/ikon/svelte.svg" width="40" height="40" alt="Svelte" title="Svelte">&nbsp;
+  <img src="docs/ikon/typescript.svg" width="40" height="40" alt="TypeScript" title="TypeScript">&nbsp;
+  <img src="docs/ikon/vite.svg" width="40" height="40" alt="Vite" title="Vite">&nbsp;
+  <img src="docs/ikon/tailwindcss.svg" width="40" height="40" alt="Tailwind CSS" title="Tailwind CSS">&nbsp;
+  <img src="docs/ikon/postgresql.svg" width="40" height="40" alt="PostgreSQL" title="PostgreSQL">&nbsp;
+  <img src="docs/ikon/docker.svg" width="40" height="40" alt="Docker" title="Docker">&nbsp;
+  <img src="docs/ikon/caddy.svg" width="40" height="40" alt="Caddy" title="Caddy">&nbsp;
+</p>
+
 Semua dependensi terbuka (open source) dan dibundel ke dalam image, jadi aplikasi berjalan penuh di jaringan RS tanpa akses internet. Satu-satunya layanan luar adalah SATUSEHAT, dan itu opsional.
 
 ### Backend
 
 | Komponen | Versi | Kegunaan |
 |---|---|---|
-| [Rust](https://www.rust-lang.org/) | edition 2024, minimal 1.94 | Bahasa backend, dikompilasi menjadi satu binary `utdrs` |
-| [axum](https://github.com/tokio-rs/axum) | 0.8 | Router HTTP dan API JSON |
-| [tokio](https://tokio.rs/) | 1.x | Runtime async |
-| [tower-http](https://github.com/tower-rs/tower-http) | 0.7 | Penyajian berkas antarmuka, log permintaan |
-| [sqlx](https://github.com/launchbadge/sqlx) | 0.9 | Akses PostgreSQL dan migrasi; query runtime ([ADR 0007](docs/adr/0007-build-dan-query.md)) |
-| [argon2](https://crates.io/crates/argon2) | 0.6 | Hash kata sandi |
-| [sha2](https://crates.io/crates/sha2) | 0.11 | Rantai hash jejak audit, sidik tanda tangan, token API |
-| [reqwest](https://crates.io/crates/reqwest) (rustls) | 0.13 | Klien HTTPS ke SATUSEHAT |
-| [serde](https://serde.rs/) / serde_json | 1.x | Serialisasi JSON |
-| [time](https://crates.io/crates/time), [uuid](https://crates.io/crates/uuid) (v7) | 0.3 / 1.x | Waktu dan ID |
-| [tracing](https://crates.io/crates/tracing) | 0.1 | Log terstruktur (JSON) |
-| [thiserror](https://crates.io/crates/thiserror), [anyhow](https://crates.io/crates/anyhow) | 2.x / 1.x | Galat berbahasa Indonesia untuk pengguna |
+| <img src="docs/ikon/rust.svg" width="16" height="16" alt=""> [Rust](https://www.rust-lang.org/) | edition 2024, minimal 1.94 | Bahasa backend, dikompilasi menjadi satu binary `utdrs` |
+| <img src="docs/ikon/tokio.svg" width="16" height="16" alt=""> [axum](https://github.com/tokio-rs/axum) | 0.8 | Router HTTP dan API JSON |
+| <img src="docs/ikon/tokio.svg" width="16" height="16" alt=""> [tokio](https://tokio.rs/) | 1.x | Runtime async |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [tower-http](https://github.com/tower-rs/tower-http) | 0.7 | Penyajian berkas antarmuka, log permintaan |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [sqlx](https://github.com/launchbadge/sqlx) | 0.9 | Akses PostgreSQL dan migrasi; query runtime ([ADR 0007](docs/adr/0007-build-dan-query.md)) |
+| <img src="docs/ikon/lucide-key-round.svg" width="16" height="16" alt=""> [argon2](https://crates.io/crates/argon2) | 0.6 | Hash kata sandi |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [sha2](https://crates.io/crates/sha2) | 0.11 | Rantai hash jejak audit, sidik tanda tangan, token API |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [reqwest](https://crates.io/crates/reqwest) (rustls) | 0.13 | Klien HTTPS ke SATUSEHAT |
+| <img src="docs/ikon/json.svg" width="16" height="16" alt=""> [serde](https://serde.rs/) / serde_json | 1.x | Serialisasi JSON |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [time](https://crates.io/crates/time), [uuid](https://crates.io/crates/uuid) (v7) | 0.3 / 1.x | Waktu dan ID |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [tracing](https://crates.io/crates/tracing) | 0.1 | Log terstruktur (JSON) |
+| <img src="docs/ikon/lucide-package.svg" width="16" height="16" alt=""> [thiserror](https://crates.io/crates/thiserror), [anyhow](https://crates.io/crates/anyhow) | 2.x / 1.x | Galat berbahasa Indonesia untuk pengguna |
 
 ### Frontend
 
 | Komponen | Versi | Kegunaan |
 |---|---|---|
-| [SvelteKit](https://svelte.dev/docs/kit) + adapter-static | 3.x | Aplikasi satu halaman (SPA) statis yang dilayani langsung oleh binary Rust |
-| [Svelte](https://svelte.dev/) | 5 (runes) | Komponen antarmuka |
-| [TypeScript](https://www.typescriptlang.org/) | 6.x | Bahasa frontend |
-| [Vite](https://vite.dev/) | 8.x | Build dan server pengembangan |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.x | Gaya lewat token warna (`web/src/app.css`) |
-| [Lucide](https://lucide.dev/) (`@lucide/svelte`) | 1.x | Ikon |
-| [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans), [IBM Plex Mono](https://github.com/IBM/plex) (Fontsource) | 5.x | Huruf teks dan huruf nomor kantong/no. RM, dibundel tanpa CDN |
+| <img src="docs/ikon/svelte.svg" width="16" height="16" alt=""> [SvelteKit](https://svelte.dev/docs/kit) + adapter-static | 3.x | Aplikasi satu halaman (SPA) statis yang dilayani langsung oleh binary Rust |
+| <img src="docs/ikon/svelte.svg" width="16" height="16" alt=""> [Svelte](https://svelte.dev/) | 5 (runes) | Komponen antarmuka |
+| <img src="docs/ikon/typescript.svg" width="16" height="16" alt=""> [TypeScript](https://www.typescriptlang.org/) | 6.x | Bahasa frontend |
+| <img src="docs/ikon/vite.svg" width="16" height="16" alt=""> [Vite](https://vite.dev/) | 8.x | Build dan server pengembangan |
+| <img src="docs/ikon/tailwindcss.svg" width="16" height="16" alt=""> [Tailwind CSS](https://tailwindcss.com/) | 4.x | Gaya lewat token warna (`web/src/app.css`) |
+| <img src="docs/ikon/lucide.svg" width="16" height="16" alt=""> [Lucide](https://lucide.dev/) (`@lucide/svelte`) | 1.x | Ikon |
+| <img src="docs/ikon/lucide-type.svg" width="16" height="16" alt=""> [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans), [IBM Plex Mono](https://github.com/IBM/plex) (Fontsource) | 5.x | Huruf teks dan huruf nomor kantong/no. RM, dibundel tanpa CDN |
 
 Bagian frontend tidak memakai pustaka UI, pustaka state, atau pustaka grafik tambahan. Komponennya ada di `web/src/lib/`, dan grafik suhu digambar dengan SVG.
 
@@ -133,30 +145,30 @@ Bagian frontend tidak memakai pustaka UI, pustaka state, atau pustaka grafik tam
 
 | Komponen | Versi | Kegunaan |
 |---|---|---|
-| [PostgreSQL](https://www.postgresql.org/) | 17 | Database; trigger audit berantai hash, batasan data di skema |
-| [Docker](https://www.docker.com/) + Compose v2 | Engine ≥ 24 | Pemasangan on-premise: `db`, `app`, `proxy`, `backup` |
-| [Caddy](https://caddyserver.com/) | 2.10 | Reverse proxy, TLS (sertifikat RS atau sertifikat internal), HSTS |
-| Image dasar | `rust:1-bookworm` → `debian:bookworm-slim`, `node:24-alpine`, `postgres:17-alpine` | Build multi-tahap; aplikasi berjalan sebagai pengguna non-root dengan healthcheck |
-| Backup | `pg_dump` + OpenSSL AES-256 (PBKDF2) + cron | Backup harian terenkripsi, salinan ke lokasi kedua, checksum SHA-256 |
+| <img src="docs/ikon/postgresql.svg" width="16" height="16" alt=""> [PostgreSQL](https://www.postgresql.org/) | 17 | Database; trigger audit berantai hash, batasan data di skema |
+| <img src="docs/ikon/docker.svg" width="16" height="16" alt=""> [Docker](https://www.docker.com/) + Compose v2 | Engine ≥ 24 | Pemasangan on-premise: `db`, `app`, `proxy`, `backup` |
+| <img src="docs/ikon/caddy.svg" width="16" height="16" alt=""> [Caddy](https://caddyserver.com/) | 2.10 | Reverse proxy, TLS (sertifikat RS atau sertifikat internal), HSTS |
+| <img src="docs/ikon/debian.svg" width="16" height="16" alt=""> Image dasar | `rust:1-bookworm` → `debian:bookworm-slim`, `node:24-alpine`, `postgres:17-alpine` | Build multi-tahap; aplikasi berjalan sebagai pengguna non-root dengan healthcheck |
+| <img src="docs/ikon/lucide-hard-drive.svg" width="16" height="16" alt=""> Backup | `pg_dump` + OpenSSL AES-256 (PBKDF2) + cron | Backup harian terenkripsi, salinan ke lokasi kedua, checksum SHA-256 |
 
 ### Integrasi dan standar
 
 | Standar | Dipakai untuk |
 |---|---|
-| ISBT 128 | Pengurai label kantong (nomor donasi, kode produk, golongan, kedaluwarsa) di `web/src/lib/isbt.ts` |
-| HL7 FHIR R4 (`BiologicallyDerivedProduct`) | Pengiriman ke SATUSEHAT modul UPD lewat outbox |
-| OAuth2 client credentials | Token akses SATUSEHAT |
-| REST + JSON, token Bearer | API untuk SIMRS dan data logger suhu |
+| <img src="docs/ikon/lucide-scan-barcode.svg" width="16" height="16" alt=""> ISBT 128 | Pengurai label kantong (nomor donasi, kode produk, golongan, kedaluwarsa) di `web/src/lib/isbt.ts` |
+| <img src="docs/ikon/lucide-heart-pulse.svg" width="16" height="16" alt=""> HL7 FHIR R4 (`BiologicallyDerivedProduct`) | Pengiriman ke SATUSEHAT modul UPD lewat outbox |
+| <img src="docs/ikon/lucide-key-round.svg" width="16" height="16" alt=""> OAuth2 client credentials | Token akses SATUSEHAT |
+| <img src="docs/ikon/json.svg" width="16" height="16" alt=""> REST + JSON, token Bearer | API untuk SIMRS dan data logger suhu |
 
 ### Pengujian dan kualitas
 
 | Alat | Kegunaan |
 |---|---|
-| `#[sqlx::test]` + `tower::ServiceExt` | Uji API ujung ke ujung; setiap uji mendapat database PostgreSQL baru yang sudah dimigrasi |
-| `cargo clippy`, `rustfmt` | Lint dan format backend |
-| `svelte-check` | Pemeriksaan tipe Svelte/TypeScript |
-| `node --test` | Uji unit frontend (pengurai ISBT 128) |
-| [FigCraft](https://getartcraft.com/apps/figcraft) | Desain antarmuka (`design/utd-rs.figcraft`, dibangun oleh `design/layar.py`) |
+| <img src="docs/ikon/lucide-flask-conical.svg" width="16" height="16" alt=""> `#[sqlx::test]` + `tower::ServiceExt` | Uji API ujung ke ujung; setiap uji mendapat database PostgreSQL baru yang sudah dimigrasi |
+| <img src="docs/ikon/rust.svg" width="16" height="16" alt=""> `cargo clippy`, `rustfmt` | Lint dan format backend |
+| <img src="docs/ikon/svelte.svg" width="16" height="16" alt=""> `svelte-check` | Pemeriksaan tipe Svelte/TypeScript |
+| <img src="docs/ikon/nodedotjs.svg" width="16" height="16" alt=""> `node --test` | Uji unit frontend (pengurai ISBT 128) |
+| <img src="docs/ikon/figcraft.png" width="16" height="16" alt=""> [FigCraft](https://getartcraft.com/apps/figcraft) | Desain antarmuka (`design/utd-rs.figcraft`, dibangun oleh `design/layar.py`) |
 
 ---
 
