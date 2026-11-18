@@ -1,11 +1,13 @@
 //! Perintah admin: `utdrs buat-admin <nama_pengguna> "<Nama Lengkap>"` (sandi dari UTD_SANDI atau stdin),
 //! `utdrs seed-demo` (data fiktif untuk mencoba). Migrasi selalu dijalankan sebelum perintah apa pun.
 
+use crate::AppState;
 use crate::auth::{hash_sandi, periksa_sandi};
-use sqlx::PgPool;
 
-pub async fn jalankan(db: &PgPool, args: &[String]) -> anyhow::Result<()> {
+pub async fn jalankan(state: AppState, args: &[String]) -> anyhow::Result<()> {
+    let db = &state.db;
     match args[0].as_str() {
+        "seed-demo" => crate::demo::jalankan(state.clone()).await?,
         "migrate" => println!("Migrasi selesai."),
         "buat-admin" => {
             let (Some(nama_pengguna), Some(nama)) = (args.get(1), args.get(2)) else {
@@ -31,7 +33,7 @@ pub async fn jalankan(db: &PgPool, args: &[String]) -> anyhow::Result<()> {
             .await?;
             println!("Akun admin {nama_pengguna} dibuat. Sandi wajib diganti saat masuk pertama.");
         }
-        lain => anyhow::bail!("perintah tidak dikenal: {lain}. Pilihan: serve, migrate, buat-admin"),
+        lain => anyhow::bail!("perintah tidak dikenal: {lain}. Pilihan: serve, migrate, buat-admin, seed-demo"),
     }
     Ok(())
 }

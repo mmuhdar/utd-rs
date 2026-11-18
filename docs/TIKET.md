@@ -18,4 +18,4 @@ Urutan pengerjaan. Setiap tiket selesai bila ada ujinya dan `scripts/cargo.sh te
 - [x] T13 Integrasi SIMRS lewat token API + outbox & klien SATUSEHAT (M7)
 - [ ] T14 Web: kerangka, masuk, navigasi per peran, layar semua modul (desain lewat ui-ux-pro-max)
 - [ ] T15 Docker produksi, backup, mode darurat, dokumen pemasangan/operasional/kepatuhan/validasi (M8)
-- [ ] T16 Data demo fiktif (`utdrs seed-demo`)
+- [x] T16 Data demo fiktif (`utdrs seed-demo`)

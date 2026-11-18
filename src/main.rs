@@ -5,6 +5,7 @@ mod audit;
 mod auth;
 mod cli;
 mod config;
+mod demo;
 mod donor;
 mod error;
 mod integrasi;
@@ -18,6 +19,8 @@ mod tanda_tangan;
 mod transfusi;
 #[cfg(test)]
 mod uji;
+#[cfg(test)]
+mod uji_demo;
 #[cfg(test)]
 mod uji_donor;
 #[cfg(test)]
@@ -119,15 +122,16 @@ async fn main() -> anyhow::Result<()> {
     let cfg = config::Config::dari_env()?;
     let db = sqlx::postgres::PgPoolOptions::new().max_connections(20).connect(&cfg.database_url).await?;
     sqlx::migrate!().run(&db).await?;
+    let alamat: SocketAddr = cfg.alamat.parse()?;
+    let satusehat = cfg.satusehat.clone();
+    let state = AppState { db: db.clone(), cfg: Arc::new(cfg) };
     let args: Vec<String> = std::env::args().skip(1).collect();
     if !args.is_empty() && args[0] != "serve" {
-        return cli::jalankan(&db, &args).await;
+        return cli::jalankan(state, &args).await;
     }
-    let alamat: SocketAddr = cfg.alamat.parse()?;
-    if let Some(ss) = cfg.satusehat.clone() {
-        tokio::spawn(integrasi::jalankan(db.clone(), ss));
+    if let Some(ss) = satusehat {
+        tokio::spawn(integrasi::jalankan(db, ss));
     }
-    let state = AppState { db, cfg: Arc::new(cfg) };
     tracing::info!(%alamat, "utd-rs berjalan");
     let listener = tokio::net::TcpListener::bind(alamat).await?;
     axum::serve(listener, router(state).into_make_service_with_connect_info::<SocketAddr>()).await?;
