@@ -608,6 +608,7 @@ async fn detail_reaksi(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uu
     let mut tx = s.db.begin().await?;
     let r: Option<(Value, Uuid)> = sqlx::query_as(
         "select to_jsonb(r) || jsonb_build_object('pelapor', a.nama,
+                'penelusur', (select ak.nama from akun ak where ak.id = r.ditelusuri_oleh),
                 'penutup', (select ak.nama from tanda_tangan x join akun ak on ak.id = x.akun_id where x.id = r.ttd_penutupan)),
                 r.transfusi_id
          from reaksi r join akun a on a.id = r.dilaporkan_oleh where r.id = $1",

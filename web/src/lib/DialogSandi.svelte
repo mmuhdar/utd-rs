@@ -18,6 +18,7 @@
 		labelPetugas?: string;
 		onkonfirmasi: (d: { sandi: string; nama_pengguna: string }) => Promise<boolean>;
 	} = $props();
+	const uid = $props.id();
 	let dialog: HTMLDialogElement | undefined = $state();
 	let sandi = $state('');
 	let nama = $state('');
@@ -45,13 +46,13 @@
 		<p class="text-sm text-redup">{makna}</p>
 		{#if petugasLain}
 			<div>
-				<label class="label" for="ttd-nama">{labelPetugas}</label>
-				<input id="ttd-nama" class="input" autocomplete="off" bind:value={nama} required />
+				<label class="label" for="{uid}-nama">{labelPetugas}</label>
+				<input id="{uid}-nama" class="input" autocomplete="off" bind:value={nama} required />
 			</div>
 		{/if}
 		<div>
-			<label class="label" for="ttd-sandi">{petugasLain ? 'Kata sandi petugas tersebut' : 'Kata sandi Anda'}</label>
-			<input id="ttd-sandi" class="input" type="password" autocomplete="current-password" bind:value={sandi} required />
+			<label class="label" for="{uid}-sandi">{petugasLain ? 'Kata sandi petugas tersebut' : 'Kata sandi Anda'}</label>
+			<input id="{uid}-sandi" class="input" type="password" autocomplete="current-password" bind:value={sandi} required />
 		</div>
 		<div class="flex justify-end gap-2">
 			<button type="button" class="btn" onclick={() => dialog?.close()}>Batal</button>

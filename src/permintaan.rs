@@ -112,7 +112,7 @@ async fn cari_pasien(State(s): State<AppState>, p: Pengguna, Query(c): Query<Car
     }
     let v: Value = sqlx::query_scalar(
         "select coalesce(jsonb_agg(to_jsonb(p) order by p.nama), '[]') from
-           (select * from pasien where no_rm = $1 or nama ilike '%' || $1 || '%' order by no_rm = $1 desc, nama limit 20) p",
+           (select * from pasien where no_rm ilike $1 || '%' or nama ilike '%' || $1 || '%' order by no_rm = $1 desc, nama limit 20) p",
     )
     .bind(q)
     .fetch_one(&s.db)

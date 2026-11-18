@@ -1,0 +1,214 @@
+<!-- Layar ruang (tablet): kantong yang menunggu, verifikasi samping tempat tidur, dan transfusi yang berjalan. -->
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { api, GalatApi, pesanGalat } from '#lib/api.ts';
+	import { Sumber } from '#lib/sumber.svelte.ts';
+	import Keadaan from '#lib/Keadaan.svelte';
+	import Isian from '#lib/Isian.svelte';
+	import Chip from '#lib/Chip.svelte';
+	import Pindai from '#lib/Pindai.svelte';
+	import { sesi } from '#lib/sesi.svelte.ts';
+	import { KOMPONEN, golongan, hariIni, pukul, relatif } from '#lib/format.ts';
+	import TandaTangan from '#lib/pelayanan/TandaTangan.svelte';
+	import OctagonAlert from '@lucide/svelte/icons/octagon-alert';
+	import CircleAlert from '@lucide/svelte/icons/circle-alert';
+
+	const keluar = new Sumber(() => api<any[]>('GET', '/pengeluaran/aktif'));
+	const aktif = new Sumber(() => api<any[]>('GET', '/transfusi/aktif'));
+	$effect(() => {
+		keluar.muat();
+		aktif.muat();
+		const t = setInterval(() => {
+			keluar.muat();
+			aktif.muat();
+		}, 30_000);
+		return () => clearInterval(t);
+	});
+
+	// Verifikasi samping tempat tidur.
+	let no_rm = $state('');
+	let nomor = $state('');
+	let tanggal_lahir = $state('');
+	let rawat_jalan = $state(false);
+	let alasan_terlambat = $state('');
+	let mintaAlasan = $state<string | null>(null);
+	let blokir = $state<string | null>(null);
+	let galat = $state<string | null>(null);
+	let isian = $state<Record<string, string>>({});
+	let sibuk = $state(false);
+	let ttd: TandaTangan | undefined = $state();
+
+	const terlambat = $derived(keluar.data?.find((k) => k.nomor_kantong === nomor)?.terlambat ?? false);
+	const lengkap = $derived(!!(no_rm && nomor && tanggal_lahir && (!(terlambat || mintaAlasan) || alasan_terlambat.trim())));
+
+	function ulang() {
+		no_rm = nomor = tanggal_lahir = alasan_terlambat = '';
+		rawat_jalan = false;
+		mintaAlasan = blokir = galat = null;
+		isian = {};
+	}
+
+	function verifikasi(e: SubmitEvent) {
+		e.preventDefault();
+		ttd?.minta({
+			judul: 'Tanda tangan petugas kedua',
+			makna: `Petugas kedua menyatakan telah mencocokkan sendiri gelang pasien ${no_rm} dan label kantong ${nomor} di samping tempat tidur.`,
+			petugasLain: true,
+			kirim: async ({ nama_pengguna, sandi }) => {
+				sibuk = true;
+				galat = null;
+				isian = {};
+				try {
+					const t = await api<{ id: string }>('POST', '/transfusi/verifikasi', {
+						no_rm,
+						nomor_kantong: nomor,
+						tanggal_lahir,
+						rawat_jalan,
+						alasan_terlambat: alasan_terlambat || undefined,
+						petugas_2: nama_pengguna,
+						sandi_petugas_2: sandi
+					});
+					goto(`/transfusi/${t.id}`);
+				} catch (e) {
+					const pesan = pesanGalat(e);
+					if (e instanceof GalatApi && e.status === 409 && pesan.startsWith('JANGAN TRANSFUSIKAN')) {
+						blokir = pesan;
+						keluar.muat();
+					} else {
+						galat = pesan;
+						if (e instanceof GalatApi) {
+							isian = e.perIsian;
+							if (isian.alasan_terlambat) mintaAlasan = isian.alasan_terlambat;
+						}
+					}
+				} finally {
+					sibuk = false;
+				}
+			}
+		});
+	}
+</script>
+
+<svelte:head><title>Transfusi di ruang — utd-rs</title></svelte:head>
+
+<TandaTangan bind:this={ttd} />
+
+<h1 class="mb-4">Transfusi di ruang</h1>
+
+<div class="grid gap-4 xl:grid-cols-2">
+	{#if sesi.boleh('transfusi.catat')}
+		<section class="panel flex flex-col gap-4 xl:col-span-2" aria-labelledby="j-verif">
+			<h2 id="j-verif" class="text-lg">Verifikasi samping tempat tidur</h2>
+			{#if blokir}
+				<div class="peringatan p-6 text-lg" role="alert">
+					<OctagonAlert class="mt-1 size-8 shrink-0" aria-hidden="true" />
+					<div class="flex flex-col gap-3">
+						<p class="text-xl font-semibold">{blokir}</p>
+						<p class="text-base">Pasien {no_rm} · kantong <span class="mono">{nomor}</span></p>
+						<button type="button" class="btn btn--besar self-start" onclick={ulang}>Mulai verifikasi baru</button>
+					</div>
+				</div>
+			{:else}
+				<form class="flex flex-col gap-4" onsubmit={verifikasi}>
+					<p class="text-sm text-redup">Dua petugas di samping tempat tidur. Pindai gelang pasien dan label kantong, tanyakan tanggal lahir pasien.</p>
+					<div class="grid gap-4 md:grid-cols-2">
+						<div class="flex flex-col gap-2">
+							<Pindai label="1. Pindai gelang pasien (no. RM)" id="v-rm" onpindai={(v) => (no_rm = v)} autofocus />
+							<p class="min-h-12 rounded-md bg-halus px-3 py-2 text-lg" aria-live="polite">
+								No. RM: <span class="mono font-semibold">{no_rm || '—'}</span>
+							</p>
+							{#if isian.no_rm}<p class="text-sm text-bahaya">{isian.no_rm}</p>{/if}
+						</div>
+						<div class="flex flex-col gap-2">
+							<Pindai label="2. Pindai label kantong" id="v-kantong" onpindai={(v) => (nomor = v)} />
+							<p class="min-h-12 rounded-md bg-halus px-3 py-2 text-lg" aria-live="polite">
+								Kantong: <span class="mono font-semibold">{nomor || '—'}</span>
+							</p>
+							{#if isian.nomor_kantong}<p class="text-sm text-bahaya">{isian.nomor_kantong}</p>{/if}
+						</div>
+					</div>
+					<div class="grid gap-4 md:grid-cols-2">
+						<Isian label="3. Tanggal lahir menurut pasien atau gelang" id="v-lahir" galat={isian.tanggal_lahir}>
+							<input id="v-lahir" class="input min-h-12 text-base" type="date" max={hariIni()} bind:value={tanggal_lahir} required />
+						</Isian>
+						<label class="inline-flex min-h-12 items-center gap-3 self-end text-base">
+							<input type="checkbox" class="size-5" bind:checked={rawat_jalan} />
+							Pasien rawat jalan (observasi pasca 1 jam)
+						</label>
+					</div>
+					{#if terlambat || mintaAlasan}
+						<div class="catatan flex-col">
+							<p>{mintaAlasan ?? 'Kantong ini sudah lebih dari 30 menit di luar bank darah. Isi alasan bila tetap ditransfusikan, atau kembalikan ke BDRS.'}</p>
+							<div class="w-full text-teks">
+								<Isian label="Alasan transfusi terlambat" id="v-terlambat">
+									<textarea id="v-terlambat" class="input text-base" rows="2" bind:value={alasan_terlambat} required></textarea>
+								</Isian>
+							</div>
+						</div>
+					{/if}
+					{#if galat}
+						<div class="peringatan" role="alert"><CircleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" /><p>{galat}</p></div>
+					{/if}
+					<div class="flex flex-wrap gap-3">
+						<button class="btn btn--utama btn--besar" disabled={!lengkap || sibuk}>{sibuk ? 'Memeriksa…' : 'Cocokkan dan mulai transfusi'}</button>
+						<button type="button" class="btn btn--besar" onclick={ulang}>Kosongkan</button>
+					</div>
+				</form>
+			{/if}
+		</section>
+	{/if}
+
+	<section class="panel" aria-labelledby="j-keluar">
+		<h2 id="j-keluar" class="mb-3 text-lg">Kantong menunggu ditransfusikan</h2>
+		<Keadaan sumber={keluar}>
+			{#snippet kosong()}<p>Tidak ada kantong yang sudah keluar dari bank darah dan menunggu ditransfusikan.</p>{/snippet}
+			{#snippet children(data)}
+				<ul class="flex flex-col gap-2">
+					{#each data as k (k.id)}
+						<li class="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3 {k.terlambat ? 'border-bahaya bg-bahaya-latar' : 'border-garis'}">
+							<div>
+								<p class="mono font-semibold">{k.nomor_kantong}</p>
+								<p class="text-sm">{KOMPONEN[k.komponen]} {golongan(k.abo, k.rhesus)} · {k.pasien.nama} <span class="mono text-redup">{k.pasien.no_rm}</span></p>
+								<p class="text-xs text-redup">{k.ruang} · keluar pukul {pukul(k.dikeluarkan_pada)} · diterima {k.penerima_ruang}</p>
+							</div>
+							<Chip nada={k.terlambat ? 'bahaya' : k.menit > 20 ? 'waspada' : 'netral'}>
+								{k.menit} menit{k.terlambat ? ' — lewat 30 menit' : ''}
+							</Chip>
+						</li>
+					{/each}
+				</ul>
+			{/snippet}
+		</Keadaan>
+	</section>
+
+	<section class="panel" aria-labelledby="j-aktif">
+		<h2 id="j-aktif" class="mb-3 text-lg">Transfusi berjalan</h2>
+		<Keadaan sumber={aktif}>
+			{#snippet kosong()}<p>Tidak ada transfusi yang berjalan atau menunggu observasi pasca-transfusi.</p>{/snippet}
+			{#snippet children(data)}
+				<ul class="flex flex-col gap-2">
+					{#each data as t (t.id)}
+						{@const menit = (Date.now() - new Date(t.mulai).getTime()) / 60000}
+						<li>
+							<a href="/transfusi/{t.id}" class="flex min-h-12 flex-wrap items-center justify-between gap-3 rounded-md border border-garis p-3 hover:bg-halus">
+								<span>
+									<span class="block font-semibold">{t.pasien.nama} <span class="mono text-sm font-normal text-redup">{t.no_rm}</span></span>
+									<span class="block text-sm"><span class="mono">{t.nomor_kantong}</span> · {KOMPONEN[t.komponen]} · mulai {relatif(t.mulai)}</span>
+									<span class="block text-xs text-redup">Observasi terakhir: {t.observasi_terakhir ? relatif(t.observasi_terakhir) : 'belum ada'}</span>
+								</span>
+								<span class="flex flex-col items-end gap-1">
+									{#if t.selesai}
+										<Chip nada="waspada">Menunggu observasi pasca</Chip>
+									{:else}
+										<Chip nada="info">Berjalan</Chip>
+										{#if !t.ada_15_menit && menit >= 15}<Chip nada="bahaya">Observasi 15 menit belum dicatat</Chip>{/if}
+									{/if}
+								</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			{/snippet}
+		</Keadaan>
+	</section>
+</div>
