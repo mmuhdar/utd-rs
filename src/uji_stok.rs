@@ -212,3 +212,37 @@ async fn kop_surat_validasi_dan_audit(db: PgPool) {
     assert_eq!(res.status(), StatusCode::OK);
     assert_eq!(res.headers()["content-type"], "image/png");
 }
+
+#[sqlx::test]
+async fn kebijakan_sandi_diatur_admin(db: PgPool) {
+    let mut admin = Uji::sebagai(&db, "admin1", &["admin"]).await;
+    let mut tek = Uji::sebagai(&db, "tek1", &["teknisi"]).await;
+    let (_, k) = tek.get("/api/kebijakan-sandi").await;
+    assert_eq!(k["panjang_min"], 10);
+
+    // Bawaan 10: sandi 4 karakter ditolak.
+    let akun =
+        json!({ "nama_pengguna": "baru1", "nama": "Petugas Baru", "peran": ["perawat"], "sandi_sementara": "abcd" });
+    let (st, g) = admin.post("/api/akun", akun.clone()).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(g["isian"][0]["isian"], "sandi_sementara");
+
+    let (st, _) = tek.kirim("PUT", "/api/kebijakan-sandi", Some(json!({ "panjang_min": 4 }))).await;
+    assert_eq!(st, StatusCode::FORBIDDEN);
+    let (st, _) = admin.kirim("PUT", "/api/kebijakan-sandi", Some(json!({ "panjang_min": 3 }))).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+    let (st, k) = admin.kirim("PUT", "/api/kebijakan-sandi", Some(json!({ "panjang_min": 4 }))).await;
+    assert_eq!(st, StatusCode::OK);
+    assert_eq!(k["panjang_min"], 4);
+
+    // Setelah diubah ke 4: sandi 4 karakter diterima, 3 karakter tetap ditolak.
+    let (st, _) = admin.post("/api/akun", akun).await;
+    assert_eq!(st, StatusCode::OK);
+    let pendek =
+        json!({ "nama_pengguna": "baru2", "nama": "Petugas Dua", "peran": ["perawat"], "sandi_sementara": "abc" });
+    let (st, _) = admin.post("/api/akun", pendek).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+    let n: i64 =
+        sqlx::query_scalar("select count(*) from audit where objek = 'kebijakan_sandi'").fetch_one(&db).await.unwrap();
+    assert_eq!(n, 1);
+}

@@ -241,9 +241,17 @@ pub fn sandi_cocok(hash: &str, sandi: &str) -> bool {
 }
 
 /// Panjang adalah syarat yang berarti; aturan komposisi tidak dipakai.
-pub fn periksa_sandi(sandi: &str) -> Result<(), String> {
-    if sandi.chars().count() < 10 {
-        return Err("Kata sandi minimal 10 karakter. Kalimat pendek yang mudah diingat lebih baik.".into());
+/// Panjang minimal kata sandi dari kebijakan instalasi (Pengaturan → Kebijakan sandi).
+pub async fn panjang_min_sandi<'e>(db: impl sqlx::PgExecutor<'e>) -> Hasil<usize> {
+    let n: i32 = sqlx::query_scalar("select panjang_min from kebijakan_sandi").fetch_one(db).await?;
+    Ok(n as usize)
+}
+
+pub fn periksa_sandi(sandi: &str, panjang_min: usize) -> Result<(), String> {
+    if sandi.chars().count() < panjang_min {
+        return Err(format!(
+            "Kata sandi minimal {panjang_min} karakter. Kalimat pendek yang mudah diingat lebih baik."
+        ));
     }
     Ok(())
 }
@@ -439,7 +447,7 @@ pub async fn ganti_sandi(
     if !sandi_cocok(&hash, &g.sandi_lama) {
         return Err(tolak("sandi_lama", "Kata sandi lama salah."));
     }
-    periksa_sandi(&g.sandi_baru).map_err(|e| tolak("sandi_baru", e))?;
+    periksa_sandi(&g.sandi_baru, panjang_min_sandi(&s.db).await?).map_err(|e| tolak("sandi_baru", e))?;
     if g.sandi_baru == g.sandi_lama {
         return Err(tolak("sandi_baru", "Kata sandi baru harus berbeda dari yang lama."));
     }

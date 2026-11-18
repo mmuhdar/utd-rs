@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { minimalSandi } from '#lib/kebijakanSandi.svelte.ts';
 	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -231,7 +232,7 @@
 					{:else}
 						<form class="flex flex-col gap-3 border-t border-garis pt-4" onsubmit={reset}>
 							<h3 class="font-semibold">Reset kata sandi</h3>
-							<Isian label="Sandi sementara baru" id="u-sandi" galat={aksiReset.isian.sandi_sementara} bantuan="Minimal 10 karakter. Sampaikan langsung ke pengguna; ia wajib menggantinya saat masuk. Kunci akun ikut dibuka.">
+							<Isian label="Sandi sementara baru" id="u-sandi" galat={aksiReset.isian.sandi_sementara} bantuan="{minimalSandi()}. Sampaikan langsung ke pengguna; ia wajib menggantinya saat masuk. Kunci akun ikut dibuka.">
 								<input id="u-sandi" class="input" type="password" autocomplete="new-password" bind:value={sandiReset} required />
 							</Isian>
 							<PesanAksi aksi={aksiReset} />
@@ -256,7 +257,7 @@
 					<input id="b-nip" class="input mono" bind:value={baru.nip} />
 				</Isian>
 				{#if !layanan(baru.peran)}
-					<Isian label="Sandi sementara" id="b-sandi" galat={aksiBuat.isian.sandi_sementara} bantuan="Minimal 10 karakter; wajib diganti saat pertama masuk.">
+					<Isian label="Sandi sementara" id="b-sandi" galat={aksiBuat.isian.sandi_sementara} bantuan="{minimalSandi()}; wajib diganti saat pertama masuk.">
 						<input id="b-sandi" class="input" type="password" autocomplete="new-password" bind:value={baru.sandi_sementara} required />
 					</Isian>
 				{/if}

@@ -8,6 +8,7 @@ import FilePlus from '@lucide/svelte/icons/file-plus';
 import HandHeart from '@lucide/svelte/icons/hand-heart';
 import HeartPulse from '@lucide/svelte/icons/heart-pulse';
 import History from '@lucide/svelte/icons/history';
+import KeyRound from '@lucide/svelte/icons/key-round';
 import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 import Package from '@lucide/svelte/icons/package';
 import Plug from '@lucide/svelte/icons/plug';
@@ -66,6 +67,7 @@ export const GRUP: Grup[] = [
 		judul: 'Pengaturan',
 		menu: [
 			{ href: '/admin/akun', ikon: Users, label: 'Akun pengguna', hak: ['akun.kelola'] },
+			{ href: '/admin/sandi', ikon: KeyRound, label: 'Kebijakan sandi', hak: ['akun.kelola'] },
 			{ href: '/admin/kop', ikon: Stamp, label: 'Kop surat', hak: ['master.kelola'] },
 			{ href: '/admin/master', ikon: Database, label: 'Data induk & aturan', hak: ['master.kelola', 'aturan.kelola'] },
 			{ href: '/admin/audit', ikon: ShieldCheck, label: 'Jejak audit', hak: ['audit.lihat'] },

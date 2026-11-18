@@ -2,10 +2,10 @@
 
 ## Backup dan pemulihan (NFR-09, NFR-11)
 
-- Layanan `backup` membuat backup terenkripsi setiap hari pukul 01.00 dan setiap kali container mulai.
+- Layanan `backup` membuat backup terenkripsi setiap hari pukul 01.00 waktu server (`TZ`). Backup manual kapan saja: `docker compose exec backup backup.sh`.
   - Formatnya `pg_dump` yang dienkripsi AES-256 dengan kunci dari frasa `UTD_BACKUP_PASSPHRASE`.
   - Hasilnya ditulis ke `UTD_DIR_BACKUP`, lalu disalin ke `UTD_DIR_OFFSITE` beserta checksum SHA-256. Nama berkas (`utdrs-YYYYMMDD-HHMMSS`) menjadi ID backup.
-  - Retensi lokal 30 hari. Retensi di lokasi offsite diatur RS.
+  - Rotasi: tiap folder (lokal dan offsite) hanya menyimpan `UTD_BACKUP_SIMPAN` backup terbaru (bawaan 3). Backup paling lama baru dihapus setelah backup baru selesai dan checksum-nya cocok. Untuk arsip lebih panjang, salin backup dari folder offsite ke media lain secara berkala sesuai kebijakan RS.
   - Log ada di `docker compose logs backup`. Pesan "PERINGATAN: /offsite tidak tersedia" berarti salinan kedua gagal dan harus ditindaklanjuti hari itu juga.
 - **Uji pemulihan** wajib dilakukan minimal setiap 3 bulan dan setelah setiap pembaruan versi:
   ```sh

@@ -2,7 +2,7 @@
 //! `utdrs seed-demo` (data fiktif untuk mencoba). Migrasi selalu dijalankan sebelum perintah apa pun.
 
 use crate::AppState;
-use crate::auth::{hash_sandi, periksa_sandi};
+use crate::auth::{hash_sandi, panjang_min_sandi, periksa_sandi};
 
 pub async fn jalankan(state: AppState, args: &[String]) -> anyhow::Result<()> {
     let db = &state.db;
@@ -16,13 +16,13 @@ pub async fn jalankan(state: AppState, args: &[String]) -> anyhow::Result<()> {
             let sandi = match std::env::var("UTD_SANDI") {
                 Ok(s) => s,
                 Err(_) => {
-                    eprintln!("Kata sandi sementara (minimal 10 karakter):");
+                    eprintln!("Kata sandi sementara:");
                     let mut s = String::new();
                     std::io::stdin().read_line(&mut s)?;
                     s.trim_end_matches(['\r', '\n']).to_string()
                 }
             };
-            periksa_sandi(&sandi).map_err(anyhow::Error::msg)?;
+            periksa_sandi(&sandi, panjang_min_sandi(db).await?).map_err(anyhow::Error::msg)?;
             sqlx::query(
                 "insert into akun (nama_pengguna, nama, peran, sandi_hash) values ($1, $2, array['admin'], $3)",
             )

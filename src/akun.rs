@@ -2,7 +2,7 @@
 
 use crate::AppState;
 use crate::audit;
-use crate::auth::{Pengguna, hak_peran, hash_sandi, periksa_sandi};
+use crate::auth::{Pengguna, hak_peran, hash_sandi, panjang_min_sandi, periksa_sandi};
 use crate::error::{Galat, Hasil, tolak};
 use axum::extract::{Path, State};
 use axum::routing::{get, post, put};
@@ -19,6 +19,55 @@ pub fn rute() -> Router<AppState> {
         .route("/akun/{id}/reset-sandi", post(reset_sandi))
         .route("/akun/{id}/token", post(terbitkan_token))
         .route("/akun/{id}/token/cabut", post(cabut_token))
+        .route("/kebijakan-sandi", get(kebijakan_sandi).put(simpan_kebijakan_sandi))
+}
+
+/// GET /api/kebijakan-sandi — dibaca semua pengguna untuk petunjuk di formulir ganti sandi.
+async fn kebijakan_sandi(State(s): State<AppState>, _p: Pengguna) -> Hasil<Json<serde_json::Value>> {
+    let v: serde_json::Value =
+        sqlx::query_scalar("select to_jsonb(k) - 'id' from kebijakan_sandi k").fetch_one(&s.db).await?;
+    Ok(Json(v))
+}
+
+#[derive(Deserialize)]
+struct IsianKebijakan {
+    panjang_min: Option<i32>,
+}
+
+/// PUT /api/kebijakan-sandi — hanya admin. Berlaku untuk sandi yang dibuat atau diganti sesudahnya.
+async fn simpan_kebijakan_sandi(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Json(i): Json<IsianKebijakan>,
+) -> Hasil<Json<serde_json::Value>> {
+    p.wajib("akun.kelola")?;
+    let n = i
+        .panjang_min
+        .filter(|n| (4..=64).contains(n))
+        .ok_or_else(|| tolak("panjang_min", "Panjang minimal kata sandi harus antara 4 dan 64 karakter."))?;
+    let mut tx = s.db.begin().await?;
+    let sebelum: serde_json::Value =
+        sqlx::query_scalar("select to_jsonb(k) - 'id' from kebijakan_sandi k for update").fetch_one(&mut *tx).await?;
+    let sesudah: serde_json::Value = sqlx::query_scalar(
+        "update kebijakan_sandi k set panjang_min = $1, diubah_pada = now() returning to_jsonb(k) - 'id'",
+    )
+    .bind(n)
+    .fetch_one(&mut *tx)
+    .await?;
+    audit::catat(
+        &mut tx,
+        Some(&p),
+        audit::Jejak {
+            aksi: "ubah",
+            objek: "kebijakan_sandi",
+            sebelum: Some(sebelum),
+            sesudah: Some(sesudah.clone()),
+            ..Default::default()
+        },
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(Json(sesudah))
 }
 
 pub const LAYANAN: [&str; 2] = ["simrs", "logger"];
@@ -76,7 +125,7 @@ async fn buat(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianAkun>) 
     // Akun layanan tidak pernah masuk dengan sandi; sandinya acak dan tidak diketahui siapa pun.
     let acak = hex::encode(token_acak()?);
     let sandi = if layanan(&i.peran) { acak.as_str() } else { i.sandi_sementara.as_deref().unwrap_or("") };
-    periksa_sandi(sandi).map_err(|e| tolak("sandi_sementara", e))?;
+    periksa_sandi(sandi, panjang_min_sandi(&s.db).await?).map_err(|e| tolak("sandi_sementara", e))?;
     let mut tx = s.db.begin().await?;
     let id: Uuid = sqlx::query_scalar(
         "insert into akun (nama_pengguna, nama, nip, peran, sandi_hash) values ($1, $2, $3, $4, $5) returning id",
@@ -164,7 +213,7 @@ async fn reset_sandi(
     Json(r): Json<Reset>,
 ) -> Hasil<Json<serde_json::Value>> {
     p.wajib("akun.kelola")?;
-    periksa_sandi(&r.sandi_sementara).map_err(|e| tolak("sandi_sementara", e))?;
+    periksa_sandi(&r.sandi_sementara, panjang_min_sandi(&s.db).await?).map_err(|e| tolak("sandi_sementara", e))?;
     let mut tx = s.db.begin().await?;
     let n = sqlx::query("update akun set sandi_hash = $2, wajib_ganti_sandi = true, gagal_masuk = 0, terkunci_sampai = null where id = $1")
         .bind(id)

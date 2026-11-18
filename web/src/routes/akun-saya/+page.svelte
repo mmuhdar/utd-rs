@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { minimalSandi } from '#lib/kebijakanSandi.svelte.ts';
 	import { merek } from '#lib/merek.svelte.ts';
 	import PilihTema from '#lib/PilihTema.svelte';
 	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
@@ -45,7 +46,7 @@
 		<Isian label="Kata sandi saat ini" id="lama" galat={aksi.isian.sandi_lama}>
 			<input id="lama" class="input" type="password" autocomplete="current-password" bind:value={sandi_lama} required />
 		</Isian>
-		<Isian label="Kata sandi baru" id="baru" galat={aksi.isian.sandi_baru} bantuan="Minimal 10 karakter. Kalimat pendek lebih mudah diingat.">
+		<Isian label="Kata sandi baru" id="baru" galat={aksi.isian.sandi_baru} bantuan="{minimalSandi()}. Kalimat pendek lebih mudah diingat.">
 			<input id="baru" class="input" type="password" autocomplete="new-password" bind:value={sandi_baru} required />
 		</Isian>
 		<Isian label="Ulangi kata sandi baru" id="ulang" galat={aksi.isian.ulang}>
