@@ -45,7 +45,12 @@ Arahnya **modern klinis**: permukaan terang dan lega, bilah samping gelap, dan w
 - **Tanda tangan** (`DialogSandi.svelte`, kelas `.dialog`):
   - memakai `<dialog>` bawaan, sehingga fokus terkurung dan Esc membatalkan;
   - untuk petugas kedua, dialog meminta nama pengguna dan sandinya sendiri.
-- **Tahap permintaan** (`routes/permintaan/[id]/Tahap.svelte`): enam tahap dari sampel sampai transfusi, dihitung dari data permintaan.
+- **Kepala halaman** (`KepalaHalaman.svelte`): jalur (detail), judul, keterangan, dan tombol aksi di kanan. Dipakai di semua halaman.
+- **Tombol segmen** (`pelayanan/Pilihan.svelte`): pilihan tunggal (Negatif/Positif, Terima/Tolak, jenis). Tetap radio bawaan supaya keyboard dan pembaca layar bekerja. Prop `bahaya` membuat nilai tertentu (mis. uji silang positif) merah saat dipilih.
+- **Detail permintaan** (desain 04):
+  - kartu pasien, lalu penunjuk enam tahap (`Tahap.svelte`, logika di `tahap.ts`; setiap tahap menaut ke kartunya);
+  - dua kolom: kiri kartu tahap (`Bagian.svelte`) yang bisa dilipat, hanya tahap yang sedang dikerjakan terbuka, tahap selesai tampil satu baris ringkasan; kanan (`Samping.svelte`) sampel ringkas, daftar verifikasi kedua, dan rincian permintaan;
+  - saat dicetak semua tahap tampil terbuka.
 - **Tablet ruang**: target sentuh minimal 44px (`.btn--besar`). Hasil pindai yang baru terbaca berwarna biru (info), bukan hijau, karena pencocokan baru dilakukan server setelah petugas kedua menandatangani.
 - **Kop surat** (`Kop.svelte`, diatur di Pengaturan → Kop surat, pola sama dengan lis-rebuild):
   - logo kiri, identitas RS di tengah (pemerintah daerah, nama RS, unit, alamat, kontak, akreditasi), logo kanan, dan garis ganda di bawah;

@@ -66,9 +66,10 @@
 	}
 </script>
 
-<div class="grid gap-4 xl:grid-cols-[1fr_24rem]">
+<div class="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
 	<section class="panel min-w-0" aria-labelledby="judul-alat">
-		<h2 id="judul-alat" class="mb-3">Alat simpan</h2>
+		<h2 id="judul-alat">Alat simpan</h2>
+		<p class="mb-3 text-sm text-redup">Lemari darah, freezer plasma, dan inkubator trombosit beserta rentang suhunya.</p>
 		<Keadaan sumber={alat}>
 			{#snippet kosong()}<p>Belum ada alat simpan. Tambahkan lemari darah, freezer plasma, atau inkubator trombosit.</p>{/snippet}
 			{#snippet children(data)}
@@ -80,7 +81,7 @@
 						<tbody>
 							{#each data as a (a.id)}
 								<tr>
-									<td class="mono">{a.kode}</td>
+									<td class="mono font-semibold">{a.kode}</td>
 									<td>{a.nama}<span class="block text-xs text-redup">{[a.nomor_seri, a.lokasi].filter(Boolean).join(' · ')}</span></td>
 									<td>{JENIS[a.jenis]}</td>
 									<td class="tabular-nums">{a.suhu_min} s.d. {a.suhu_maks} °C</td>
@@ -104,7 +105,7 @@
 		</Keadaan>
 	</section>
 
-	<form class="panel flex flex-col gap-4 self-start" onsubmit={simpan} aria-labelledby="judul-form-alat">
+	<form class="panel flex flex-col gap-4" onsubmit={simpan} aria-labelledby="judul-form-alat">
 		<h2 id="judul-form-alat">{id ? 'Ubah alat simpan' : 'Tambah alat simpan'}</h2>
 		<div class="form-grid">
 			<Isian label="Kode" id="alat-kode" galat={aksi.isian.kode}>
@@ -135,9 +136,9 @@
 		</Isian>
 		<label class="flex items-center gap-2 text-sm"><input type="checkbox" bind:checked={isi.aktif} />Aktif (alat tidak dihapus, cukup dinonaktifkan)</label>
 		<PesanAksi {aksi} />
-		<div class="flex gap-2">
+		<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+			{#if id}<button type="button" class="btn btn--teks" onclick={batal}>Batal</button>{/if}
 			<button class="btn btn--utama" disabled={aksi.sibuk}>{id ? 'Simpan' : 'Tambah'}</button>
-			{#if id}<button type="button" class="btn" onclick={batal}>Batal</button>{/if}
 		</div>
 	</form>
 </div>

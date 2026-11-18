@@ -12,16 +12,27 @@
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { KOMPONEN, golongan, relatif, waktu } from '#lib/format.ts';
 	import type { Minta } from '#lib/pelayanan/TandaTangan.svelte';
+	import GolonganLencana from '#lib/Golongan.svelte';
+	import Bagian from './Bagian.svelte';
 
 	let {
 		p,
 		aktif,
 		aturan,
 		muat,
-		minta
-	}: { p: any; aktif: boolean; aturan: Record<string, string>; muat: () => Promise<void>; minta: Minta } = $props();
+		minta,
+		sekarang
+	}: { p: any; aktif: boolean; aturan: Record<string, string>; muat: () => Promise<void>; minta: Minta; sekarang: number } = $props();
 
 	const tanpaUji = $derived(p.baris.filter((b: any) => aturan[b.komponen] === 'tidak_perlu').map((b: any) => KOMPONEN[b.komponen]));
+	const aktifAlok = $derived(p.alokasi.filter((a: any) => !a.dilepas_pada));
+	const total = $derived(p.baris.reduce((n: number, b: any) => n + b.jumlah, 0));
+	const selesai = $derived(!aktif || aktifAlok.filter((a: any) => a.transfusi).length >= total);
+	const ringkas = $derived(
+		aktifAlok.length
+			? `${aktifAlok.length} dari ${total} kantong dialokasikan · ${aktifAlok.filter((a: any) => a.pengeluaran).length} dikeluarkan · ${aktifAlok.filter((a: any) => a.transfusi).length} ditransfusikan`
+			: `Belum ada kantong dialokasikan (diminta ${total})`
+	);
 	const bisaAlokasi = $derived(aktif && sesi.boleh('uji.input') && (p.jenis === 'darurat' || tanpaUji.length > 0));
 
 	// Alokasi langsung / darurat.
@@ -103,8 +114,7 @@
 	}
 </script>
 
-<section class="panel flex flex-col gap-4" aria-labelledby="j-alokasi">
-	<h2 id="j-alokasi">Alokasi dan pengeluaran</h2>
+<Bagian id="bagian-alokasi" nomor={4} bukaAwal={sekarang >= 3} judul="Alokasi dan pengeluaran" {selesai} {ringkas}>
 
 	{#if p.alokasi.length}
 		<div class="overflow-x-auto">
@@ -122,7 +132,7 @@
 						{@const menunggu = !a.dilepas_pada && !a.pengeluaran}
 						<tr>
 							<td class="mono">{a.kantong.nomor}<span class="block font-sans text-xs text-redup">{KOMPONEN[a.kantong.komponen]}</span></td>
-							<td>{golongan(a.kantong.abo, a.kantong.rhesus)}</td>
+							<td><GolonganLencana abo={a.kantong.abo} rhesus={a.kantong.rhesus} /></td>
 							<td class={lewat ? 'font-semibold text-bahaya' : ''}>
 								{waktu(a.kantong.kedaluwarsa)}<span class="block text-xs {lewat ? '' : 'text-redup'}">{lewat ? 'Kedaluwarsa' : relatif(a.kantong.kedaluwarsa)}</span>
 							</td>
@@ -223,4 +233,4 @@
 			</button>
 		</form>
 	{/if}
-</section>
+</Bagian>

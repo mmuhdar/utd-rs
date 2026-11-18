@@ -6,7 +6,10 @@
 	import { Sumber } from '#lib/sumber.svelte.ts';
 	import Keadaan from '#lib/Keadaan.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { NAMA_KOMPONEN, golongan, waktu } from '#lib/format.ts';
+	import { NAMA_KOMPONEN, waktu } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Chip from '#lib/Chip.svelte';
 	import { suhu } from '#lib/stok/stok.ts';
 	import Printer from '@lucide/svelte/icons/printer';
 
@@ -20,28 +23,55 @@
 
 <svelte:head><title>Berita serah terima — {merek.judul}</title></svelte:head>
 
-<div class="tanpa-cetak mb-4 flex flex-wrap items-center justify-between gap-2">
-	<a class="text-sm text-utama hover:underline" href="/stok/terima">Kembali ke penerimaan</a>
-	<button type="button" class="btn" onclick={() => window.print()}><Printer class="size-4" aria-hidden="true" />Cetak</button>
+<div class="tanpa-cetak">
+	<KepalaHalaman
+		judul="Berita serah terima"
+		sub={r.data ? `${r.data.nomor} · ${r.data.utd.nama} · ${waktu(r.data.diterima_pada)}` : undefined}
+		jalur={[['Stok kantong', '/stok'], ['Penerimaan dari UTD', '/stok/terima'], [r.data?.nomor ?? 'Berita serah terima']]}
+	>
+		{#snippet aksi()}
+			<button type="button" class="btn btn--utama" onclick={() => window.print()}><Printer class="size-4" aria-hidden="true" />Cetak</button>
+		{/snippet}
+	</KepalaHalaman>
 </div>
 
 <Keadaan sumber={r}>
 	{#snippet children(d)}
 		{@const kantong = d.kantong ?? []}
-		<article class="panel print:border-0 print:p-0">
+		{@const nTolak = kantong.filter(ditolak).length}
+		<section class="tanpa-cetak mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ringkasan">
+			<div class="panel flex flex-col gap-1.5">
+				<p class="text-sm font-semibold text-redup">Kantong</p>
+				<p class="text-4xl font-extrabold tracking-tight tabular-nums">{kantong.length}</p>
+			</div>
+			<div class="panel flex flex-col gap-1.5">
+				<p class="text-sm font-semibold text-redup">Diterima ke stok</p>
+				<p class="text-4xl font-extrabold tracking-tight tabular-nums text-aman">{kantong.length - nTolak}</p>
+			</div>
+			<div class="panel flex flex-col gap-1.5 {nTolak ? 'border-bahaya-titik/60' : ''}">
+				<p class="text-sm font-semibold text-redup">Ditolak</p>
+				<p class="text-4xl font-extrabold tracking-tight tabular-nums {nTolak ? 'text-bahaya' : ''}">{nTolak}</p>
+			</div>
+			<div class="panel flex flex-col gap-1.5">
+				<p class="text-sm font-semibold text-redup">Suhu transportasi</p>
+				<p class="text-2xl font-extrabold tracking-tight tabular-nums">{suhu(d.suhu_min_transport)} – {suhu(d.suhu_maks_transport)}</p>
+			</div>
+		</section>
+
+		<article class="panel print:border-0 print:p-0 print:shadow-none">
 			<div class="mb-5"><Kop /></div>
-			<h1 class="mb-4">Berita serah terima kantong darah <span class="mono">{d.nomor}</span></h1>
-			<dl class="mb-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-				<div><dt class="text-redup">Diterima</dt><dd>{waktu(d.diterima_pada)}</dd></div>
-				<div><dt class="text-redup">UTD mitra</dt><dd>{d.utd.nama} ({d.utd.kode})</dd></div>
-				<div><dt class="text-redup">Nomor dokumen UTD</dt><dd class="mono">{d.nomor_dokumen_utd ?? '—'}</dd></div>
-				<div><dt class="text-redup">Suhu selama transportasi</dt><dd>{suhu(d.suhu_min_transport)} – {suhu(d.suhu_maks_transport)}</dd></div>
-				<div><dt class="text-redup">Petugas UTD</dt><dd>{d.petugas_utd}</dd></div>
-				<div><dt class="text-redup">Petugas BDRS</dt><dd>{d.petugas_bdrs}</dd></div>
-				{#if d.catatan}<div class="sm:col-span-2"><dt class="text-redup">Catatan</dt><dd>{d.catatan}</dd></div>{/if}
+			<h2 class="mb-5 text-xl font-extrabold tracking-tight">Berita serah terima kantong darah <span class="mono">{d.nomor}</span></h2>
+			<dl class="mb-5 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2">
+				<div><dt class="judul-kecil">Diterima</dt><dd class="mt-0.5 font-medium">{waktu(d.diterima_pada)}</dd></div>
+				<div><dt class="judul-kecil">UTD mitra</dt><dd class="mt-0.5 font-medium">{d.utd.nama} ({d.utd.kode})</dd></div>
+				<div><dt class="judul-kecil">Nomor dokumen UTD</dt><dd class="mono mt-0.5">{d.nomor_dokumen_utd ?? '—'}</dd></div>
+				<div><dt class="judul-kecil">Suhu selama transportasi</dt><dd class="mt-0.5 font-medium tabular-nums">{suhu(d.suhu_min_transport)} – {suhu(d.suhu_maks_transport)}</dd></div>
+				<div><dt class="judul-kecil">Petugas UTD</dt><dd class="mt-0.5 font-medium">{d.petugas_utd}</dd></div>
+				<div><dt class="judul-kecil">Petugas BDRS</dt><dd class="mt-0.5 font-medium">{d.petugas_bdrs}</dd></div>
+				{#if d.catatan}<div class="sm:col-span-2 lg:col-span-3"><dt class="judul-kecil">Catatan</dt><dd class="mt-0.5">{d.catatan}</dd></div>{/if}
 			</dl>
-			<p class="mb-2 text-sm">
-				{kantong.length} kantong: {kantong.filter((k: any) => !ditolak(k)).length} diterima, {kantong.filter(ditolak).length} ditolak.
+			<p class="mb-2 text-sm font-medium text-teks-2">
+				{kantong.length} kantong: {kantong.length - nTolak} diterima, {nTolak} ditolak.
 			</p>
 			<div class="overflow-x-auto">
 				<table class="tabel">
@@ -60,18 +90,18 @@
 					<tbody>
 						{#each kantong as k, i (k.id)}
 							<tr>
-								<td class="tabular-nums">{i + 1}</td>
-								<td class="mono">{k.nomor}</td>
-								<td>{NAMA_KOMPONEN[k.komponen]}{#if k.kode_produk}<span class="block text-xs text-redup">{k.kode_produk}</span>{/if}</td>
-								<td class="font-semibold whitespace-nowrap">{golongan(k.abo, k.rhesus)}</td>
+								<td class="tabular-nums text-redup">{i + 1}</td>
+								<td class="mono font-semibold">{k.nomor}</td>
+								<td>{NAMA_KOMPONEN[k.komponen]}{#if k.kode_produk}<span class="mono block text-xs text-redup">{k.kode_produk}</span>{/if}</td>
+								<td><Golongan abo={k.abo} rhesus={k.rhesus} ukuran="kecil" /></td>
 								<td class="tabular-nums">{k.volume_ml ? `${k.volume_ml} mL` : '—'}</td>
 								<td class="whitespace-nowrap">{waktu(k.kedaluwarsa_label)}</td>
 								<td>{k.imltd_nonreaktif ? 'Non-reaktif' : 'Tidak non-reaktif'}</td>
 								<td>
 									{#if ditolak(k)}
-										<span class="font-medium text-bahaya">Ditolak</span><span class="block text-xs">{k.alasan_status}</span>
+										<Chip nada="bahaya">Ditolak</Chip><span class="mt-1 block text-xs text-redup">{k.alasan_status}</span>
 									{:else}
-										<span class="font-medium text-aman">Diterima</span>
+										<Chip nada="aman">Diterima</Chip>
 									{/if}
 								</td>
 							</tr>
@@ -80,8 +110,8 @@
 				</table>
 			</div>
 			<div class="mt-10 grid grid-cols-2 gap-8 text-center text-sm break-inside-avoid">
-				<div><p>Yang menyerahkan (UTD)</p><p class="mt-16 border-t border-garis pt-1">{d.petugas_utd}</p></div>
-				<div><p>Yang menerima (BDRS)</p><p class="mt-16 border-t border-garis pt-1">{d.petugas_bdrs}</p></div>
+				<div><p class="text-redup">Yang menyerahkan (UTD)</p><p class="mt-16 border-t border-garis-kuat pt-1 font-medium">{d.petugas_utd}</p></div>
+				<div><p class="text-redup">Yang menerima (BDRS)</p><p class="mt-16 border-t border-garis-kuat pt-1 font-medium">{d.petugas_bdrs}</p></div>
 			</div>
 		</article>
 	{/snippet}

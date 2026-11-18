@@ -54,9 +54,10 @@
 
 <p class="catatan mb-4">Aturan klinis hanya diubah penanggung jawab BDRS dengan alasan tertulis. Nilai lama tetap tercatat di jejak audit.</p>
 
-<div class="grid gap-4 xl:grid-cols-[1fr_24rem]">
+<div class="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
 	<section class="panel min-w-0" aria-labelledby="judul-aturan">
-		<h2 id="judul-aturan" class="mb-3">Aturan per komponen</h2>
+		<h2 id="judul-aturan">Aturan per komponen</h2>
+		<p class="mb-3 text-sm text-redup">Jenis uji silang, masa simpan, dan batas peringatan kedaluwarsa per komponen.</p>
 		<Keadaan sumber={aturan}>
 			{#snippet children(data)}
 				<div class="overflow-x-auto">
@@ -67,7 +68,7 @@
 						<tbody>
 							{#each data as a (a.komponen)}
 								<tr>
-									<td>{a.nama}<span class="block text-xs text-redup">Diubah {waktu(a.diubah_pada)}</span></td>
+									<td><span class="font-semibold">{a.nama}</span><span class="block text-xs text-redup">Diubah {waktu(a.diubah_pada)}</span></td>
 									<td>{UJI[a.uji_silang] ?? a.uji_silang}</td>
 									<td class="tabular-nums">{durasi(a.masa_simpan_jam)}</td>
 									<td class="tabular-nums">{durasi(a.jam_setelah_cair)}</td>
@@ -83,7 +84,7 @@
 	</section>
 
 	{#if pilih}
-		<form class="panel flex flex-col gap-4 self-start" onsubmit={simpan} aria-labelledby="judul-form-aturan">
+		<form class="panel flex flex-col gap-4" onsubmit={simpan} aria-labelledby="judul-form-aturan">
 			<h2 id="judul-form-aturan">Ubah aturan {pilih.nama}</h2>
 			<Isian
 				label="Uji silang"
@@ -110,9 +111,9 @@
 				<textarea id="at-alasan" class="input" rows="2" bind:value={isi.alasan} required></textarea>
 			</Isian>
 			<PesanAksi {aksi} />
-			<div class="flex gap-2">
+			<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+				<button type="button" class="btn btn--teks" onclick={() => (pilih = null)}>Batal</button>
 				<button class="btn btn--utama" disabled={aksi.sibuk}>Simpan aturan</button>
-				<button type="button" class="btn" onclick={() => (pilih = null)}>Batal</button>
 			</div>
 		</form>
 	{/if}

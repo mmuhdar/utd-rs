@@ -11,6 +11,7 @@
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { waktu } from '#lib/format.ts';
 	import { urai } from '#lib/isbt.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 
 	const daftar = new Sumber(() => api<any[]>('GET', '/lookback'));
 	$effect(() => {
@@ -33,53 +34,65 @@
 
 <svelte:head><title>Look-back — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Look-back</h1>
+<KepalaHalaman
+	judul="Look-back"
+	sub={daftar.data ? `${daftar.data.filter((l) => l.status === 'terbuka').length} terbuka · ${daftar.data.length} seluruhnya` : 'Penelusuran penerima darah dari donasi yang bermasalah'}
+/>
 
-{#if sesi.boleh('stok.kelola')}
-	<form class="panel mb-6 flex max-w-2xl flex-col gap-4" onsubmit={simpan} aria-labelledby="judul-baru">
-		<h2 id="judul-baru">Catat notifikasi dari UTD</h2>
-		<p class="text-sm text-redup">Kantong dari nomor donasi ini yang masih di stok langsung dikarantina; penerimanya ditampilkan untuk ditindaklanjuti.</p>
-		<Isian label="Nomor donasi" id="nomor" galat={aksi.isian.nomor_donasi} bantuan="Ketik atau pindai label ISBT 128.">
-			<input id="nomor" class="input mono" autocomplete="off" bind:value={nomor} required aria-invalid={!!aksi.isian.nomor_donasi} />
-		</Isian>
-		<Isian label="Isi notifikasi UTD" id="alasan" galat={aksi.isian.alasan} bantuan="Mis. donor reaktif HCV pada donasi berikutnya.">
-			<textarea id="alasan" class="input" rows="3" bind:value={alasan} required aria-invalid={!!aksi.isian.alasan}></textarea>
-		</Isian>
-		<PesanAksi {aksi} />
-		<button class="btn btn--utama self-start" disabled={aksi.sibuk}>Buka look-back</button>
-	</form>
-{/if}
-
-<section class="panel" aria-labelledby="judul-daftar">
-	<h2 id="judul-daftar" class="mb-3">Daftar look-back</h2>
-	<Keadaan sumber={daftar}>
-		{#snippet kosong()}<p>Belum ada look-back.</p>{/snippet}
-		{#snippet children(data)}
-			<div class="overflow-x-auto">
-				<table class="tabel">
-					<thead>
-						<tr>
-							<th scope="col">Dibuka</th>
-							<th scope="col">Donasi / donor</th>
-							<th scope="col">Alasan</th>
-							<th scope="col">Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each data as l (l.id)}
-							<tr>
-								<td class="whitespace-nowrap"><a class="text-utama hover:underline" href="/lookback/{l.id}">{waktu(l.dibuat_pada)}</a></td>
-								<td>
-									{#if l.nomor_donasi}<span class="mono">{l.nomor_donasi}</span>{/if}
-									{#if l.donor}<span class="block">{l.donor}</span>{/if}
-								</td>
-								<td>{l.alasan}</td>
-								<td>{#if l.status === 'terbuka'}<Chip nada="waspada">Terbuka</Chip>{:else}<Chip nada="aman">Selesai</Chip>{/if}</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+<div class="grid items-start gap-5 xl:grid-cols-[1fr_380px]">
+	{#if sesi.boleh('stok.kelola')}
+		<form class="panel flex flex-col gap-4 xl:col-start-2 xl:row-start-1" onsubmit={simpan} aria-labelledby="judul-baru">
+			<div>
+				<h2 id="judul-baru">Catat notifikasi dari UTD</h2>
+				<p class="mt-1 text-sm text-redup">Kantong dari nomor donasi ini yang masih di stok langsung dikarantina; penerimanya ditampilkan untuk ditindaklanjuti.</p>
 			</div>
-		{/snippet}
-	</Keadaan>
-</section>
+			<Isian label="Nomor donasi" id="nomor" galat={aksi.isian.nomor_donasi} bantuan="Ketik atau pindai label ISBT 128.">
+				<input id="nomor" class="input mono min-h-12 rounded-xl text-base" autocomplete="off" bind:value={nomor} required aria-invalid={!!aksi.isian.nomor_donasi} />
+			</Isian>
+			<Isian label="Isi notifikasi UTD" id="alasan" galat={aksi.isian.alasan} bantuan="Mis. donor reaktif HCV pada donasi berikutnya.">
+				<textarea id="alasan" class="input" rows="3" bind:value={alasan} required aria-invalid={!!aksi.isian.alasan}></textarea>
+			</Isian>
+			<PesanAksi {aksi} />
+			<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+				<button class="btn btn--utama" disabled={aksi.sibuk}>Buka look-back</button>
+			</div>
+		</form>
+	{/if}
+
+	<section class="panel min-w-0 xl:col-start-1 xl:row-start-1" aria-labelledby="judul-daftar">
+		<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+			<h2 id="judul-daftar">Daftar look-back</h2>
+			{#if daftar.data}<p class="text-sm text-redup">{daftar.data.length} look-back</p>{/if}
+		</div>
+		<Keadaan sumber={daftar}>
+			{#snippet kosong()}<p>Belum ada look-back.</p>{/snippet}
+			{#snippet children(data)}
+				<div class="overflow-x-auto">
+					<table class="tabel">
+						<thead>
+							<tr>
+								<th scope="col">Dibuka</th>
+								<th scope="col">Donasi / donor</th>
+								<th scope="col">Alasan</th>
+								<th scope="col">Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each data as l (l.id)}
+								<tr>
+									<td class="whitespace-nowrap"><a class="font-semibold hover:underline" href="/lookback/{l.id}">{waktu(l.dibuat_pada)}</a></td>
+									<td>
+										{#if l.nomor_donasi}<span class="mono font-semibold">{l.nomor_donasi}</span>{/if}
+										{#if l.donor}<span class="block text-teks-2">{l.donor}</span>{/if}
+									</td>
+									<td class="max-w-80 text-teks-2">{l.alasan}</td>
+									<td>{#if l.status === 'terbuka'}<Chip nada="waspada">Terbuka</Chip>{:else}<Chip nada="aman">Selesai</Chip>{/if}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/snippet}
+		</Keadaan>
+	</section>
+</div>

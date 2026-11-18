@@ -7,7 +7,10 @@
 	import Keadaan from '#lib/Keadaan.svelte';
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import Isian from '#lib/Isian.svelte';
-	import { golongan, tanggal } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import { tanggal } from '#lib/format.ts';
 	import Search from '@lucide/svelte/icons/search';
 	import UserPlus from '@lucide/svelte/icons/user-plus';
 
@@ -32,6 +35,11 @@
 			aksi.isian = { nik: 'NIK terdiri dari 16 angka.' };
 			return;
 		}
+		// Pengganti `required` radio bawaan: Pilihan tidak punya prop required.
+		if (!baru.jenis_kelamin) {
+			aksi.isian = { jenis_kelamin: 'Pilih jenis kelamin.' };
+			return;
+		}
 		const d = await aksi.jalankan(() => api<Donor>('POST', '/donor', baru));
 		if (d) goto(`/donor/${d.id}`);
 	}
@@ -39,11 +47,12 @@
 
 <svelte:head><title>Donor — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Donor</h1>
+<KepalaHalaman judul="Donor" jalur={[['UTD'], ['Donor']]} sub="Cari donor lewat NIK atau nama, lalu catat seleksi dan pengambilan darah." />
 
-<div class="grid gap-4 xl:grid-cols-2">
+<div class="grid items-start gap-5 xl:grid-cols-2">
 	<section class="panel" aria-labelledby="judul-cari">
-		<h2 id="judul-cari" class="mb-3">Cari donor</h2>
+		<h2 id="judul-cari">Cari donor</h2>
+		<p class="mb-4 text-sm text-redup">Selalu cari lebih dulu supaya donor tidak terdaftar dua kali.</p>
 		<form class="flex items-end gap-2" onsubmit={cari} role="search">
 			<div class="flex-1">
 				<label class="label" for="q">NIK atau nama</label>
@@ -58,15 +67,15 @@
 						<p>Tidak ada donor dengan NIK atau nama "{dicari}". Daftarkan sebagai donor baru.</p>
 					{/snippet}
 					{#snippet children(data)}
-						<ul class="divide-y divide-halus">
+						<ul class="-mx-2 divide-y divide-garis">
 							{#each data as d (d.id)}
 								<li>
-									<a href="/donor/{d.id}" class="flex items-center justify-between gap-3 px-1 py-2 hover:bg-halus">
-										<span>
-											<span class="font-medium">{d.nama}</span>
+									<a href="/donor/{d.id}" class="flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 hover:bg-halus">
+										<span class="min-w-0">
+											<span class="font-semibold">{d.nama}</span>
 											<span class="block text-xs text-redup"><span class="mono">{d.nik}</span> · lahir {tanggal(d.tanggal_lahir)} · {d.jenis_kelamin}</span>
 										</span>
-										<span class="text-sm">{golongan(d.abo, d.rhesus)}</span>
+										<Golongan abo={d.abo} rhesus={d.rhesus} />
 									</a>
 								</li>
 							{/each}
@@ -80,7 +89,10 @@
 	</section>
 
 	<form class="panel flex flex-col gap-4" onsubmit={daftar} aria-labelledby="judul-baru">
-		<h2 id="judul-baru">Daftarkan donor baru</h2>
+		<div>
+			<h2 id="judul-baru">Daftarkan donor baru</h2>
+			<p class="text-sm text-redup">Identitas sesuai KTP.</p>
+		</div>
 		<p class="catatan">Cari NIK lebih dulu. Bila NIK sudah terdaftar, menyimpan formulir ini memperbarui identitas donor tersebut.</p>
 		<div class="form-grid">
 			<Isian label="NIK" id="nik" galat={aksi.isian.nik} bantuan="16 angka sesuai KTP.">
@@ -92,14 +104,16 @@
 			<Isian label="Tanggal lahir" id="lahir" galat={aksi.isian.tanggal_lahir}>
 				<input id="lahir" class="input" type="date" bind:value={baru.tanggal_lahir} required aria-invalid={!!aksi.isian.tanggal_lahir} />
 			</Isian>
-			<fieldset>
-				<legend class="label">Jenis kelamin</legend>
-				<div class="flex min-h-10 items-center gap-4">
-					<label class="flex items-center gap-2"><input type="radio" name="jk" value="L" bind:group={baru.jenis_kelamin} required />Laki-laki</label>
-					<label class="flex items-center gap-2"><input type="radio" name="jk" value="P" bind:group={baru.jenis_kelamin} />Perempuan</label>
-				</div>
-				{#if aksi.isian.jenis_kelamin}<p class="mt-1 text-sm text-bahaya" role="alert">{aksi.isian.jenis_kelamin}</p>{/if}
-			</fieldset>
+			<Pilihan
+				legend="Jenis kelamin"
+				name="jk"
+				opsi={[
+					['L', 'Laki-laki'],
+					['P', 'Perempuan']
+				]}
+				bind:value={baru.jenis_kelamin}
+				galat={aksi.isian.jenis_kelamin}
+			/>
 			<Isian label="Alamat" id="alamat">
 				<input id="alamat" class="input" bind:value={baru.alamat} />
 			</Isian>
@@ -108,6 +122,8 @@
 			</Isian>
 		</div>
 		<PesanAksi {aksi} />
-		<button class="btn btn--utama self-start" disabled={aksi.sibuk}><UserPlus class="size-4" aria-hidden="true" />Simpan donor</button>
+		<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+			<button class="btn btn--utama" disabled={aksi.sibuk}><UserPlus class="size-4" aria-hidden="true" />Simpan donor</button>
+		</div>
 	</form>
 </div>

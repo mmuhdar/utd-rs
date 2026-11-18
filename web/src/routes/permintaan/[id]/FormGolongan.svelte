@@ -6,6 +6,7 @@
 	import Isian from '#lib/Isian.svelte';
 	import { golongan } from '#lib/format.ts';
 	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import GolonganLencana from '#lib/Golongan.svelte';
 	import { METODE_GOLONGAN, POS_NEG, tafsirAbo } from '#lib/pelayanan/darah.ts';
 
 	let { sampel, onselesai }: { sampel: string; onselesai: () => Promise<void> } = $props();
@@ -37,11 +38,13 @@
 	</div>
 	{#if tafsir}
 		{#if tafsir[1]}
-			<p class="text-sm" aria-live="polite">Tafsir: <strong class="text-base">{golongan(tafsir[0], f.anti_d)}</strong> (cell dan serum grouping konsisten)</p>
+			<p class="flex items-center gap-2 text-sm" aria-live="polite">Tafsir: <GolonganLencana abo={tafsir[0]} rhesus={f.anti_d} /> cell dan serum grouping konsisten</p>
 		{:else}
 			<p class="catatan" aria-live="polite">Cell grouping menunjukkan {tafsir[0]} tetapi serum grouping tidak sesuai. Ulangi pemeriksaan; bila tetap, rujuk sampel ke UTD.</p>
 		{/if}
 	{/if}
 	<PesanAksi {aksi} />
-	<button class="btn btn--utama self-start" disabled={aksi.sibuk || !lengkap}>Simpan hasil golongan</button>
+	<div class="flex justify-end">
+		<button class="btn btn--utama" disabled={aksi.sibuk || !lengkap}>Simpan hasil golongan</button>
+	</div>
 </form>

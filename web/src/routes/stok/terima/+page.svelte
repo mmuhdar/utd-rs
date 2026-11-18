@@ -14,6 +14,9 @@
 	import { urai } from '#lib/isbt.ts';
 	import { ABO, RHESUS, alatUntuk, labelAlat, suhu, type Alat, type Utd } from '#lib/stok/stok.ts';
 	import Trash from '@lucide/svelte/icons/trash-2';
+	import PackagePlus from '@lucide/svelte/icons/package-plus';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
 
 	type Baris = {
 		nomor: string;
@@ -133,13 +136,17 @@
 
 <svelte:head><title>Penerimaan dari UTD — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Penerimaan dari UTD</h1>
+<KepalaHalaman
+	judul="Penerimaan dari UTD"
+	sub="Berita serah terima kantong dari UTD mitra, langsung masuk ke alat simpan"
+	jalur={[['Stok kantong', '/stok'], ['Penerimaan dari UTD']]}
+/>
 
 {#if sesi.boleh('stok.kelola')}
-	<form class="mb-6 flex flex-col gap-4" onsubmit={simpan}>
+	<form class="mb-5 flex flex-col gap-5" onsubmit={simpan}>
 		<section class="panel" aria-labelledby="judul-serah">
-			<h2 id="judul-serah" class="mb-3">Berita serah terima</h2>
-			<div class="form-grid">
+			<h2 id="judul-serah" class="mb-4">Berita serah terima</h2>
+			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 				<Isian label="UTD mitra" id="utd" galat={aksi.isian.utd_id}>
 					<select id="utd" class="input" bind:value={utd_id} required>
 						<option value="" disabled>Pilih UTD</option>
@@ -163,44 +170,56 @@
 					<input id="petugas" class="input" bind:value={petugas_utd} required aria-invalid={!!aksi.isian.petugas_utd} />
 				</Isian>
 				<Isian label="Suhu minimum selama transportasi (°C)" id="smin">
-					<input id="smin" class="input" type="number" step="0.1" bind:value={suhu_min_transport} />
+					<input id="smin" class="input tabular-nums" type="number" step="0.1" bind:value={suhu_min_transport} />
 				</Isian>
 				<Isian label="Suhu maksimum selama transportasi (°C)" id="smaks">
-					<input id="smaks" class="input" type="number" step="0.1" bind:value={suhu_maks_transport} />
+					<input id="smaks" class="input tabular-nums" type="number" step="0.1" bind:value={suhu_maks_transport} />
 				</Isian>
-			</div>
-			<div class="mt-4">
-				<Isian label="Catatan" id="catatan">
-					<textarea id="catatan" class="input" rows="2" bind:value={catatan}></textarea>
-				</Isian>
+				<div class="sm:col-span-2 xl:col-span-3">
+					<Isian label="Catatan" id="catatan">
+						<textarea id="catatan" class="input" rows="2" bind:value={catatan}></textarea>
+					</Isian>
+				</div>
 			</div>
 		</section>
 
 		<section class="panel" aria-labelledby="judul-kantong">
-			<h2 id="judul-kantong" class="mb-1">Kantong</h2>
+			<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+				<h2 id="judul-kantong">Kantong</h2>
+				{#if kantong.length}
+					<p class="text-sm text-redup">
+						{kantong.length} kantong{#if kantong.some((k) => !k.diterima)} · {kantong.filter((k) => !k.diterima).length} ditolak{/if}
+					</p>
+				{/if}
+			</div>
 			{#if !utd}
-				<p class="text-sm text-redup">Pilih UTD mitra lebih dulu; cara memindai mengikuti format labelnya.</p>
+				<p class="rounded-xl bg-halus px-4 py-3 text-sm text-redup">Pilih UTD mitra lebih dulu; cara memindai mengikuti format labelnya.</p>
 			{:else}
-				<p class="mb-3 text-sm text-redup">
-					{#if isbt}
-						Pindai nomor donasi (DIN) untuk memulai baris baru, lalu pindai golongan, kode produk, dan kedaluwarsa kantong yang sama.
-					{:else}
-						Pindai atau ketik nomor kantong; isian lain diisi dari label.
-					{/if}
-				</p>
-				<div class="max-w-md">
+				<div class="rounded-2xl border-2 border-fokus/40 bg-info-latar/40 p-4">
 					<Pindai label="Pindai label kantong" id="pindai" onpindai={pindai} autofocus />
+					<p class="mt-2 text-sm text-redup">
+						{#if isbt}
+							Pindai nomor donasi (DIN) untuk memulai baris baru, lalu pindai golongan, kode produk, dan kedaluwarsa kantong yang sama.
+						{:else}
+							Pindai atau ketik nomor kantong; isian lain diisi dari label.
+						{/if}
+					</p>
+					<p class="mt-1 min-h-5 text-sm font-semibold text-info" role="status">{pesanPindai}</p>
 				</div>
-				<p class="mt-1 min-h-5 text-sm" role="status">{pesanPindai}</p>
 			{/if}
 			{#if aksi.isian.kantong}<p class="mt-2 text-sm text-bahaya" role="alert">{aksi.isian.kantong}</p>{/if}
 
-			<ol class="mt-3 flex flex-col gap-3">
+			<ol class="mt-4 flex flex-col gap-3">
 				{#each kantong as k, n (n)}
 					{@const pilihan = alatUntuk(alat.data ?? [], k.komponen)}
-					<li class="rounded-md border p-3 {k.diterima ? 'border-garis' : 'border-bahaya/40 bg-bahaya-latar'}">
-						<div class="mb-2 flex items-center justify-between gap-2">
-							<p class="text-sm font-semibold">Kantong {n + 1} {#if !k.diterima}<Chip nada="bahaya">Ditolak</Chip>{/if}</p>
+					<li class="rounded-2xl border p-4 {k.diterima ? 'border-garis bg-latar/40' : 'border-bahaya-titik/60 bg-bahaya-latar'}">
+						<div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+							<p class="flex flex-wrap items-center gap-2.5">
+								<span class="grid size-7 place-items-center rounded-full bg-halus text-xs font-bold text-teks-2">{n + 1}</span>
+								<span class="mono font-semibold">{k.nomor || 'Kantong baru'}</span>
+								{#if k.abo && k.rhesus}<Golongan abo={k.abo} rhesus={k.rhesus} ukuran="kecil" />{/if}
+								{#if k.diterima}<Chip nada="aman">Diterima</Chip>{:else}<Chip nada="bahaya">Ditolak</Chip>{/if}
+							</p>
 							<button type="button" class="btn btn--teks" onclick={() => kantong.splice(n, 1)}>
 								<Trash class="size-4" aria-hidden="true" />Hapus baris<span class="sr-only"> kantong {n + 1}</span>
 							</button>
@@ -228,7 +247,7 @@
 								</select>
 							</Isian>
 							<Isian label="Volume (mL)" id="k{n}-volume" galat={g(n, 'volume_ml')}>
-								<input id="k{n}-volume" class="input" type="number" min="1" bind:value={k.volume_ml} />
+								<input id="k{n}-volume" class="input tabular-nums" type="number" min="1" bind:value={k.volume_ml} />
 							</Isian>
 							<Isian label="Kedaluwarsa" id="k{n}-kedaluwarsa" galat={g(n, 'kedaluwarsa')}>
 								<input id="k{n}-kedaluwarsa" class="input" type="datetime-local" bind:value={k.kedaluwarsa} required aria-invalid={!!g(n, 'kedaluwarsa')} />
@@ -252,8 +271,8 @@
 								</Isian>
 							{/if}
 						</div>
-						<div class="mt-3">
-							<label class="flex items-center gap-2 text-sm">
+						<div class="mt-3 border-t border-garis pt-3">
+							<label class="flex items-center gap-2 text-sm font-medium">
 								<input type="checkbox" class="size-4" bind:checked={k.imltd_nonreaktif} aria-describedby={g(n, 'imltd_nonreaktif') ? `k${n}-imltd-galat` : undefined} />
 								Hasil uji saring IMLTD dari UTD non-reaktif
 							</label>
@@ -262,19 +281,22 @@
 					</li>
 				{/each}
 			</ol>
-		</section>
 
-		<PesanAksi {aksi} />
-		<div>
-			<button class="btn btn--utama btn--besar" disabled={aksi.sibuk || !kantong.length}>
-				Simpan berita serah terima ({kantong.length} kantong)
-			</button>
-		</div>
+			<div class="mt-4"><PesanAksi {aksi} /></div>
+			<div class="mt-4 flex justify-end gap-2.5 border-t border-garis pt-4">
+				<button class="btn btn--utama" disabled={aksi.sibuk || !kantong.length}>
+					<PackagePlus class="size-4" aria-hidden="true" />Simpan berita serah terima ({kantong.length} kantong)
+				</button>
+			</div>
+		</section>
 	</form>
 {/if}
 
 <section class="panel" aria-labelledby="judul-riwayat">
-	<h2 id="judul-riwayat" class="mb-3">Penerimaan sebelumnya</h2>
+	<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+		<h2 id="judul-riwayat">Penerimaan sebelumnya</h2>
+		{#if riwayat.data}<p class="text-sm text-redup">{riwayat.data.length} berita serah terima</p>{/if}
+	</div>
 	<Keadaan sumber={riwayat}>
 		{#snippet kosong()}<p>Belum ada penerimaan dari UTD.</p>{/snippet}
 		{#snippet children(data)}
@@ -293,14 +315,14 @@
 					<tbody>
 						{#each data as r (r.id)}
 							<tr>
-								<td><a class="mono text-utama hover:underline" href="/stok/terima/{r.id}">{r.nomor}</a></td>
-								<td class="whitespace-nowrap">{waktu(r.diterima_pada)}</td>
+								<td><a class="mono font-semibold hover:underline" href="/stok/terima/{r.id}">{r.nomor}</a></td>
+								<td class="whitespace-nowrap text-teks-2">{waktu(r.diterima_pada)}</td>
 								<td>{r.utd}<span class="block text-xs text-redup">{r.petugas_utd}</span></td>
-								<td class="mono">{r.nomor_dokumen_utd ?? '—'}</td>
-								<td class="whitespace-nowrap">{suhu(r.suhu_min_transport)} – {suhu(r.suhu_maks_transport)}</td>
-								<td class="text-right tabular-nums">
-									{r.jumlah}
-									{#if r.ditolak}<span class="block text-xs text-bahaya">{r.ditolak} ditolak</span>{/if}
+								<td class="mono text-teks-2">{r.nomor_dokumen_utd ?? '—'}</td>
+								<td class="whitespace-nowrap tabular-nums">{suhu(r.suhu_min_transport)} – {suhu(r.suhu_maks_transport)}</td>
+								<td class="text-right">
+									<span class="font-semibold tabular-nums">{r.jumlah}</span>
+									{#if r.ditolak}<span class="mt-1 block"><Chip nada="bahaya">{r.ditolak} ditolak</Chip></span>{/if}
 								</td>
 							</tr>
 						{/each}

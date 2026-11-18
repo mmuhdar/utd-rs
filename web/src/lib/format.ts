@@ -72,3 +72,12 @@ export const STATUS_PERMINTAAN: Record<string, [string, string]> = {
 	batal: ['Batal', 'netral'],
 	ditolak: ['Ditolak', 'bahaya']
 };
+
+/** Dua huruf awal nama untuk avatar (gelar seperti "dr." dilewati). */
+export const inisial = (nama: string) =>
+	nama
+		.split(/\s+/)
+		.filter((k) => /^[A-Za-z]/.test(k) && !k.endsWith('.'))
+		.slice(0, 2)
+		.map((k) => k[0].toUpperCase())
+		.join('');

@@ -49,7 +49,7 @@
 
 <Keadaan sumber={aturan} apakahKosong={() => false}>
 	{#snippet children(a)}
-		<form class="panel flex max-w-3xl flex-col gap-4" onsubmit={simpan}>
+		<form class="panel flex max-w-4xl flex-col gap-5" onsubmit={simpan}>
 			<div>
 				<h2>Ambang seleksi donor</h2>
 				<p class="text-sm text-redup">Donor di luar ambang ini tidak bisa diterima pada seleksi. Terakhir diubah {waktu(a.diubah_pada)}.</p>
@@ -65,7 +65,9 @@
 				<textarea id="ad-alasan" class="input" rows="2" bind:value={alasan} required></textarea>
 			</Isian>
 			<PesanAksi {aksi} />
-			<button class="btn btn--utama self-start" disabled={aksi.sibuk}>Simpan ambang</button>
+			<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+				<button class="btn btn--utama" disabled={aksi.sibuk}>Simpan ambang</button>
+			</div>
 		</form>
 	{/snippet}
 </Keadaan>

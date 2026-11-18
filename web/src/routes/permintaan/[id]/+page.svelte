@@ -10,7 +10,7 @@
 	import Isian from '#lib/Isian.svelte';
 	import Chip from '#lib/Chip.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { KOMPONEN, NAMA_KOMPONEN, STATUS_PERMINTAAN, golongan, tanggal, waktu, pukul } from '#lib/format.ts';
+	import { KOMPONEN, NAMA_KOMPONEN, STATUS_PERMINTAAN, golongan, tanggal, waktu, pukul, inisial } from '#lib/format.ts';
 	import TandaTangan, { type Minta } from '#lib/pelayanan/TandaTangan.svelte';
 	import { JENIS_PERMINTAAN } from '#lib/pelayanan/darah.ts';
 	import Sampel from './Sampel.svelte';
@@ -18,10 +18,12 @@
 	import UjiSilang from './UjiSilang.svelte';
 	import Alokasi from './Alokasi.svelte';
 	import Printer from '@lucide/svelte/icons/printer';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 	import Siren from '@lucide/svelte/icons/siren';
 	import GolonganLencana from '#lib/Golongan.svelte';
 	import Tahap from './Tahap.svelte';
+	import { tahapSekarang } from './tahap.ts';
+	import Samping from './Samping.svelte';
 
 	const id = $derived(page.params.id);
 	const detail = new Sumber(() => api<any>('GET', `/permintaan/${id}`));
@@ -35,13 +37,6 @@
 	});
 	const aturan = $derived(Object.fromEntries((aturanSumber.data ?? []).map((a) => [a.komponen, a.uji_silang])));
 	const muat = () => detail.muat();
-	const inisial = (nama: string) =>
-		nama
-			.split(/\s+/)
-			.filter((k) => /^[A-Za-z]/.test(k) && !k.endsWith('.'))
-			.slice(0, 2)
-			.map((k) => k[0].toUpperCase())
-			.join('');
 
 	let ttd: TandaTangan | undefined = $state();
 	const minta: Minta = (o) => ttd?.minta(o);
@@ -83,25 +78,16 @@
 		{@const gol = p.golongan_terverifikasi}
 		<div class="mb-3"><Kop cetakSaja /></div>
 		<p class="mb-2 hidden text-sm print:block">Formulir permintaan darah · dicetak {waktu(new Date().toISOString())}</p>
-		<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-			<div>
-				<nav class="tanpa-cetak mb-1 flex items-center gap-1.5 text-sm font-medium text-redup" aria-label="Jalur">
-					<a class="hover:underline" href="/permintaan">Permintaan darah</a><ChevronRight class="size-3.5" aria-hidden="true" /><span
-						class="text-teks-2">{p.nomor}</span
-					>
-				</nav>
-				<h1 class="mono">{p.nomor}</h1>
-				{#if p.alasan_status}<p class="mt-1 text-sm text-redup">{p.alasan_status}</p>{/if}
-			</div>
-			<div class="tanpa-cetak flex flex-wrap gap-2">
+		<KepalaHalaman judul={p.nomor} mono jalur={[['Permintaan darah', '/permintaan'], [p.nomor]]} sub={p.alasan_status ?? undefined}>
+			{#snippet aksi()}
 				{#each Object.entries(AKHIR) as [k, a] (k)}
 					{#if a.hak() && (a.dari as readonly string[]).includes(p.status)}
 						<button type="button" class="btn {k === 'selesai' ? '' : 'btn--teks'}" aria-expanded={akhir === k} onclick={() => ((akhir = k as Akhir), (alasan = ''))}>{a.label}</button>
 					{/if}
 				{/each}
 				<button type="button" class="btn" onclick={() => window.print()}><Printer class="size-4" aria-hidden="true" />Cetak formulir</button>
-			</div>
-		</div>
+			{/snippet}
+		</KepalaHalaman>
 
 		{#if akhir}
 			<form class="panel tanpa-cetak mb-4 flex flex-col gap-3" onsubmit={kirimAkhir}>
@@ -159,42 +145,17 @@
 
 			<Tahap {p} {aturan} />
 
-			<section class="panel" aria-labelledby="j-rincian">
-				<h2 id="j-rincian">Rincian permintaan</h2>
-				<div class="mt-3 grid gap-x-8 gap-y-1 lg:grid-cols-2">
-					<dl class="grid grid-cols-[auto_1fr] content-start gap-x-4 gap-y-1 text-sm">
-						<dt class="text-redup">Golongan klinis</dt><dd>{golongan(p.abo_klinis, p.rhesus_klinis)}</dd>
-						<dt class="text-redup">Riwayat transfusi</dt><dd>{p.riwayat_transfusi ? 'Ya' : 'Tidak'}</dd>
-						<dt class="text-redup">Riwayat reaksi</dt><dd class={p.riwayat_reaksi ? 'font-semibold text-bahaya' : ''}>{p.riwayat_reaksi ? 'Ya' : 'Tidak'}</dd>
-						<dt class="text-redup">Indikasi</dt><dd>{p.indikasi}</dd>
-						<dt class="text-redup">Trombosit</dt><dd>{p.trombosit?.toLocaleString('id-ID') ?? '—'} /µL</dd>
-					</dl>
-					<dl class="grid grid-cols-[auto_1fr] content-start gap-x-4 gap-y-1 text-sm">
-						<dt class="text-redup">Diminta</dt><dd>{waktu(p.diminta_pada)}</dd>
-						<dt class="text-redup">Rencana transfusi</dt><dd>{tanggal(p.rencana_transfusi)}</dd>
-						<dt class="text-redup">Komponen</dt>
-						<dd>
-							<ul>
-								{#each p.baris as b, i (i)}
-									{@const n = p.alokasi.filter((a: any) => !a.dilepas_pada && a.kantong.komponen === b.komponen).length}
-									<li>
-										{b.jumlah} kantong {NAMA_KOMPONEN[b.komponen] ?? b.komponen}{b.volume_ml ? ` (${b.volume_ml} mL)` : ''}
-										<span class="text-redup">· {n} dialokasikan</span>
-									</li>
-								{/each}
-							</ul>
-						</dd>
-						{#if p.rujukan_simrs}<dt class="text-redup">Rujukan SIMRS</dt><dd class="mono">{p.rujukan_simrs}</dd>{/if}
-					</dl>
+			<div class="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
+				<div class="flex min-w-0 flex-col gap-4">
+					<Sampel {p} {aktif} {muat} sekarang={tahapSekarang(p, aturan)} />
+					<Golongan {p} {aktif} {muat} {minta} sekarang={tahapSekarang(p, aturan)} />
+					{#if p.baris.some((b: any) => aturan[b.komponen] !== 'tidak_perlu') || p.uji_silang.length}
+						<UjiSilang {p} {aktif} {aturan} {muat} {minta} sekarang={tahapSekarang(p, aturan)} />
+					{/if}
+					<Alokasi {p} {aktif} {aturan} {muat} {minta} sekarang={tahapSekarang(p, aturan)} />
 				</div>
-			</section>
-
-			<Sampel {p} {aktif} {muat} />
-			<Golongan {p} {aktif} {muat} {minta} />
-			{#if p.baris.some((b: any) => aturan[b.komponen] !== 'tidak_perlu') || p.uji_silang.length}
-				<UjiSilang {p} {aktif} {aturan} {muat} {minta} />
-			{/if}
-			<Alokasi {p} {aktif} {aturan} {muat} {minta} />
+				<Samping {p} />
+			</div>
 		</div>
 		<p class="mt-8 hidden text-sm print:block">
 			Komponen: {p.baris.map((b: any) => `${b.jumlah} ${KOMPONEN[b.komponen]}`).join(', ')}. Tanda tangan petugas BDRS: ____________________

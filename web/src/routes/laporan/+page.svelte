@@ -6,8 +6,10 @@
 	import Keadaan from '#lib/Keadaan.svelte';
 	import Chip from '#lib/Chip.svelte';
 	import Tab, { tabAktif } from '#lib/utd/Tab.svelte';
-	import { KOMPONEN, golongan, hariIni, waktu } from '#lib/format.ts';
+	import { KOMPONEN, hariIni, waktu } from '#lib/format.ts';
 	import { PARAMETER_IMLTD } from '#lib/utd/label.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
 	import Formulir3 from './Formulir3.svelte';
 	import Printer from '@lucide/svelte/icons/printer';
 	import Download from '@lucide/svelte/icons/download';
@@ -80,54 +82,59 @@
 </script>
 
 {#snippet kartu(label: string, nilai: string, nada?: string, ket?: string)}
-	<div class="rounded-lg border border-garis p-3">
-		<p class="text-xs text-redup">{label}</p>
-		<p class="text-2xl font-semibold tabular-nums {nada ?? ''}">{nilai}</p>
-		{#if ket}<p class="text-xs text-redup">{ket}</p>{/if}
+	<div class="panel flex flex-col gap-2">
+		<p class="text-sm font-semibold text-redup">{label}</p>
+		<p class="text-4xl font-extrabold tracking-tight tabular-nums {nada ?? ''}">{nilai}</p>
+		{#if ket}<p class="text-xs font-semibold text-redup">{ket}</p>{/if}
 	</div>
 {/snippet}
 
 <svelte:head><title>Laporan — {merek.judul}</title></svelte:head>
 
-<div class="tanpa-cetak mb-4 flex flex-wrap items-end justify-between gap-3">
-	<h1>Laporan &amp; mutu</h1>
-	<div class="flex items-end gap-2">
-		{#if pakaiBulan}
-			<div>
-				<label class="label" for="bulan">Bulan</label>
-				<input id="bulan" class="input" type="month" bind:value={bulan} max={hariIni().slice(0, 7)} />
+<div class="tanpa-cetak">
+	<KepalaHalaman judul="Laporan & mutu" jalur={[['Laporan'], ['Laporan & mutu']]} sub="Formulir 3 bulanan, indikator mutu, perencanaan kebutuhan, dan ketersediaan darah.">
+		{#snippet aksi()}
+			<div class="flex items-end gap-2">
+				{#if pakaiBulan}
+					<div>
+						<label class="label" for="bulan">Bulan</label>
+						<input id="bulan" class="input" type="month" bind:value={bulan} max={hariIni().slice(0, 7)} />
+					</div>
+				{/if}
+				{#if tab === 'formulir'}
+					<button type="button" class="btn" onclick={() => window.print()} disabled={!formulir.data}>
+						<Printer class="size-4" aria-hidden="true" />Cetak
+					</button>
+				{/if}
 			</div>
-		{/if}
-		{#if tab === 'formulir'}
-			<button type="button" class="btn" onclick={() => window.print()} disabled={!formulir.data}>
-				<Printer class="size-4" aria-hidden="true" />Cetak
-			</button>
-		{/if}
-	</div>
+		{/snippet}
+	</KepalaHalaman>
 </div>
 
 <Tab daftar={daftarTab} label="Jenis laporan" />
 
-<section class="panel print:border-0 print:p-0">
-	{#if tab === 'formulir'}
+{#if tab === 'formulir'}
+	<section class="panel print:border-0 print:p-0">
 		<Keadaan sumber={formulir} apakahKosong={() => false} baris={8}>
 			{#snippet children(d)}<Formulir3 {d} />{/snippet}
 		</Keadaan>
-	{:else if tab === 'mutu'}
-		<Keadaan sumber={mutu} apakahKosong={() => false}>
-			{#snippet children(m)}
-				<h2 class="mb-3">Indikator mutu</h2>
-				<div class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-					{@render kartu('Kantong kedaluwarsa (dimusnahkan)', angka(m.kedaluwarsa), m.kedaluwarsa ? 'text-waspada' : undefined)}
-					{@render kartu('Kedaluwarsa masih di stok', angka(m.kedaluwarsa_di_stok), m.kedaluwarsa_di_stok ? 'text-bahaya' : undefined, 'Saat ini; segera musnahkan')}
-					{@render kartu('Kantong dimusnahkan', angka(m.dimusnahkan))}
-					{@render kartu('Permintaan tidak terpenuhi', angka(m.permintaan_tidak_terpenuhi), m.permintaan_tidak_terpenuhi ? 'text-waspada' : undefined)}
-					{@render kartu('Rerata tunggu darurat', m.menit_tunggu_darurat === null ? '—' : `${angka(m.menit_tunggu_darurat, 1)} menit`, undefined, 'Dari diminta sampai kantong pertama keluar')}
-					{@render kartu('Insiden / KNC', angka(m.insiden), m.insiden ? 'text-waspada' : undefined)}
-					{@render kartu('Reaksi transfusi', angka(m.reaksi), m.reaksi ? 'text-waspada' : undefined)}
-				</div>
-				<h3 class="mb-1 font-semibold">Rasio C:T per komponen</h3>
-				<p class="mb-2 text-xs text-redup">Kantong yang diuji silang dibagi kantong yang ditransfusikan. Di atas {angka(m.batas_rasio_ct, 1)} dianggap uji silang berlebihan.</p>
+	</section>
+{:else if tab === 'mutu'}
+	<Keadaan sumber={mutu} apakahKosong={() => false}>
+		{#snippet children(m)}
+			<h2 class="sr-only">Indikator mutu</h2>
+			<div class="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+				{@render kartu('Kantong kedaluwarsa (dimusnahkan)', angka(m.kedaluwarsa), m.kedaluwarsa ? 'text-waspada' : undefined)}
+				{@render kartu('Kedaluwarsa masih di stok', angka(m.kedaluwarsa_di_stok), m.kedaluwarsa_di_stok ? 'text-bahaya' : undefined, 'Saat ini; segera musnahkan')}
+				{@render kartu('Kantong dimusnahkan', angka(m.dimusnahkan))}
+				{@render kartu('Permintaan tidak terpenuhi', angka(m.permintaan_tidak_terpenuhi), m.permintaan_tidak_terpenuhi ? 'text-waspada' : undefined)}
+				{@render kartu('Rerata tunggu darurat (menit)', angka(m.menit_tunggu_darurat, 1), undefined, 'Dari diminta sampai kantong pertama keluar')}
+				{@render kartu('Insiden / KNC', angka(m.insiden), m.insiden ? 'text-waspada' : undefined)}
+				{@render kartu('Reaksi transfusi', angka(m.reaksi), m.reaksi ? 'text-waspada' : undefined)}
+			</div>
+			<section class="panel" aria-labelledby="judul-ct">
+				<h2 id="judul-ct">Rasio C:T per komponen</h2>
+				<p class="mb-3 text-sm text-redup">Kantong yang diuji silang dibagi kantong yang ditransfusikan. Di atas {angka(m.batas_rasio_ct, 1)} dianggap uji silang berlebihan.</p>
 				<div class="overflow-x-auto">
 					<table class="tabel">
 						<thead>
@@ -157,14 +164,16 @@
 						</tbody>
 					</table>
 				</div>
-			{/snippet}
-		</Keadaan>
-	{:else if tab === 'perencanaan'}
+			</section>
+		{/snippet}
+	</Keadaan>
+{:else if tab === 'perencanaan'}
+	<section class="panel">
 		<Keadaan sumber={rencana}>
 			{#snippet kosong()}<p>Belum ada pemakaian maupun stok untuk dihitung.</p>{/snippet}
 			{#snippet children(data)}
-				<h2 class="mb-1">Perencanaan kebutuhan</h2>
-				<p class="mb-3 text-xs text-redup">Rerata pemakaian mingguan 26 minggu terakhir. Stok minimal = kebutuhan 1 minggu, stok ideal = 2 minggu.</p>
+				<h2>Perencanaan kebutuhan</h2>
+				<p class="mb-3 text-sm text-redup">Rerata pemakaian mingguan 26 minggu terakhir. Stok minimal = kebutuhan 1 minggu, stok ideal = 2 minggu.</p>
 				<div class="overflow-x-auto">
 					<table class="tabel">
 						<thead>
@@ -182,7 +191,7 @@
 							{#each data as r (`${r.komponen}${r.abo}${r.rhesus}`)}
 								<tr class={r.kurang > 0 ? 'bg-bahaya-latar' : ''}>
 									<td>{KOMPONEN[r.komponen] ?? r.komponen}</td>
-									<td>{golongan(r.abo, r.rhesus)}</td>
+									<td><Golongan abo={r.abo} rhesus={r.rhesus} ukuran="kecil" /></td>
 									<td class="text-right tabular-nums">{angka(r.rerata_mingguan, 1)}</td>
 									<td class="text-right tabular-nums">{r.stok_minimal}</td>
 									<td class="text-right tabular-nums">{r.stok_ideal}</td>
@@ -203,13 +212,15 @@
 				</div>
 			{/snippet}
 		</Keadaan>
-	{:else if tab === 'ketersediaan'}
+	</section>
+{:else if tab === 'ketersediaan'}
+	<section class="panel">
 		<Keadaan sumber={tersedia} apakahKosong={() => false}>
 			{#snippet children(data)}
 				<div class="mb-3 flex flex-wrap items-start justify-between gap-3">
 					<div>
 						<h2>Ketersediaan darah (kanal nasional)</h2>
-						<p class="text-xs text-redup">Kantong tersedia yang belum kedaluwarsa, per {waktu(data.waktu)}. Format JSON untuk diteruskan ke kanal yang ditetapkan Kemenkes.</p>
+						<p class="text-sm text-redup">Kantong tersedia yang belum kedaluwarsa, per {waktu(data.waktu)}. Format JSON untuk diteruskan ke kanal yang ditetapkan Kemenkes.</p>
 					</div>
 					<div class="flex gap-2">
 						<button type="button" class="btn" onclick={() => tersedia.muat()} disabled={tersedia.memuat}>
@@ -220,60 +231,60 @@
 						</button>
 					</div>
 				</div>
-				<pre class="mono max-h-[32rem] overflow-auto rounded-md bg-halus p-3 text-xs">{JSON.stringify(data, null, 2)}</pre>
+				<pre class="mono max-h-[32rem] overflow-auto rounded-xl border border-garis bg-latar p-4 text-xs">{JSON.stringify(data, null, 2)}</pre>
 			{/snippet}
 		</Keadaan>
-	{:else if tab === 'utd'}
-		<Keadaan sumber={utd} apakahKosong={() => false}>
-			{#snippet children(u)}
-				<h2 class="mb-3">Kegiatan UTD</h2>
-				<div class="grid gap-5 md:grid-cols-2">
-					<div>
-						<h3 class="mb-2 font-semibold">Seleksi donor</h3>
-						<div class="grid grid-cols-2 gap-3">
-							{@render kartu('Total', angka(u.seleksi.total))}
-							{@render kartu('Diterima', angka(u.seleksi.diterima))}
-							{@render kartu('Ditolak sementara', angka(u.seleksi.ditolak_sementara))}
-							{@render kartu('Ditolak permanen', angka(u.seleksi.ditolak_permanen))}
-						</div>
-					</div>
-					<div>
-						<h3 class="mb-2 font-semibold">Donasi</h3>
-						<div class="grid grid-cols-2 gap-3">
-							{@render kartu('Total', angka(u.donasi.total))}
-							{@render kartu('Sukarela', angka(u.donasi.sukarela))}
-							{@render kartu('Pengganti', angka(u.donasi.pengganti))}
-							{@render kartu('Gagal', angka(u.donasi.gagal))}
-						</div>
-					</div>
-					<div>
-						<h3 class="mb-2 font-semibold">Uji saring IMLTD reaktif (terverifikasi)</h3>
-						<table class="tabel">
-							<thead><tr><th scope="col">Parameter</th><th scope="col" class="text-right">Reaktif</th></tr></thead>
-							<tbody>
-								{#each Object.keys(PARAMETER_IMLTD) as p (p)}
-									{@const n = u.imltd_reaktif[p] ?? 0}
-									<tr>
-										<td>{PARAMETER_IMLTD[p]}</td>
-										<td class="text-right font-semibold tabular-nums {n ? 'text-bahaya' : ''}">{n}</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-					<div>
-						<h3 class="mb-2 font-semibold">Komponen diolah</h3>
-						<table class="tabel">
-							<thead><tr><th scope="col">Komponen</th><th scope="col" class="text-right">Kantong</th></tr></thead>
-							<tbody>
-								{#each Object.keys(KOMPONEN) as k (k)}
-									<tr><td>{KOMPONEN[k]}</td><td class="text-right tabular-nums">{u.komponen_diolah[k] ?? 0}</td></tr>
-								{/each}
-							</tbody>
-						</table>
+	</section>
+{:else if tab === 'utd'}
+	<Keadaan sumber={utd} apakahKosong={() => false}>
+		{#snippet children(u)}
+			<h2 class="sr-only">Kegiatan UTD</h2>
+			<div class="grid gap-5 md:grid-cols-2">
+				<div>
+					<h3 class="mb-2 font-bold">Seleksi donor</h3>
+					<div class="grid grid-cols-2 gap-4">
+						{@render kartu('Total', angka(u.seleksi.total))}
+						{@render kartu('Diterima', angka(u.seleksi.diterima))}
+						{@render kartu('Ditolak sementara', angka(u.seleksi.ditolak_sementara))}
+						{@render kartu('Ditolak permanen', angka(u.seleksi.ditolak_permanen))}
 					</div>
 				</div>
-			{/snippet}
-		</Keadaan>
-	{/if}
-</section>
+				<div>
+					<h3 class="mb-2 font-bold">Donasi</h3>
+					<div class="grid grid-cols-2 gap-4">
+						{@render kartu('Total', angka(u.donasi.total))}
+						{@render kartu('Sukarela', angka(u.donasi.sukarela))}
+						{@render kartu('Pengganti', angka(u.donasi.pengganti))}
+						{@render kartu('Gagal', angka(u.donasi.gagal))}
+					</div>
+				</div>
+				<div class="panel">
+					<h3 class="mb-3 font-bold">Uji saring IMLTD reaktif (terverifikasi)</h3>
+					<table class="tabel">
+						<thead><tr><th scope="col">Parameter</th><th scope="col" class="text-right">Reaktif</th></tr></thead>
+						<tbody>
+							{#each Object.keys(PARAMETER_IMLTD) as p (p)}
+								{@const n = u.imltd_reaktif[p] ?? 0}
+								<tr>
+									<td>{PARAMETER_IMLTD[p]}</td>
+									<td class="text-right font-semibold tabular-nums {n ? 'text-bahaya' : ''}">{n}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+				<div class="panel">
+					<h3 class="mb-3 font-bold">Komponen diolah</h3>
+					<table class="tabel">
+						<thead><tr><th scope="col">Komponen</th><th scope="col" class="text-right">Kantong</th></tr></thead>
+						<tbody>
+							{#each Object.keys(KOMPONEN) as k (k)}
+								<tr><td>{KOMPONEN[k]}</td><td class="text-right tabular-nums">{u.komponen_diolah[k] ?? 0}</td></tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		{/snippet}
+	</Keadaan>
+{/if}

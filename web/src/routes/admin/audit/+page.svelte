@@ -6,8 +6,10 @@
 	import Keadaan from '#lib/Keadaan.svelte';
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import Isian from '#lib/Isian.svelte';
+	import Chip from '#lib/Chip.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { waktu } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import ShieldAlert from '@lucide/svelte/icons/shield-alert';
 
@@ -72,7 +74,7 @@
 
 <svelte:head><title>Jejak audit — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Jejak audit</h1>
+<KepalaHalaman judul="Jejak audit" jalur={[['Pengaturan'], ['Jejak audit']]} sub="Setiap perubahan data dan setiap pembukaan data pasien atau donor tercatat di sini." />
 
 {#if !sesi.boleh('audit.lihat')}
 	<p class="catatan">Anda tidak berhak melihat jejak audit.</p>
@@ -101,47 +103,51 @@
 		{/if}
 	</section>
 
-	<form class="panel mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end" onsubmit={cari} aria-label="Saring jejak audit">
-		<Isian label="Objek" id="f-objek" bantuan="mis. akun, donor, kantong, aturan_komponen">
-			<input id="f-objek" class="input mono" bind:value={filter.objek} />
-		</Isian>
-		<Isian label="ID objek" id="f-objek-id">
-			<input id="f-objek-id" class="input mono" bind:value={filter.objek_id} />
-		</Isian>
-		{#if sesi.boleh('akun.kelola')}
-			<Isian label="Akun pelaku" id="f-akun">
-				<select id="f-akun" class="input" bind:value={filter.akun_id}>
-					<option value="">Semua akun</option>
-					{#each akun.data ?? [] as a (a.id)}<option value={a.id}>{a.nama} ({a.nama_pengguna})</option>{/each}
-				</select>
+	<form class="panel mb-4 flex flex-col gap-2" onsubmit={cari} aria-label="Saring jejak audit">
+		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+			<Isian label="Objek" id="f-objek">
+				<input id="f-objek" class="input mono" bind:value={filter.objek} aria-describedby="f-objek-bantuan" placeholder="mis. kantong" />
 			</Isian>
-		{:else}
-			<Isian label="ID akun pelaku" id="f-akun">
-				<input id="f-akun" class="input mono" bind:value={filter.akun_id} placeholder="UUID akun" />
+			<Isian label="ID objek" id="f-objek-id">
+				<input id="f-objek-id" class="input mono" bind:value={filter.objek_id} />
 			</Isian>
-		{/if}
-		<div><button class="btn btn--utama">Terapkan saringan</button></div>
+			{#if sesi.boleh('akun.kelola')}
+				<Isian label="Akun pelaku" id="f-akun">
+					<select id="f-akun" class="input" bind:value={filter.akun_id}>
+						<option value="">Semua akun</option>
+						{#each akun.data ?? [] as a (a.id)}<option value={a.id}>{a.nama} ({a.nama_pengguna})</option>{/each}
+					</select>
+				</Isian>
+			{:else}
+				<Isian label="ID akun pelaku" id="f-akun">
+					<input id="f-akun" class="input mono" bind:value={filter.akun_id} placeholder="UUID akun" />
+				</Isian>
+			{/if}
+			<div><button class="btn btn--utama">Terapkan saringan</button></div>
+		</div>
+		<p id="f-objek-bantuan" class="text-xs text-redup">Objek mis. <span class="mono">akun</span>, <span class="mono">donor</span>, <span class="mono">kantong</span>, <span class="mono">aturan_komponen</span>. Kosongkan untuk semua.</p>
 	</form>
 
 	<section class="panel" aria-labelledby="judul-jejak">
-		<h2 id="judul-jejak" class="mb-3">Catatan terbaru</h2>
+		<h2 id="judul-jejak">Catatan terbaru</h2>
+		<p class="mb-3 text-sm text-redup">Terbaru di atas, 100 per halaman.</p>
 		<Keadaan sumber={audit}>
 			{#snippet kosong()}<p>Tidak ada catatan audit yang cocok dengan saringan.</p>{/snippet}
 			{#snippet children(data)}
 				<div class="overflow-x-auto">
-					<table class="tabel">
+					<table class="tabel [&_td]:py-2">
 						<thead>
-							<tr><th>Urutan</th><th>Waktu</th><th>Pelaku</th><th>Aksi</th><th>Objek</th><th>Alasan</th><th><span class="sr-only">Rincian</span></th></tr>
+							<tr><th>Waktu</th><th>Akun</th><th>Aksi</th><th>Objek</th><th>Alasan</th><th>Urutan</th><th><span class="sr-only">Rincian</span></th></tr>
 						</thead>
 						<tbody>
 							{#each data as b (b.urutan)}
 								<tr>
-									<td class="mono tabular-nums">{b.urutan}</td>
 									<td class="whitespace-nowrap">{waktu(b.waktu)}</td>
 									<td>{b.nama ?? 'Sistem / belum masuk'}{#if b.alamat}<span class="mono block text-xs text-redup">{b.alamat}</span>{/if}</td>
-									<td class="mono">{b.aksi}</td>
+									<td><Chip polos>{b.aksi}</Chip></td>
 									<td class="mono">{b.objek}{#if b.objek_id}<span class="block text-xs break-all text-redup">{b.objek_id}</span>{/if}</td>
 									<td>{b.alasan ?? '—'}</td>
+									<td class="mono text-xs text-redup tabular-nums">{b.urutan}</td>
 									<td>
 										{#if b.sebelum != null || b.sesudah != null}
 											<button

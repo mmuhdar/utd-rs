@@ -10,6 +10,10 @@
 	import { GOL } from '#lib/stok/stok.ts';
 	import Printer from '@lucide/svelte/icons/printer';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Chip from '#lib/Chip.svelte';
 
 	type Ringkas = { komponen: string; abo: string; rhesus: string; tersedia: number; mendekati_kedaluwarsa: number };
 	const ringkasan = new Sumber(() => api<Ringkas[]>('GET', '/stok/ringkasan'));
@@ -38,24 +42,25 @@
 
 <svelte:head><title>Lembar darurat — {merek.judul}</title></svelte:head>
 
-<div class="tanpa-cetak mb-4 flex flex-wrap items-center justify-between gap-2">
-	<p class="text-sm text-redup">Cetak lembar ini setiap pergantian dinas dan simpan di meja BDRS untuk dipakai saat sistem tidak bisa diakses.</p>
-	<div class="flex gap-2">
-		<button type="button" class="btn" onclick={muat}><RefreshCw class="size-4" aria-hidden="true" />Muat ulang</button>
-		<button type="button" class="btn btn--utama" onclick={() => window.print()}><Printer class="size-4" aria-hidden="true" />Cetak</button>
-	</div>
+<div class="tanpa-cetak">
+	<KepalaHalaman judul="Lembar darurat" sub="Cetak lembar ini setiap pergantian dinas dan simpan di meja BDRS untuk dipakai saat sistem tidak bisa diakses.">
+		{#snippet aksi()}
+			<button type="button" class="btn" onclick={muat}><RefreshCw class="size-4" aria-hidden="true" />Muat ulang</button>
+			<button type="button" class="btn btn--utama" onclick={() => window.print()}><Printer class="size-4" aria-hidden="true" />Cetak</button>
+		{/snippet}
+	</KepalaHalaman>
 </div>
 
-<div class="flex flex-col gap-4 print:gap-3 print:text-[9pt]">
-	<header>
+<div class="flex flex-col gap-5 print:gap-3 print:text-[9pt]">
+	<header class="panel print:border-0 print:p-0 print:shadow-none">
 		<Kop />
-		<h1 class="mt-4">Lembar darurat stok dan golongan pasien</h1>
-		<p class="text-sm">Dicetak {waktu(dicetak)} oleh {sesi.profil?.nama}. Data sesudah waktu ini tidak tercantum.</p>
+		<h2 class="mt-4 text-xl font-extrabold tracking-tight">Lembar darurat stok dan golongan pasien</h2>
+		<p class="mt-1 text-sm text-teks-2">Dicetak {waktu(dicetak)} oleh {sesi.profil?.nama}. Data sesudah waktu ini tidak tercantum.</p>
 	</header>
 
-	<section class="panel break-inside-avoid print:border-0 print:p-0" aria-labelledby="judul-petunjuk">
-		<h2 id="judul-petunjuk" class="mb-2">Prosedur manual saat sistem mati</h2>
-		<ol class="list-decimal space-y-1 pl-5 text-sm">
+	<section class="catatan break-inside-avoid flex-col gap-2 print:border-0 print:bg-transparent print:p-0 print:text-teks" aria-labelledby="judul-petunjuk">
+		<h2 id="judul-petunjuk" class="flex items-center gap-2.5"><TriangleAlert class="size-5 shrink-0 print:hidden" aria-hidden="true" />Prosedur manual saat sistem mati</h2>
+		<ol class="list-decimal space-y-1 pl-5 text-sm font-medium">
 			<li>Catat setiap permintaan, sampel, uji silang, pengeluaran, dan transfusi di formulir kertas cadangan, dengan nomor kantong lengkap dan jam.</li>
 			<li>Pakai lembar ini sebagai stok awal. Coret kantong yang dikeluarkan dan tulis jam keluar serta no. RM penerimanya.</li>
 			<li>Golongan pasien di lembar ini hanya yang sudah terverifikasi. Pasien lain tetap diperiksa golongan dan uji silang manual dengan verifikasi petugas kedua.</li>
@@ -74,7 +79,7 @@
 						<thead>
 							<tr>
 								<th scope="col">Komponen</th>
-								{#each GOL as [a, r] (a + r)}<th scope="col" class="text-center">{golongan(a, r)}</th>{/each}
+								{#each GOL as [a, r] (a + r)}<th scope="col" class="text-center"><Golongan abo={a} rhesus={r} ukuran="kecil" /></th>{/each}
 							</tr>
 						</thead>
 						<tbody>
@@ -84,7 +89,7 @@
 									{#each GOL as [a, r] (a + r)}
 										{@const x = sel(k, a, r)}
 										<td class="text-center tabular-nums">
-											<span class={x?.tersedia ? 'font-semibold' : 'text-redup'}>{x?.tersedia ?? 0}</span>
+											<span class={x?.tersedia ? 'text-base font-bold' : 'text-redup'}>{x?.tersedia ?? 0}</span>
 											{#if x?.mendekati_kedaluwarsa}<span class="block text-xs text-waspada">{x.mendekati_kedaluwarsa} segera kedaluwarsa</span>{/if}
 										</td>
 									{/each}
@@ -119,18 +124,24 @@
 								{#each data as p (p.id)}
 									<tr class="break-inside-avoid">
 										<td>
-											<span class="mono">{p.nomor}</span>
-											<span class="block text-xs">{p.ruang} · {p.jenis === 'darurat' ? 'DARURAT' : p.jenis}</span>
+											<span class="mono font-semibold">{p.nomor}</span>
+											<span class="block text-xs text-redup">{p.ruang} · {p.jenis === 'darurat' ? 'DARURAT' : p.jenis}</span>
 										</td>
 										<td>
-											{p.pasien.nama}
-											<span class="mono block text-xs">{p.no_rm}</span>
+											<span class="font-semibold">{p.pasien.nama}</span>
+											<span class="mono block text-xs text-redup">{p.no_rm}</span>
 											<span class="block text-xs text-redup">Lahir {tanggal(p.pasien.tanggal_lahir)} · {p.pasien.jenis_kelamin}</span>
 										</td>
-										<td class="font-semibold {p.golongan_terverifikasi ? '' : 'text-waspada'}">{golPasien(p)}</td>
+										<td>
+											{#if p.golongan_terverifikasi}
+												<Golongan abo={p.golongan_terverifikasi.abo} rhesus={p.golongan_terverifikasi.rhesus} />
+											{:else}
+												<span class="text-sm font-semibold text-waspada">{golPasien(p)}</span>
+											{/if}
+										</td>
 										<td>{#each p.baris as b, i (i)}<span class="block whitespace-nowrap">{b.jumlah} × {KOMPONEN[b.komponen]}</span>{/each}</td>
 										<td class="mono">{#each teralokasi(p) as n (n)}<span class="block">{n}</span>{:else}—{/each}</td>
-										<td>{STATUS_PERMINTAAN[p.status]?.[0] ?? p.status}</td>
+										<td><Chip nada={STATUS_PERMINTAAN[p.status]?.[1]}>{STATUS_PERMINTAAN[p.status]?.[0] ?? p.status}</Chip></td>
 									</tr>
 								{/each}
 							</tbody>
@@ -161,16 +172,16 @@
 						<tbody>
 							{#each data as k (k.id)}
 								<tr class="break-inside-avoid">
-									<td class="mono">{k.nomor}</td>
+									<td class="mono font-semibold">{k.nomor}</td>
 									<td>{KOMPONEN[k.komponen]}</td>
-									<td class="font-semibold whitespace-nowrap">{golongan(k.abo, k.rhesus)}</td>
+									<td><Golongan abo={k.abo} rhesus={k.rhesus} ukuran="kecil" /></td>
 									<td class="whitespace-nowrap">
 										{waktu(k.kedaluwarsa)}
 										{#if k.lewat_kedaluwarsa}<span class="block text-xs font-medium text-bahaya">Kedaluwarsa, jangan dipakai</span>
 										{:else if k.mendekati_kedaluwarsa}<span class="block text-xs text-waspada">Segera kedaluwarsa</span>{/if}
 									</td>
 									<td class="mono">{k.alat ?? '—'}</td>
-									<td class="min-w-32"></td>
+									<td class="min-w-32 border-l border-dashed border-garis-kuat"></td>
 								</tr>
 							{/each}
 						</tbody>

@@ -8,7 +8,11 @@
 	import Isian from '#lib/Isian.svelte';
 	import Chip from '#lib/Chip.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { KOMPONEN, NAMA_KOMPONEN, golongan, waktu } from '#lib/format.ts';
+	import { KOMPONEN, NAMA_KOMPONEN, waktu } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import Send from '@lucide/svelte/icons/send';
 	import { ABO, RHESUS, type Utd } from '#lib/stok/stok.ts';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash from '@lucide/svelte/icons/trash-2';
@@ -60,30 +64,31 @@
 
 <svelte:head><title>Permintaan ke UTD — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Permintaan ke UTD</h1>
+<KepalaHalaman
+	judul="Permintaan ke UTD"
+	sub={daftar.data ? `${daftar.data.filter((r) => r.status === 'dikirim').length} menunggu dipenuhi · ${daftar.data.length} permintaan` : undefined}
+	jalur={[['Stok kantong', '/stok'], ['Permintaan ke UTD']]}
+/>
 
 {#if kelola}
-	<form class="panel mb-6 flex flex-col gap-4" onsubmit={simpan} aria-labelledby="judul-baru">
+	<form class="panel mb-5 flex flex-col gap-5" onsubmit={simpan} aria-labelledby="judul-baru">
 		<h2 id="judul-baru">Buat permintaan</h2>
-		<div class="form-grid">
+		<div class="grid items-start gap-4 sm:grid-cols-2">
 			<Isian label="UTD mitra" id="utd" galat={aksi.isian.utd_id}>
 				<select id="utd" class="input" bind:value={utd_id} required>
 					<option value="" disabled>Pilih UTD</option>
 					{#each (utdList.data ?? []).filter((u) => u.aktif) as u (u.id)}<option value={u.id}>{u.nama}</option>{/each}
 				</select>
 			</Isian>
-			<Isian label="Jenis permintaan" id="jenis" galat={aksi.isian.jenis}>
-				<select id="jenis" class="input" bind:value={jenis}>
-					{#each Object.entries(JENIS) as [v, l] (v)}<option value={v}>{l}</option>{/each}
-				</select>
-			</Isian>
+			<Pilihan legend="Jenis permintaan" name="jenis" opsi={Object.entries(JENIS)} bind:value={jenis} galat={aksi.isian.jenis} bahaya={['darurat']} />
 		</div>
 
-		<fieldset>
-			<legend class="label">Baris komponen</legend>
-			<ol class="flex flex-col gap-2">
+		<fieldset class="rounded-2xl border border-garis bg-latar/40 p-4">
+			<legend class="label px-1">Baris komponen</legend>
+			<ol class="flex flex-col gap-3">
 				{#each baris as b, n (n)}
-					<li class="grid grid-cols-2 items-end gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+					<li class="grid grid-cols-2 items-end gap-3 sm:grid-cols-[auto_2fr_1fr_1fr_1fr_auto]">
+						<span class="hidden min-h-10 items-center sm:flex" aria-hidden="true"><Golongan abo={b.abo} rhesus={b.rhesus} /></span>
 						<div class="col-span-2 sm:col-span-1">
 							<label class="label text-xs" for="b{n}-komponen">Komponen baris {n + 1}</label>
 							<select id="b{n}-komponen" class="input" bind:value={b.komponen}>
@@ -104,7 +109,7 @@
 						</div>
 						<div>
 							<label class="label text-xs" for="b{n}-jumlah">Jumlah kantong</label>
-							<input id="b{n}-jumlah" class="input" type="number" min="1" bind:value={b.jumlah} required />
+							<input id="b{n}-jumlah" class="input tabular-nums" type="number" min="1" bind:value={b.jumlah} required />
 						</div>
 						<button type="button" class="btn btn--teks" disabled={baris.length === 1} onclick={() => baris.splice(n, 1)}>
 							<Trash class="size-4" aria-hidden="true" /><span class="sr-only">Hapus baris {n + 1}</span>
@@ -113,7 +118,7 @@
 				{/each}
 			</ol>
 			{#if aksi.isian.baris}<p class="mt-1 text-sm text-bahaya" role="alert">{aksi.isian.baris}</p>{/if}
-			<button type="button" class="btn btn--teks mt-2" onclick={() => baris.push(barisBaru())}><Plus class="size-4" aria-hidden="true" />Tambah baris</button>
+			<button type="button" class="btn mt-3" onclick={() => baris.push(barisBaru())}><Plus class="size-4" aria-hidden="true" />Tambah baris</button>
 		</fieldset>
 
 		<Isian
@@ -125,12 +130,17 @@
 			<textarea id="catatan" class="input" rows="3" bind:value={catatan} required={jenis === 'darurat'} aria-invalid={!!aksi.isian.catatan}></textarea>
 		</Isian>
 		<PesanAksi {aksi} />
-		<button class="btn btn--utama self-start" disabled={aksi.sibuk}>Kirim permintaan</button>
+		<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+			<button class="btn btn--utama" disabled={aksi.sibuk}><Send class="size-4" aria-hidden="true" />Kirim permintaan</button>
+		</div>
 	</form>
 {/if}
 
 <section class="panel" aria-labelledby="judul-daftar">
-	<h2 id="judul-daftar" class="mb-3">Daftar permintaan</h2>
+	<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+		<h2 id="judul-daftar">Daftar permintaan</h2>
+		{#if daftar.data}<p class="text-sm text-redup">{daftar.data.length} permintaan</p>{/if}
+	</div>
 	<div class="mb-2"><PesanAksi aksi={aksiStatus} /></div>
 	<Keadaan sumber={daftar}>
 		{#snippet kosong()}<p>Belum ada permintaan ke UTD.</p>{/snippet}
@@ -151,19 +161,24 @@
 						{#each data as r (r.id)}
 							{@const st = STATUS[r.status] ?? [r.status, 'netral']}
 							<tr>
-								<td class="mono">{r.nomor}</td>
-								<td class="whitespace-nowrap">{waktu(r.dibuat_pada)}</td>
+								<td class="mono font-semibold">{r.nomor}</td>
+								<td class="whitespace-nowrap text-teks-2">{waktu(r.dibuat_pada)}</td>
 								<td>{r.utd}</td>
 								<td>
-									<ul>
-										{#each r.baris as b, i (i)}<li>{b.jumlah} × {KOMPONEN[b.komponen]} {golongan(b.abo, b.rhesus)}</li>{/each}
+									<ul class="flex flex-col gap-1">
+										{#each r.baris as b, i (i)}
+											<li class="flex items-center gap-2">
+												<Golongan abo={b.abo} rhesus={b.rhesus} ukuran="kecil" />
+												<span class="text-teks-2"><span class="font-semibold tabular-nums">{b.jumlah}</span> × {KOMPONEN[b.komponen]}</span>
+											</li>
+										{/each}
 									</ul>
-									{#if r.catatan}<p class="text-xs text-redup">{r.catatan}</p>{/if}
+									{#if r.catatan}<p class="mt-1 max-w-72 text-xs text-redup">{r.catatan}</p>{/if}
 								</td>
 								<td>
-									<span class="flex flex-col items-start gap-1">
-										{#if r.jenis === 'darurat'}<Chip nada="bahaya">Darurat</Chip>{:else}<Chip>{JENIS[r.jenis]}</Chip>{/if}
+									<span class="flex flex-wrap items-start gap-1.5">
 										<Chip nada={st[1]}>{st[0]}</Chip>
+										{#if r.jenis === 'darurat'}<Chip nada="bahaya" polos>Darurat</Chip>{:else}<Chip polos>{JENIS[r.jenis]}</Chip>{/if}
 									</span>
 								</td>
 								<td>

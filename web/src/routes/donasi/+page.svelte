@@ -5,7 +5,10 @@
 	import Keadaan from '#lib/Keadaan.svelte';
 	import Chip from '#lib/Chip.svelte';
 	import { waktu } from '#lib/format.ts';
-	import { STATUS_DONASI, golonganGabung } from '#lib/utd/label.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import { STATUS_DONASI } from '#lib/utd/label.ts';
 
 	type Baris = {
 		id: string;
@@ -33,17 +36,20 @@
 
 <svelte:head><title>Donasi — {merek.judul}</title></svelte:head>
 
-<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-	<h1>Donasi &amp; pelulusan</h1>
-	<div>
-		<label class="label" for="status">Status donasi</label>
-		<select id="status" class="input" bind:value={status}>
-			<option value="">Semua</option>
-			<option value="diambil">Menunggu pengolahan</option>
-			<option value="diolah">Diolah</option>
-			<option value="gagal">Gagal</option>
-		</select>
-	</div>
+<KepalaHalaman judul="Donasi & pelulusan" jalur={[['UTD'], ['Donasi & pelulusan']]} sub="Golongan, uji saring IMLTD, pengolahan, dan pelulusan kantong hasil donasi." />
+
+<div class="mb-4">
+	<Pilihan
+		legend="Status donasi"
+		name="status"
+		opsi={[
+			['', 'Semua'],
+			['diambil', 'Menunggu pengolahan'],
+			['diolah', 'Diolah'],
+			['gagal', 'Gagal']
+		]}
+		bind:value={status}
+	/>
 </div>
 
 <section class="panel">
@@ -71,7 +77,7 @@
 							{@const st = STATUS_DONASI[n.status]}
 							<tr>
 								<td>
-									<a class="mono font-medium text-utama hover:underline" href="/donasi/{n.id}">{n.nomor}</a>
+									<a class="mono font-semibold text-teks hover:underline" href="/donasi/{n.id}">{n.nomor}</a>
 									<span class="block text-xs text-redup">{waktu(n.waktu)}</span>
 								</td>
 								<td>
@@ -81,7 +87,7 @@
 								<td><Chip nada={st?.[1]}>{st?.[0] ?? n.status}</Chip></td>
 								<td>
 									{#if n.golongan}
-										<span class="font-semibold">{golonganGabung(n.golongan)}</span>
+										<Golongan abo={n.golongan.replace(/(pos|neg)$/, '')} rhesus={n.golongan.slice(-3)} />
 									{:else}
 										<Chip nada="waspada">Belum terverifikasi</Chip>
 									{/if}

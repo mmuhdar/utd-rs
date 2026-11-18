@@ -8,16 +8,22 @@
 	import FormGolongan from './FormGolongan.svelte';
 	import Verifikasi from './Verifikasi.svelte';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import GolonganLencana from '#lib/Golongan.svelte';
+	import Bagian from './Bagian.svelte';
 
-	let { p, aktif, muat, minta }: { p: any; aktif: boolean; muat: () => Promise<void>; minta: Minta } = $props();
+	let { p, aktif, muat, minta, sekarang }: { p: any; aktif: boolean; muat: () => Promise<void>; minta: Minta; sekarang: number } = $props();
 	const sampel = $derived(p.sampel.filter((s: any) => s.golongan || (s.layak && aktif)));
+	const gol = $derived(p.golongan_terverifikasi);
+	const menunggu = $derived(sampel.some((s: any) => s.golongan && !s.golongan.terverifikasi));
+	const ringkas = $derived(
+		gol ? `${golongan(gol.abo, gol.rhesus)} terverifikasi` : menunggu ? 'Hasil sudah diinput, menunggu verifikasi petugas kedua' : 'Belum diperiksa'
+	);
 </script>
 
-<section class="panel flex flex-col gap-4" aria-labelledby="j-golongan">
-	<h2 id="j-golongan">Pemeriksaan golongan pasien</h2>
+<Bagian id="bagian-golongan" nomor={2} bukaAwal={sekarang === 1} judul="Pemeriksaan golongan pasien" selesai={!!gol} {ringkas}>
 	{#each sampel as s (s.id)}
 		{@const g = s.golongan}
-		<div class="flex flex-col gap-3 rounded-md border border-garis p-3">
+		<div class="flex flex-col gap-3 rounded-xl border border-garis p-4">
 			<p class="text-sm text-redup">Sampel diambil {waktu(s.diambil_pada)}</p>
 			{#if g}
 				<div class="overflow-x-auto">
@@ -33,7 +39,7 @@
 								<td class="mono">{tanda(g.anti_a)}</td><td class="mono">{tanda(g.anti_b)}</td><td class="mono">{tanda(g.anti_d)}</td>
 								<td class="mono">{tanda(g.sel_a)}</td><td class="mono">{tanda(g.sel_b)}</td>
 								<td>{METODE_GOLONGAN[g.metode] ?? g.metode}</td>
-								<td class="text-base font-semibold">{golongan(g.abo, g.rhesus)}</td>
+								<td><GolonganLencana abo={g.abo} rhesus={g.rhesus} /></td>
 								<td>{g.petugas}<span class="block text-xs text-redup">{waktu(g.dicatat_pada)}</span></td>
 							</tr>
 						</tbody>
@@ -41,7 +47,7 @@
 				</div>
 				{#if g.diskrepansi}
 					<div class="peringatan" role="alert">
-						<TriangleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+						<TriangleAlert aria-hidden="true" />
 						<p>Diskrepansi: hasil {golongan(g.abo, g.rhesus)} berbeda dari golongan terverifikasi sebelumnya untuk no. RM ini. Sampel tidak dapat dipakai; minta sampel baru sebelum darah dikeluarkan.</p>
 					</div>
 				{/if}
@@ -70,4 +76,4 @@
 	{:else}
 		<p class="text-sm text-redup">Belum ada sampel layak untuk diperiksa.</p>
 	{/each}
-</section>
+</Bagian>

@@ -16,14 +16,18 @@
 	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
 	import { ABO, KESIMPULAN, METODE_UJI_SILANG, POS_NEG, RH, kesimpulan, kompatibel, tanda } from '#lib/pelayanan/darah.ts';
 	import Verifikasi from './Verifikasi.svelte';
+	import Bagian from './Bagian.svelte';
+	import CircleAlert from '@lucide/svelte/icons/circle-alert';
+	import GolonganLencana from '#lib/Golongan.svelte';
 
 	let {
 		p,
 		aktif,
 		aturan,
 		muat,
-		minta
-	}: { p: any; aktif: boolean; aturan: Record<string, string>; muat: () => Promise<void>; minta: Minta } = $props();
+		minta,
+		sekarang
+	}: { p: any; aktif: boolean; aturan: Record<string, string>; muat: () => Promise<void>; minta: Minta; sekarang: number } = $props();
 
 	const gol = $derived(p.golongan_terverifikasi);
 	const sampelLayak = $derived(p.sampel.filter((s: any) => s.layak));
@@ -61,6 +65,15 @@
 	const beda = $derived(kantong && f.abo_kantong && f.rhesus_kantong && (f.abo_kantong !== kantong.abo || f.rhesus_kantong !== kantong.rhesus));
 	const pratinjau = $derived(kantong && !beda && f.minor ? kesimpulan(kantong.komponen, f.mayor || undefined, f.minor, f.autokontrol || undefined) : null);
 
+	const serasi = $derived(p.uji_silang.filter((u: any) => u.terverifikasi && ['serasi', 'hanya_prc'].includes(u.kesimpulan)).length);
+	const menungguVerif = $derived(p.uji_silang.filter((u: any) => !u.terverifikasi).length);
+	const selesai = $derived(!butuh.length && menungguVerif === 0 && p.uji_silang.length > 0);
+	const ringkas = $derived(
+		p.uji_silang.length
+			? `${p.uji_silang.length} kantong diuji · ${serasi} serasi terverifikasi${menungguVerif ? ` · ${menungguVerif} menunggu verifikasi` : ''}`
+			: 'Belum ada uji silang'
+	);
+
 	const aksi = new Aksi();
 	let pesan = $state<string | null>(null);
 
@@ -89,8 +102,7 @@
 	}
 </script>
 
-<section class="panel flex flex-col gap-4" aria-labelledby="j-uji">
-	<h2 id="j-uji">Uji silang serasi <span class="text-sm font-normal text-redup">(crossmatch)</span></h2>
+<Bagian id="bagian-uji" nomor={3} bukaAwal={sekarang === 2} judul="Uji silang serasi (crossmatch)" {selesai} {ringkas}>
 
 	{#if bisaInput}
 		{#if !gol}
@@ -122,8 +134,8 @@
 													onclick={() => (f.nomor = k.nomor)}
 													aria-label="Pilih kantong {k.nomor}, {golongan(k.abo, k.rhesus)}, kedaluwarsa {relatif(k.kedaluwarsa)}"
 												>
+													<GolonganLencana abo={k.abo} rhesus={k.rhesus} ukuran="kecil" />
 													<span class="mono">{k.nomor}</span>
-													<span>{golongan(k.abo, k.rhesus)}</span>
 													<span class="text-xs {k.mendekati_kedaluwarsa ? 'text-waspada' : 'text-redup'}">{relatif(k.kedaluwarsa)}</span>
 												</button>
 											</li>
@@ -138,8 +150,8 @@
 				</div>
 			{/if}
 
-			<form class="tanpa-cetak flex flex-col gap-4 border-t border-garis pt-4" onsubmit={kirim}>
-				<h3 class="font-semibold">Catat uji silang</h3>
+			<form class="tanpa-cetak flex flex-col gap-4 rounded-xl border border-garis bg-latar/50 p-4" onsubmit={kirim}>
+				<h3 class="font-bold">Catat uji silang</h3>
 				<div class="form-grid">
 					<Pindai label="Pindai nomor kantong" id="u-kantong" onpindai={(v) => (f.nomor = v)} />
 					{#if sampelLayak.length > 1}
@@ -151,7 +163,7 @@
 					{/if}
 				</div>
 				{#if f.nomor}
-					<p class="rounded-md bg-halus p-3" aria-live="polite">
+					<p class="rounded-xl bg-halus p-3" aria-live="polite">
 						Kantong <span class="mono font-semibold">{f.nomor}</span>
 						{#if kantong}
 							— {KOMPONEN[kantong.komponen]}, label {golongan(kantong.abo, kantong.rhesus)}, kedaluwarsa {waktu(kantong.kedaluwarsa)}
@@ -167,9 +179,9 @@
 						<p class="peringatan" role="alert">Golongan dari selang berbeda dengan label kantong. Bila disimpan, kantong dikarantina dan dikembalikan ke UTD.</p>
 					{/if}
 					<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-						<Pilihan legend="Mayor{atur === 'mayor_minor' ? '' : ' (opsional)'}" name="u-mayor" opsi={atur === 'mayor_minor' ? POS_NEG : opsional} bind:value={f.mayor} galat={aksi.isian.mayor} />
-						<Pilihan legend="Minor" name="u-minor" opsi={POS_NEG} bind:value={f.minor} galat={aksi.isian.minor} />
-						<Pilihan legend="Autokontrol{atur === 'mayor_minor' ? '' : ' (opsional)'}" name="u-auto" opsi={atur === 'mayor_minor' ? POS_NEG : opsional} bind:value={f.autokontrol} />
+						<Pilihan legend="Mayor{atur === 'mayor_minor' ? '' : ' (opsional)'}" name="u-mayor" opsi={atur === 'mayor_minor' ? POS_NEG : opsional} bind:value={f.mayor} galat={aksi.isian.mayor} bahaya={['pos']} />
+						<Pilihan legend="Minor" name="u-minor" opsi={POS_NEG} bind:value={f.minor} galat={aksi.isian.minor} bahaya={['pos']} />
+						<Pilihan legend="Autokontrol{atur === 'mayor_minor' ? '' : ' (opsional)'}" name="u-auto" opsi={atur === 'mayor_minor' ? POS_NEG : opsional} bind:value={f.autokontrol} bahaya={['pos']} />
 						<Isian label="Metode" id="u-metode" galat={aksi.isian.metode}>
 							<select id="u-metode" class="input" bind:value={f.metode}>
 								{#each Object.entries(METODE_UJI_SILANG) as [k, l] (k)}<option value={k}>{l}</option>{/each}
@@ -185,12 +197,22 @@
 							{#if aksi.isian.ccc_valid}<p class="text-sm text-bahaya" role="alert">{aksi.isian.ccc_valid}</p>{/if}
 						</div>
 					{/if}
-					{#if pratinjau}
+					{#if pratinjau === 'tidak_serasi'}
+						<div class="peringatan" role="alert">
+							<CircleAlert aria-hidden="true" />
+							<div>
+								<p class="font-bold">Hasil positif — kantong tidak serasi dan tidak boleh dikeluarkan</p>
+								<p class="text-sm">Pilih kantong lain. Bila autokontrol positif, lakukan pemeriksaan DAT atau rujuk sampel ke UTD.</p>
+							</div>
+						</div>
+					{:else if pratinjau}
 						<p class="text-sm">Kesimpulan dihitung sistem: <Chip nada={KESIMPULAN[pratinjau][1]}>{KESIMPULAN[pratinjau][0]}</Chip></p>
 					{/if}
 				{/if}
 				<PesanAksi {aksi} />
-				<button class="btn btn--utama self-start" disabled={aksi.sibuk || !f.nomor}>Simpan hasil uji silang</button>
+				<div class="flex justify-end">
+					<button class="btn btn--utama" disabled={aksi.sibuk || !f.nomor}>Simpan hasil uji silang</button>
+				</div>
 			</form>
 		{/if}
 	{/if}
@@ -201,9 +223,8 @@
 			<table class="tabel">
 				<thead>
 					<tr>
-						<th scope="col">Kantong</th><th scope="col">Label / selang</th><th scope="col">Metode</th>
-						<th scope="col">Mayor</th><th scope="col">Minor</th><th scope="col">Auto</th><th scope="col">CCC</th>
-						<th scope="col">Kesimpulan</th><th scope="col">Petugas</th><th scope="col">Verifikasi kedua</th>
+						<th scope="col">Kantong</th><th scope="col">Label / selang</th><th scope="col">Hasil</th>
+						<th scope="col">Kesimpulan</th><th scope="col">Verifikasi kedua</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -211,13 +232,16 @@
 						{@const k = KESIMPULAN[u.kesimpulan]}
 						<tr>
 							<td class="mono">{u.nomor_kantong}<span class="block font-sans text-xs text-redup">{KOMPONEN[u.komponen]}</span></td>
-							<td>{golongan(u.abo_label, u.rhesus_label)} / {golongan(u.abo_kantong, u.rhesus_kantong)}</td>
-							<td>{METODE_UJI_SILANG[u.metode] ?? u.metode}</td>
-							<td class="mono">{tanda(u.mayor)}</td><td class="mono">{tanda(u.minor)}</td><td class="mono">{tanda(u.autokontrol)}</td>
-							<td>{u.ccc_valid === null ? '—' : u.ccc_valid ? 'Valid' : 'Tidak'}</td>
+							<td><span class="flex items-center gap-1"><GolonganLencana abo={u.abo_label} rhesus={u.rhesus_label} ukuran="kecil" /><span class="text-redup">/</span><GolonganLencana abo={u.abo_kantong} rhesus={u.rhesus_kantong} ukuran="kecil" /></span></td>
+							<td class="whitespace-nowrap">
+								<span class="mono">Mayor {tanda(u.mayor)} · Minor {tanda(u.minor)} · AK {tanda(u.autokontrol)}</span>
+								<span class="block text-xs text-redup"
+									>{METODE_UJI_SILANG[u.metode] ?? u.metode}{u.ccc_valid === null ? '' : u.ccc_valid ? ' · CCC valid' : ' · CCC tidak valid'}</span
+								>
+							</td>
 							<td><Chip nada={k?.[1]}>{k?.[0] ?? u.kesimpulan}</Chip></td>
-							<td>{u.petugas}<span class="block text-xs text-redup">{waktu(u.dicatat_pada)}</span></td>
 							<td>
+								<span class="block text-xs text-redup">Input {u.petugas} · {waktu(u.dicatat_pada)}</span>
 								{#if u.terverifikasi}
 									<Chip nada="aman">Terverifikasi</Chip>
 								{:else if sesi.boleh('uji.verifikasi')}
@@ -243,4 +267,4 @@
 	{:else}
 		<p class="text-sm text-redup">Belum ada uji silang.</p>
 	{/if}
-</section>
+</Bagian>

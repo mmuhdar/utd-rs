@@ -11,7 +11,11 @@
 	import Chip from '#lib/Chip.svelte';
 	import StatusKantong from '#lib/StatusKantong.svelte';
 	import TandaTangan from '#lib/utd/TandaTangan.svelte';
-	import { KOMPONEN, NAMA_KOMPONEN, golongan, relatif, waktu } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import GolonganLencana from '#lib/Golongan.svelte';
+	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import Tahap from '#lib/utd/Tahap.svelte';
+	import { KOMPONEN, NAMA_KOMPONEN, golongan, relatif, waktu, inisial } from '#lib/format.ts';
 	import { IMLTD_WAJIB, METODE_IMLTD, PARAMETER_IMLTD, STATUS_DONASI } from '#lib/utd/label.ts';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import CircleAlert from '@lucide/svelte/icons/circle-alert';
@@ -76,6 +80,29 @@
 		['anti_d', 'Anti-D']
 	] as const;
 	const METODE_GOL: Record<string, string> = { tabung: 'Tabung', gel: 'Gel', bioplate: 'Bioplate' };
+	const POS_NEG: [string, string][] = [
+		['neg', 'Negatif'],
+		['pos', 'Positif']
+	];
+
+	// Penunjuk tahap: seleksi → pengambilan → golongan → IMLTD → pengolahan → pelulusan.
+	const tahap = $derived.by(() => {
+		const d = donasi.data;
+		if (!d) return [];
+		const wajib = IMLTD_WAJIB.filter((p) => d.imltd.some((u) => u.parameter === p && u.terverifikasi)).length;
+		const reaktif = d.imltd.some((u) => u.hasil === 'reaktif');
+		const lulus = d.kantong.filter((k) => k.lulus).length;
+		const g = d.golongan;
+		return [
+			{ nama: 'Seleksi', selesai: true, ket: 'Diterima' },
+			{ nama: 'Pengambilan', selesai: true, ket: `${d.volume_ml} mL` },
+			{ nama: 'Golongan', selesai: !!g?.terverifikasi, ket: g ? (g.terverifikasi ? `${golongan(g.abo, g.rhesus)} terverifikasi` : 'Menunggu verifikasi') : 'Belum diperiksa' },
+			{ nama: 'Uji saring IMLTD', selesai: wajib === IMLTD_WAJIB.length && !reaktif, ket: reaktif ? 'Ada hasil reaktif' : `${wajib} dari ${IMLTD_WAJIB.length} wajib terverifikasi` },
+			{ nama: 'Pengolahan', selesai: d.status === 'diolah', ket: d.status === 'gagal' ? 'Donasi gagal' : d.kantong.length ? `${d.kantong.length} kantong` : 'Belum diolah' },
+			{ nama: 'Pelulusan', selesai: d.kantong.length > 0 && lulus === d.kantong.length, ket: d.kantong.length ? `${lulus} dari ${d.kantong.length} kantong` : '—' }
+		];
+	});
+	const sekarang = $derived(donasi.data?.status === 'gagal' ? -1 : tahap.findIndex((t) => !t.selesai));
 
 	// ---------- Verifikasi kedua (golongan dan IMLTD) ----------
 	const aksiVerif = new Aksi();
@@ -118,6 +145,11 @@
 	);
 	async function simpanImltd(e: SubmitEvent, parameter: string) {
 		e.preventDefault();
+		// Pengganti `required` radio bawaan: Pilihan tidak punya prop required.
+		if (!imltd[parameter].hasil) {
+			aksiImltd.isian = { [`hasil_${parameter}`]: `Pilih hasil ${PARAMETER_IMLTD[parameter]}: non-reaktif atau reaktif.` };
+			return;
+		}
 		const body = { parameter, ...imltd[parameter] };
 		if (await aksiImltd.jalankan(() => api('POST', `/donasi/${id}/imltd`, body), `Hasil ${PARAMETER_IMLTD[parameter]} disimpan; menunggu verifikasi kedua.`)) {
 			imltd[parameter].hasil = '';
@@ -209,255 +241,315 @@
 
 <svelte:head><title>Donasi {donasi.data?.nomor ?? ''} — {merek.judul}</title></svelte:head>
 
-<p class="mb-2 text-sm"><a class="text-utama hover:underline" href="/donasi">← Daftar donasi</a></p>
-
 <Keadaan sumber={donasi} apakahKosong={() => false}>
 	{#snippet children(d)}
 		{@const st = STATUS_DONASI[d.status]}
 		{@const reaktif = d.imltd.filter((u) => u.hasil === 'reaktif')}
-		<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-			<div>
-				<h1 class="mono">{d.nomor}</h1>
-				<p class="text-sm text-redup">
-					Donor <a class="text-utama hover:underline" href="/donor/{d.donor.id}">{d.donor.nama}</a> · {waktu(d.waktu)} ·
-					{d.jenis === 'pengganti' ? `pengganti untuk no. RM ${d.untuk_no_rm}` : 'sukarela'} · {d.volume_ml} mL · kantong {d.jenis_kantong}
-				</p>
-				{#if d.catatan}<p class="text-sm text-redup">Catatan: {d.catatan}</p>{/if}
-			</div>
-			<Chip nada={st?.[1]}>{st?.[0] ?? d.status}</Chip>
-		</div>
+		{@const hasil = [...(d.golongan ? [{ h: d.golongan as Hasil, label: 'Golongan darah' }] : []), ...d.imltd.map((u) => ({ h: u as Hasil, label: `IMLTD ${PARAMETER_IMLTD[u.parameter] ?? u.parameter}` }))]}
+		<KepalaHalaman judul={d.nomor} mono jalur={[['Donasi & pelulusan', '/donasi'], [d.nomor]]} />
 
-		{#if reaktif.length}
-			<div class="peringatan mb-4" role="alert">
-				<TriangleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-				<div>
-					<p>Reaktif {reaktif.map((u) => PARAMETER_IMLTD[u.parameter]).join(', ')}{reaktif.some((u) => !u.terverifikasi) ? ' (sebagian belum diverifikasi)' : ''}.</p>
-					<p class="text-sm font-normal">
-						Setelah verifikasi kedua: donor dicekal permanen sampai uji konfirmasi, semua kantong dari donasi ini tetap karantina dan tidak boleh
-						diluluskan, dan look-back dibuka atas donasi-donasi sebelumnya dari donor ini.
-						{#if lookbackId ?? donasi.data?.lookback_id}
-							<a class="underline" href="/lookback/{lookbackId ?? donasi.data?.lookback_id}">Buka look-back yang baru dibuat</a>.
-						{:else if reaktif.some((u) => u.terverifikasi)}
-							<a class="underline" href="/lookback">Lihat daftar look-back</a>.
-						{/if}
-					</p>
-				</div>
-			</div>
-		{/if}
-
-		<PesanAksi aksi={aksiVerif} />
-
-		<div class="mt-4 grid gap-4 xl:grid-cols-2">
-			<section class="panel" aria-labelledby="judul-golongan">
-				<h2 id="judul-golongan" class="mb-3">Golongan darah donasi</h2>
-				{#if d.golongan}
-					{@const g = d.golongan}
-					<p class="mb-2 text-2xl font-semibold">{golongan(g.abo, g.rhesus)}</p>
-					<dl class="mb-3 grid grid-cols-3 gap-x-4 gap-y-1 text-sm sm:grid-cols-6">
-						{#each REAKSI as [k, l] (k)}
-							<div><dt class="text-xs text-redup">{l}</dt><dd>{g[k] === 'pos' ? 'Positif' : 'Negatif'}</dd></div>
-						{/each}
-						<div><dt class="text-xs text-redup">Metode</dt><dd>{METODE_GOL[g.metode] ?? g.metode}</dd></div>
-					</dl>
-					<div class="flex flex-col gap-2">
-						<div>{@render statusVerif(g)}</div>
-						{@render tombolVerifikasi(g, `/golongan-donasi/${g.id}/verifikasi`, 'golongan donasi')}
-					</div>
-				{:else if sesi.boleh('uji.input')}
-					<form class="flex flex-col gap-3" onsubmit={simpanGolongan}>
-						<div class="overflow-x-auto">
-							<table class="tabel">
-								<caption class="sr-only">Hasil reaksi pemeriksaan golongan</caption>
-								<thead><tr><th scope="col">Reagen</th><th scope="col">Positif</th><th scope="col">Negatif</th></tr></thead>
-								<tbody>
-									{#each REAKSI as [k, l] (k)}
-										<tr>
-											<th scope="row" class="text-left text-sm font-medium normal-case">{l}</th>
-											<td><label class="flex items-center gap-2"><input type="radio" name="gol-{k}" value="pos" bind:group={gol[k]} required /><span>Positif<span class="sr-only"> {l}</span></span></label></td>
-											<td><label class="flex items-center gap-2"><input type="radio" name="gol-{k}" value="neg" bind:group={gol[k]} /><span>Negatif<span class="sr-only"> {l}</span></span></label></td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
+		<div class="flex flex-col gap-4">
+			<section class="panel flex flex-wrap items-center gap-x-6 gap-y-4" aria-labelledby="j-donor">
+				<div class="flex min-w-72 flex-1 items-center gap-4">
+					<span class="grid size-13 shrink-0 place-items-center rounded-full bg-halus text-lg font-bold text-teks-2" aria-hidden="true">{inisial(d.donor.nama)}</span>
+					<div class="min-w-0">
+						<div class="flex flex-wrap items-center gap-2">
+							<h2 id="j-donor" class="text-xl font-extrabold tracking-tight"><a class="hover:underline" href="/donor/{d.donor.id}">{d.donor.nama}</a></h2>
+							<Chip nada={st?.[1]}>{st?.[0] ?? d.status}</Chip>
+							<Chip polos>{d.jenis === 'pengganti' ? 'Pengganti' : 'Sukarela'}</Chip>
+							{#if reaktif.length}<Chip nada="bahaya">Reaktif</Chip>{/if}
 						</div>
-						<Isian label="Metode" id="gol-metode" galat={aksiGol.isian.metode}>
-							<select id="gol-metode" class="input" bind:value={gol.metode}>
-								{#each Object.entries(METODE_GOL) as [v, l] (v)}<option value={v}>{l}</option>{/each}
-							</select>
-						</Isian>
-						{#if aksiGol.isian.anti_a || aksiGol.isian.sel_a}
-							<p class="text-sm text-bahaya" role="alert">{aksiGol.isian.anti_a ?? aksiGol.isian.sel_a}</p>
-						{/if}
-						<PesanAksi aksi={aksiGol} />
-						<button class="btn btn--utama self-start" disabled={aksiGol.sibuk}>Simpan hasil golongan</button>
-					</form>
-				{:else}
-					<p class="text-sm text-redup">Golongan belum diperiksa.</p>
-				{/if}
-			</section>
-
-			<section class="panel" aria-labelledby="judul-imltd">
-				<h2 id="judul-imltd" class="mb-1">Uji saring IMLTD</h2>
-				<p class="mb-3 text-xs text-redup">HIV, HBsAg, HCV, dan sifilis wajib; malaria opsional.</p>
-				<PesanAksi aksi={aksiImltd} />
-				<ul class="divide-y divide-halus">
-					{#each Object.keys(PARAMETER_IMLTD) as p (p)}
-						{@const u = d.imltd.find((x) => x.parameter === p)}
-						<li class="py-3">
-							<div class="flex flex-wrap items-start justify-between gap-3">
-								<p class="font-medium">
-									{PARAMETER_IMLTD[p]}
-									<span class="text-xs font-normal text-redup">{IMLTD_WAJIB.includes(p) ? 'wajib' : 'opsional'}</span>
-								</p>
-								{#if u}
-									<div class="text-right">
-										<Chip nada={u.hasil === 'reaktif' ? 'bahaya' : 'aman'}>{u.hasil === 'reaktif' ? 'Reaktif' : 'Non-reaktif'}</Chip>
-										<span class="ml-1 text-xs text-redup">{METODE_IMLTD[u.metode] ?? u.metode}</span>
-									</div>
-								{/if}
-							</div>
-							{#if u}
-								<div class="mt-2 flex flex-col gap-2">
-									<div>{@render statusVerif(u)}</div>
-									{@render tombolVerifikasi(u, `/imltd/${u.id}/verifikasi`, `uji ${PARAMETER_IMLTD[p]}`)}
-								</div>
-							{:else if sesi.boleh('uji.input')}
-								<form class="mt-2 flex flex-wrap items-end gap-3" onsubmit={(e) => simpanImltd(e, p)}>
-									<div>
-										<label class="label" for="metode-{p}">Metode</label>
-										<select id="metode-{p}" class="input" bind:value={imltd[p].metode}>
-											{#each Object.entries(METODE_IMLTD) as [v, l] (v)}<option value={v}>{l}</option>{/each}
-										</select>
-									</div>
-									<fieldset>
-										<legend class="label">Hasil {PARAMETER_IMLTD[p]}</legend>
-										<div class="flex min-h-10 items-center gap-4">
-											<label class="flex items-center gap-2"><input type="radio" name="hasil-{p}" value="nonreaktif" bind:group={imltd[p].hasil} required />Non-reaktif</label>
-											<label class="flex items-center gap-2"><input type="radio" name="hasil-{p}" value="reaktif" bind:group={imltd[p].hasil} />Reaktif</label>
-										</div>
-									</fieldset>
-									<button class="btn" disabled={aksiImltd.sibuk}>Simpan</button>
-								</form>
-							{:else}
-								<p class="mt-1 text-sm text-redup">Belum diperiksa.</p>
-							{/if}
-						</li>
-					{/each}
-				</ul>
-			</section>
-
-			{#if d.status === 'diambil' && sesi.boleh('donor.kelola')}
-				<form class="panel flex flex-col gap-4 xl:col-span-2" onsubmit={simpanOlah} aria-labelledby="judul-olah">
-					<h2 id="judul-olah">Pengolahan komponen</h2>
-					{#if !d.golongan?.terverifikasi}
-						<p class="catatan">Golongan donasi harus terverifikasi lebih dulu karena tercetak di label kantong.</p>
+						<p class="mt-0.5 text-sm text-redup">
+							<span class="mono font-semibold text-teks-2">{d.nomor}</span> · NIK <span class="mono">{d.donor.nik}</span> · diambil {waktu(d.waktu)}
+						</p>
+					</div>
+				</div>
+				<dl class="flex flex-wrap gap-x-7 gap-y-2 text-sm">
+					<div><dt class="text-xs font-semibold text-redup">Volume</dt><dd class="font-bold">{d.volume_ml} mL</dd></div>
+					<div><dt class="text-xs font-semibold text-redup">Kantong</dt><dd class="font-bold capitalize">{d.jenis_kantong}</dd></div>
+					{#if d.jenis === 'pengganti'}
+						<div><dt class="text-xs font-semibold text-redup">Pengganti untuk</dt><dd class="mono font-bold">{d.untuk_no_rm}</dd></div>
+					{/if}
+					{#if d.catatan}<div class="max-w-64"><dt class="text-xs font-semibold text-redup">Catatan</dt><dd class="font-bold">{d.catatan}</dd></div>{/if}
+				</dl>
+				<div class="flex flex-col items-center gap-1">
+					{#if d.golongan}
+						<GolonganLencana abo={d.golongan.abo} rhesus={d.golongan.rhesus} ukuran="besar" />
+						<span class="text-xs font-semibold {d.golongan.terverifikasi ? 'text-aman' : 'text-waspada'}">{d.golongan.terverifikasi ? 'Terverifikasi' : 'Belum diverifikasi'}</span>
 					{:else}
-						{#if alat.galat || aturan.galat}
-							<p class="text-sm text-bahaya" role="alert">Daftar alat simpan tidak dapat dimuat: {alat.galat ?? aturan.galat}</p>
-						{:else if !alat.data || !aturan.data}
-							<p class="text-sm text-redup" aria-busy="true">Memuat alat simpan…</p>
+						<Chip nada="waspada">Golongan belum diperiksa</Chip>
+					{/if}
+				</div>
+			</section>
+
+			<Tahap {tahap} {sekarang} label="Tahap donasi" />
+
+			{#if reaktif.length}
+				<div class="peringatan" role="alert">
+					<TriangleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+					<div>
+						<p>Reaktif {reaktif.map((u) => PARAMETER_IMLTD[u.parameter]).join(', ')}{reaktif.some((u) => !u.terverifikasi) ? ' (sebagian belum diverifikasi)' : ''}.</p>
+						<p class="text-sm font-normal">
+							Setelah verifikasi kedua: donor dicekal permanen sampai uji konfirmasi, semua kantong dari donasi ini tetap karantina dan tidak boleh
+							diluluskan, dan look-back dibuka atas donasi-donasi sebelumnya dari donor ini.
+							{#if lookbackId ?? donasi.data?.lookback_id}
+								<a class="underline" href="/lookback/{lookbackId ?? donasi.data?.lookback_id}">Buka look-back yang baru dibuat</a>.
+							{:else if reaktif.some((u) => u.terverifikasi)}
+								<a class="underline" href="/lookback">Lihat daftar look-back</a>.
+							{/if}
+						</p>
+					</div>
+				</div>
+			{/if}
+
+			<PesanAksi aksi={aksiVerif} />
+
+			<div class="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
+				<div class="flex min-w-0 flex-col gap-4">
+					<section class="panel" aria-labelledby="judul-golongan">
+						<h2 id="judul-golongan">Golongan darah donasi</h2>
+						<p class="mb-4 text-sm text-redup">Cell dan serum grouping. Golongan tercetak di label kantong, jadi wajib diverifikasi petugas kedua.</p>
+						{#if d.golongan}
+							{@const g = d.golongan}
+							<div class="flex flex-wrap items-center gap-5">
+								<GolonganLencana abo={g.abo} rhesus={g.rhesus} ukuran="besar" />
+								<dl class="grid flex-1 grid-cols-3 gap-x-4 gap-y-2 text-sm sm:grid-cols-6">
+									{#each REAKSI as [k, l] (k)}
+										<div><dt class="text-xs font-semibold text-redup">{l}</dt><dd class="font-semibold">{g[k] === 'pos' ? 'Positif' : 'Negatif'}</dd></div>
+									{/each}
+									<div><dt class="text-xs font-semibold text-redup">Metode</dt><dd class="font-semibold">{METODE_GOL[g.metode] ?? g.metode}</dd></div>
+								</dl>
+							</div>
+							<div class="mt-4 flex flex-col gap-2 border-t border-garis pt-4">
+								<div>{@render statusVerif(g)}</div>
+								{@render tombolVerifikasi(g, `/golongan-donasi/${g.id}/verifikasi`, 'golongan donasi')}
+							</div>
+						{:else if sesi.boleh('uji.input')}
+							<form class="flex flex-col gap-4" onsubmit={simpanGolongan}>
+								<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+									{#each REAKSI as [k, l] (k)}
+										<Pilihan legend={l} name="gol-{k}" opsi={POS_NEG} bind:value={gol[k]} galat={k === 'anti_a' || k === 'sel_a' ? aksiGol.isian[k] : undefined} />
+									{/each}
+									<Isian label="Metode" id="gol-metode" galat={aksiGol.isian.metode}>
+										<select id="gol-metode" class="input" bind:value={gol.metode}>
+											{#each Object.entries(METODE_GOL) as [v, l] (v)}<option value={v}>{l}</option>{/each}
+										</select>
+									</Isian>
+								</div>
+								<PesanAksi aksi={aksiGol} />
+								<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+									<button class="btn btn--utama" disabled={aksiGol.sibuk}>Simpan hasil golongan</button>
+								</div>
+							</form>
 						{:else}
-							<p class="text-sm text-redup">Pilih komponen hasil pemisahan. Darah lengkap (WB) tidak bisa digabung dengan komponen lain. Kedaluwarsa dihitung dari aturan komponen.</p>
+							<p class="text-sm text-redup">Golongan belum diperiksa.</p>
+						{/if}
+					</section>
+
+					<section class="panel" aria-labelledby="judul-imltd">
+						<h2 id="judul-imltd">Uji saring IMLTD</h2>
+						<p class="mb-3 text-sm text-redup">HIV, HBsAg, HCV, dan sifilis wajib; malaria opsional.</p>
+						<PesanAksi aksi={aksiImltd} />
+						<ul class="divide-y divide-garis">
+							{#each Object.keys(PARAMETER_IMLTD) as p (p)}
+								{@const u = d.imltd.find((x) => x.parameter === p)}
+								<li class="py-3 last:pb-0">
+									<div class="flex flex-wrap items-start justify-between gap-3">
+										<p class="font-semibold">
+											{PARAMETER_IMLTD[p]}
+											<span class="text-xs font-medium text-redup">{IMLTD_WAJIB.includes(p) ? 'wajib' : 'opsional'}</span>
+										</p>
+										{#if u}
+											<div class="text-right">
+												<Chip nada={u.hasil === 'reaktif' ? 'bahaya' : 'aman'}>{u.hasil === 'reaktif' ? 'Reaktif' : 'Non-reaktif'}</Chip>
+												<span class="ml-1 text-xs text-redup">{METODE_IMLTD[u.metode] ?? u.metode}</span>
+											</div>
+										{/if}
+									</div>
+									{#if u}
+										<div class="mt-2 flex flex-col gap-2">
+											<div>{@render statusVerif(u)}</div>
+											{@render tombolVerifikasi(u, `/imltd/${u.id}/verifikasi`, `uji ${PARAMETER_IMLTD[p]}`)}
+										</div>
+									{:else if sesi.boleh('uji.input')}
+										<form class="mt-2 flex flex-wrap items-end gap-3" onsubmit={(e) => simpanImltd(e, p)}>
+											<div>
+												<label class="label" for="metode-{p}">Metode</label>
+												<select id="metode-{p}" class="input" bind:value={imltd[p].metode}>
+													{#each Object.entries(METODE_IMLTD) as [v, l] (v)}<option value={v}>{l}</option>{/each}
+												</select>
+											</div>
+											<div class="min-w-56 flex-1">
+												<Pilihan
+													legend="Hasil {PARAMETER_IMLTD[p]}"
+													name="hasil-{p}"
+													opsi={[
+														['nonreaktif', 'Non-reaktif'],
+														['reaktif', 'Reaktif']
+													]}
+													bind:value={imltd[p].hasil}
+													galat={aksiImltd.isian[`hasil_${p}`]}
+													bahaya={['reaktif']}
+												/>
+											</div>
+											<button class="btn" disabled={aksiImltd.sibuk}>Simpan</button>
+										</form>
+									{:else}
+										<p class="mt-1 text-sm text-redup">Belum diperiksa.</p>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					</section>
+
+					{#if d.status === 'diambil' && sesi.boleh('donor.kelola')}
+						<form class="panel flex flex-col gap-4" onsubmit={simpanOlah} aria-labelledby="judul-olah">
+							<div>
+								<h2 id="judul-olah">Pengolahan komponen</h2>
+								<p class="text-sm text-redup">Pilih komponen hasil pemisahan. Darah lengkap (WB) tidak bisa digabung dengan komponen lain. Kedaluwarsa dihitung dari aturan komponen.</p>
+							</div>
+							{#if !d.golongan?.terverifikasi}
+								<p class="catatan">Golongan donasi harus terverifikasi lebih dulu karena tercetak di label kantong.</p>
+							{:else if alat.galat || aturan.galat}
+								<p class="text-sm text-bahaya" role="alert">Daftar alat simpan tidak dapat dimuat: {alat.galat ?? aturan.galat}</p>
+							{:else if !alat.data || !aturan.data}
+								<p class="text-sm text-redup" aria-busy="true">Memuat alat simpan…</p>
+							{:else}
+								<div class="overflow-x-auto">
+									<table class="tabel">
+										<thead><tr><th scope="col">Komponen</th><th scope="col">Volume (mL)</th><th scope="col">Alat simpan</th></tr></thead>
+										<tbody>
+											{#each Object.keys(KOMPONEN) as k (k)}
+												{@const daftarAlat = alatUntuk(k)}
+												<tr>
+													<td>
+														<label class="flex items-center gap-2 font-medium">
+															<input
+																type="checkbox"
+																bind:checked={olah[k].pilih}
+																disabled={k === 'wb' ? Object.entries(olah).some(([x, v]) => x !== 'wb' && v.pilih) : olah.wb.pilih}
+															/>{NAMA_KOMPONEN[k]}
+														</label>
+													</td>
+													<td>
+														<label class="sr-only" for="vol-{k}">Volume {KOMPONEN[k]} (mL)</label>
+														<input id="vol-{k}" class="input w-28" type="number" min="1" bind:value={olah[k].volume_ml} disabled={!olah[k].pilih} required={olah[k].pilih} />
+													</td>
+													<td>
+														<label class="sr-only" for="alat-{k}">Alat simpan {KOMPONEN[k]}</label>
+														<select id="alat-{k}" class="input" bind:value={olah[k].alat_id} disabled={!olah[k].pilih} required={olah[k].pilih}>
+															<option value="" disabled>{daftarAlat.length ? `Pilih ${JENIS_ALAT[daftarAlat[0].jenis]}` : 'Tidak ada alat yang sesuai'}</option>
+															{#each daftarAlat as a (a.id)}<option value={a.id}>{a.kode} — {a.nama}</option>{/each}
+														</select>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+								{#if aksiOlah.isian.komponen}<p class="text-sm text-bahaya" role="alert">{aksiOlah.isian.komponen}</p>{/if}
+								<PesanAksi aksi={aksiOlah} />
+								<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+									<button class="btn btn--utama" disabled={aksiOlah.sibuk || !Object.values(olah).some((v) => v.pilih)}>Olah donasi</button>
+								</div>
+							{/if}
+						</form>
+					{/if}
+
+					<section class="panel" aria-labelledby="judul-kantong">
+						<h2 id="judul-kantong">Kantong hasil pengolahan</h2>
+						<p class="mb-3 text-sm text-redup">Kantong tetap karantina sampai diluluskan.</p>
+						{#if aksiLulus.galat}
+							<div class="peringatan mb-3" role="alert">
+								<CircleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+								<p>{lulusNomor} tidak dapat diluluskan: {aksiLulus.galat}</p>
+							</div>
+						{:else}
+							<PesanAksi aksi={aksiLulus} />
+						{/if}
+						{#if d.kantong.length === 0}
+							<p class="text-sm text-redup">Donasi belum diolah.</p>
+						{:else}
 							<div class="overflow-x-auto">
 								<table class="tabel">
-									<thead><tr><th scope="col">Komponen</th><th scope="col">Volume (mL)</th><th scope="col">Alat simpan</th></tr></thead>
+									<thead>
+										<tr>
+											<th scope="col">Nomor kantong</th>
+											<th scope="col">Komponen</th>
+											<th scope="col">Golongan</th>
+											<th scope="col">Volume</th>
+											<th scope="col">Kedaluwarsa</th>
+											<th scope="col">Status</th>
+											<th scope="col"><span class="sr-only">Aksi</span></th>
+										</tr>
+									</thead>
 									<tbody>
-										{#each Object.keys(KOMPONEN) as k (k)}
-											{@const daftarAlat = alatUntuk(k)}
+										{#each d.kantong as k (k.id)}
 											<tr>
+												<td class="mono font-semibold">{k.nomor}</td>
+												<td>{KOMPONEN[k.komponen] ?? k.komponen}</td>
+												<td><GolonganLencana abo={k.abo} rhesus={k.rhesus} ukuran="kecil" /></td>
+												<td class="tabular-nums">{k.volume_ml} mL</td>
+												<td class="whitespace-nowrap">{waktu(k.kedaluwarsa)}<span class="block text-xs text-redup">{relatif(k.kedaluwarsa)}</span></td>
 												<td>
-													<label class="flex items-center gap-2">
-														<input
-															type="checkbox"
-															bind:checked={olah[k].pilih}
-															disabled={k === 'wb' ? Object.entries(olah).some(([x, v]) => x !== 'wb' && v.pilih) : olah.wb.pilih}
-														/>{NAMA_KOMPONEN[k]}
-													</label>
+													<span class="flex flex-wrap gap-1">
+														<StatusKantong status={k.status} />
+														{#if k.lulus}<Chip nada="aman">Diluluskan</Chip>{/if}
+													</span>
+													{#if k.alasan_status}<span class="block text-xs text-redup">{k.alasan_status}</span>{/if}
 												</td>
-												<td>
-													<label class="sr-only" for="vol-{k}">Volume {KOMPONEN[k]} (mL)</label>
-													<input id="vol-{k}" class="input w-28" type="number" min="1" bind:value={olah[k].volume_ml} disabled={!olah[k].pilih} required={olah[k].pilih} />
-												</td>
-												<td>
-													<label class="sr-only" for="alat-{k}">Alat simpan {KOMPONEN[k]}</label>
-													<select id="alat-{k}" class="input" bind:value={olah[k].alat_id} disabled={!olah[k].pilih} required={olah[k].pilih}>
-														<option value="" disabled>{daftarAlat.length ? `Pilih ${JENIS_ALAT[daftarAlat[0].jenis]}` : 'Tidak ada alat yang sesuai'}</option>
-														{#each daftarAlat as a (a.id)}<option value={a.id}>{a.kode} — {a.nama}</option>{/each}
-													</select>
+												<td class="text-right">
+													{#if k.status === 'karantina' && !k.lulus && sesi.boleh('donor.lulus')}
+														<button type="button" class="btn btn--utama" onclick={() => luluskan(k)} disabled={aksiLulus.sibuk}>Luluskan</button>
+													{/if}
 												</td>
 											</tr>
 										{/each}
 									</tbody>
 								</table>
 							</div>
-							{#if aksiOlah.isian.komponen}<p class="text-sm text-bahaya" role="alert">{aksiOlah.isian.komponen}</p>{/if}
-							<PesanAksi aksi={aksiOlah} />
-							<button class="btn btn--utama self-start" disabled={aksiOlah.sibuk || !Object.values(olah).some((v) => v.pilih)}>Olah donasi</button>
 						{/if}
-					{/if}
-				</form>
-				<form class="panel flex flex-col gap-3 xl:col-span-2" onsubmit={tandaiGagal} aria-labelledby="judul-gagal">
-					<h2 id="judul-gagal">Donasi gagal</h2>
-					<p class="text-sm text-redup">Untuk pengambilan yang tidak bisa diolah (aliran berhenti, volume kurang, kantong rusak).</p>
-					<Isian label="Alasan" id="alasan-gagal" galat={aksiGagal.isian.alasan}>
-						<input id="alasan-gagal" class="input" bind:value={alasanGagal} required />
-					</Isian>
-					<PesanAksi aksi={aksiGagal} />
-					<button class="btn btn--bahaya self-start" disabled={aksiGagal.sibuk}>Tandai gagal</button>
-				</form>
-			{/if}
+					</section>
+				</div>
 
-			<section class="panel xl:col-span-2" aria-labelledby="judul-kantong">
-				<h2 id="judul-kantong" class="mb-3">Kantong hasil pengolahan</h2>
-				{#if aksiLulus.galat}
-					<div class="peringatan mb-3" role="alert">
-						<CircleAlert class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-						<p>{lulusNomor} tidak dapat diluluskan: {aksiLulus.galat}</p>
-					</div>
-				{:else}
-					<PesanAksi aksi={aksiLulus} />
-				{/if}
-				{#if d.kantong.length === 0}
-					<p class="text-sm text-redup">Donasi belum diolah.</p>
-				{:else}
-					<div class="overflow-x-auto">
-						<table class="tabel">
-							<thead>
-								<tr>
-									<th scope="col">Nomor kantong</th>
-									<th scope="col">Komponen</th>
-									<th scope="col">Golongan</th>
-									<th scope="col">Volume</th>
-									<th scope="col">Kedaluwarsa</th>
-									<th scope="col">Status</th>
-									<th scope="col"><span class="sr-only">Aksi</span></th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each d.kantong as k (k.id)}
-									<tr>
-										<td class="mono">{k.nomor}</td>
-										<td>{KOMPONEN[k.komponen] ?? k.komponen}</td>
-										<td>{golongan(k.abo, k.rhesus)}</td>
-										<td class="tabular-nums">{k.volume_ml} mL</td>
-										<td class="whitespace-nowrap">{waktu(k.kedaluwarsa)}<span class="block text-xs text-redup">{relatif(k.kedaluwarsa)}</span></td>
-										<td>
-											<StatusKantong status={k.status} />
-											{#if k.lulus}<Chip nada="aman">Diluluskan</Chip>{/if}
-											{#if k.alasan_status}<span class="block text-xs text-redup">{k.alasan_status}</span>{/if}
-										</td>
-										<td class="text-right">
-											{#if k.status === 'karantina' && !k.lulus && sesi.boleh('donor.lulus')}
-												<button type="button" class="btn btn--utama" onclick={() => luluskan(k)} disabled={aksiLulus.sibuk}>Luluskan</button>
-											{/if}
-										</td>
-									</tr>
+				<aside class="flex flex-col gap-4" aria-label="Ringkasan donasi">
+					<section class="panel" aria-labelledby="judul-verif">
+						<h2 id="judul-verif">Verifikasi kedua</h2>
+						<p class="mb-3 text-sm text-redup">Hasil manual baru berlaku setelah diperiksa petugas lain.</p>
+						{#if hasil.length === 0}
+							<p class="text-sm text-redup">Belum ada hasil yang diinput.</p>
+						{:else}
+							<ul class="flex flex-col gap-3">
+								{#each hasil as { h, label } (h.id)}
+									<li class="flex items-start justify-between gap-3">
+										<span class="min-w-0">
+											<span class="block text-sm font-semibold">{label}</span>
+											<span class="block text-xs text-redup">{h.petugas} · {waktu(h.dicatat_pada)}</span>
+										</span>
+										<Chip nada={h.terverifikasi ? 'aman' : 'waspada'}>{h.terverifikasi ? 'Terverifikasi' : 'Menunggu'}</Chip>
+									</li>
 								{/each}
-							</tbody>
-						</table>
-					</div>
-				{/if}
-			</section>
+							</ul>
+						{/if}
+					</section>
+
+					{#if d.status === 'diambil' && sesi.boleh('donor.kelola')}
+						<form class="panel flex flex-col gap-4" onsubmit={tandaiGagal} aria-labelledby="judul-gagal">
+							<div>
+								<h2 id="judul-gagal">Donasi gagal</h2>
+								<p class="text-sm text-redup">Untuk pengambilan yang tidak bisa diolah (aliran berhenti, volume kurang, kantong rusak).</p>
+							</div>
+							<Isian label="Alasan" id="alasan-gagal" galat={aksiGagal.isian.alasan}>
+								<input id="alasan-gagal" class="input" bind:value={alasanGagal} required />
+							</Isian>
+							<PesanAksi aksi={aksiGagal} />
+							<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+								<button class="btn btn--bahaya" disabled={aksiGagal.sibuk}>Tandai gagal</button>
+							</div>
+						</form>
+					{/if}
+				</aside>
+			</div>
 		</div>
 	{/snippet}
 </Keadaan>

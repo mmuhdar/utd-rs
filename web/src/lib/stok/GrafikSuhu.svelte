@@ -48,8 +48,9 @@
 			role="img"
 			aria-label="Suhu {alat.kode} 7 hari terakhir: {data.length} pembacaan, {luar} di luar rentang {alat.suhu_min} sampai {alat.suhu_maks} °C."
 		>
+			<rect x={KIRI} width={L - KIRI - KANAN} y={g.y(alat.suhu_maks)} height={g.y(alat.suhu_min) - g.y(alat.suhu_maks)} class="fill-aman-latar" />
 			{#each g.hari as h, i (h)}
-				<line x1={g.x(h)} x2={g.x(h)} y1={ATAS} y2={T - BAWAH} class="stroke-halus" />
+				<line x1={g.x(h)} x2={g.x(h)} y1={ATAS} y2={T - BAWAH} class="stroke-garis" />
 				{#if i < 7}<text x={g.x(h) + 2} y={T - 8} class="fill-redup text-[10px]">{tanggalPendek.format(h)}</text>{/if}
 			{/each}
 			{#each [alat.suhu_min, alat.suhu_maks] as b (b)}
@@ -63,9 +64,9 @@
 				</circle>
 			{/each}
 		</svg>
-		<p class="mt-1 text-xs text-redup">Garis putus-putus merah: batas {suhu(alat.suhu_min)} dan {suhu(alat.suhu_maks)}. Titik merah besar: di luar rentang.</p>
+		<p class="mt-1 text-xs text-redup">Garis putus-putus merah: batas {suhu(alat.suhu_min)} dan {suhu(alat.suhu_maks)}. Pita hijau: rentang aman. Titik merah besar: di luar rentang.</p>
 		<details class="mt-2">
-			<summary class="cursor-pointer text-sm text-utama">Tabel nilai ({data.length} pembacaan)</summary>
+			<summary class="cursor-pointer text-sm font-semibold text-teks-2 hover:underline">Tabel nilai ({data.length} pembacaan)</summary>
 			<div class="mt-2 max-h-72 overflow-auto">
 				<table class="tabel">
 					<thead><tr><th scope="col">Waktu</th><th scope="col">Suhu</th><th scope="col">Sumber</th><th scope="col">Petugas</th></tr></thead>

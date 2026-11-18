@@ -10,7 +10,10 @@
 	import Chip from '#lib/Chip.svelte';
 	import StatusKantong from '#lib/StatusKantong.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { KOMPONEN, golongan, waktu } from '#lib/format.ts';
+	import { KOMPONEN, waktu } from '#lib/format.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
 	import { ALASAN_AKHIR, type Utd } from '#lib/stok/stok.ts';
 	import Kedaluwarsa from '#lib/stok/Kedaluwarsa.svelte';
 
@@ -61,19 +64,25 @@
 
 <svelte:head><title>Pengembalian & pemusnahan — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Pengembalian dan pemusnahan</h1>
+<KepalaHalaman
+	judul="Pengembalian dan pemusnahan"
+	sub="Berita acara untuk kantong yang dikembalikan ke UTD atau dimusnahkan"
+	jalur={[['Stok kantong', '/stok'], ['Pengembalian dan pemusnahan']]}
+/>
 
 {#if kelola}
-	<form class="panel mb-6 flex flex-col gap-4" onsubmit={simpan} aria-labelledby="judul-baru">
+	<form class="panel mb-5 flex flex-col gap-5" onsubmit={simpan} aria-labelledby="judul-baru">
 		<h2 id="judul-baru">Buat berita acara</h2>
-		<fieldset>
-			<legend class="label">Jenis</legend>
-			<div class="flex flex-wrap gap-4 text-sm">
-				<label class="flex items-center gap-2"><input type="radio" class="size-4" bind:group={jenis} value="pemusnahan" />Pemusnahan</label>
-				<label class="flex items-center gap-2"><input type="radio" class="size-4" bind:group={jenis} value="pengembalian" />Pengembalian ke UTD</label>
-			</div>
-		</fieldset>
-		<div class="form-grid">
+		<div class="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
+			<Pilihan
+				legend="Jenis"
+				name="jenis"
+				opsi={[
+					['pemusnahan', 'Pemusnahan'],
+					['pengembalian', 'Pengembalian ke UTD']
+				]}
+				bind:value={jenis}
+			/>
 			{#if jenis === 'pengembalian'}
 				<Isian label="UTD tujuan" id="utd" galat={aksi.isian.utd_id}>
 					<select id="utd" class="input" bind:value={utd_id} required aria-invalid={!!aksi.isian.utd_id}>
@@ -89,10 +98,12 @@
 			<Isian label="Saksi" id="saksi">
 				<input id="saksi" class="input" bind:value={saksi} />
 			</Isian>
+			<div class="sm:col-span-2 xl:col-span-3">
+				<Isian label="Catatan" id="catatan">
+					<textarea id="catatan" class="input" rows="2" bind:value={catatan}></textarea>
+				</Isian>
+			</div>
 		</div>
-		<Isian label="Catatan" id="catatan">
-			<textarea id="catatan" class="input" rows="2" bind:value={catatan}></textarea>
-		</Isian>
 
 		<fieldset>
 			<legend class="label">Kantong (karantina, tersedia, atau dikeluarkan tetapi tidak ditransfusikan)</legend>
@@ -100,13 +111,13 @@
 			<Keadaan sumber={calon}>
 				{#snippet kosong()}<p>Tidak ada kantong yang bisa dikembalikan atau dimusnahkan.</p>{/snippet}
 				{#snippet children(data)}
-					<div class="max-h-[32rem] overflow-auto">
+					<div class="max-h-[32rem] overflow-auto rounded-xl border border-garis">
 						<table class="tabel">
-							<thead>
+							<thead class="sticky top-0 z-10 bg-kartu">
 								<tr>
 									<th scope="col">Pilih</th>
 									<th scope="col">Nomor kantong</th>
-									<th scope="col">Komponen</th>
+									<th scope="col">Golongan</th>
 									<th scope="col">Kedaluwarsa</th>
 									<th scope="col">Status</th>
 									<th scope="col">Alasan</th>
@@ -114,7 +125,7 @@
 							</thead>
 							<tbody>
 								{#each data as k (k.id)}
-									<tr>
+									<tr class={k.id in pilih ? 'bg-bahaya-latar/50' : ''}>
 										<td>
 											<input
 												type="checkbox"
@@ -124,8 +135,11 @@
 												onchange={(e) => centang(k, e.currentTarget.checked)}
 											/>
 										</td>
-										<td><label class="mono" for="p-{k.id}">{k.nomor}</label></td>
-										<td class="whitespace-nowrap">{KOMPONEN[k.komponen]} {golongan(k.abo, k.rhesus)}</td>
+										<td>
+											<label class="mono font-semibold" for="p-{k.id}">{k.nomor}</label>
+											<span class="block text-xs text-redup">{KOMPONEN[k.komponen]}</span>
+										</td>
+										<td><Golongan abo={k.abo} rhesus={k.rhesus} /></td>
 										<td><Kedaluwarsa nilai={k.kedaluwarsa} mendekati={k.mendekati_kedaluwarsa} /></td>
 										<td>
 											<StatusKantong status={k.status} />
@@ -149,14 +163,20 @@
 			</Keadaan>
 		</fieldset>
 		<PesanAksi {aksi} />
-		<button class="btn btn--bahaya self-start" disabled={aksi.sibuk || !jumlahPilih}>
-			Buat berita acara {jenis} ({jumlahPilih} kantong)
-		</button>
+		<div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-garis pt-4">
+			<p class="mr-auto text-sm text-redup">{jumlahPilih} kantong dipilih</p>
+			<button class="btn btn--bahaya" disabled={aksi.sibuk || !jumlahPilih}>
+				Buat berita acara {jenis} ({jumlahPilih} kantong)
+			</button>
+		</div>
 	</form>
 {/if}
 
 <section class="panel" aria-labelledby="judul-daftar">
-	<h2 id="judul-daftar" class="mb-3">Daftar berita acara</h2>
+	<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+		<h2 id="judul-daftar">Daftar berita acara</h2>
+		{#if daftar.data}<p class="text-sm text-redup">{daftar.data.length} berita acara</p>{/if}
+	</div>
 	<Keadaan sumber={daftar}>
 		{#snippet kosong()}<p>Belum ada berita acara pengembalian atau pemusnahan.</p>{/snippet}
 		{#snippet children(data)}
@@ -174,14 +194,14 @@
 					<tbody>
 						{#each data as b (b.id)}
 							<tr>
-								<td><a class="mono text-utama hover:underline" href="/berita-acara/{b.id}">{b.nomor}</a></td>
-								<td class="whitespace-nowrap">{waktu(b.dibuat_pada)}</td>
+								<td><a class="mono font-semibold hover:underline" href="/berita-acara/{b.id}">{b.nomor}</a></td>
+								<td class="whitespace-nowrap text-teks-2">{waktu(b.dibuat_pada)}</td>
 								<td><Chip nada={b.jenis === 'pemusnahan' ? 'bahaya' : 'info'}>{b.jenis === 'pemusnahan' ? 'Pemusnahan' : 'Pengembalian'}</Chip></td>
 								<td>
 									{b.jenis === 'pengembalian' ? b.utd : b.metode}
 									{#if b.catatan}<span class="block text-xs text-redup">{b.catatan}</span>{/if}
 								</td>
-								<td class="text-right tabular-nums">{b.jumlah}</td>
+								<td class="text-right font-semibold tabular-nums">{b.jumlah}</td>
 							</tr>
 						{/each}
 					</tbody>

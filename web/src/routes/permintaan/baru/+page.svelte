@@ -5,8 +5,9 @@
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import Isian from '#lib/Isian.svelte';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { NAMA_KOMPONEN, golongan, hariIni, lokal, tanggal } from '#lib/format.ts';
+	import { NAMA_KOMPONEN, golongan, hariIni, lokal, tanggal, inisial } from '#lib/format.ts';
 	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
 	import { ABO, JENIS_PERMINTAAN, RH, YA_TIDAK, angka } from '#lib/pelayanan/darah.ts';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -92,23 +93,30 @@
 
 <svelte:head><title>Buat permintaan darah — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-1">Buat permintaan darah</h1>
-<p class="mb-4 text-sm text-redup">Isian sesuai formulir permintaan darah (Permenkes 91/2015 §5.6.1). Kirim sampel darah pasien bersama permintaan.</p>
+<KepalaHalaman
+	judul="Buat permintaan darah"
+	jalur={[['Permintaan darah', '/permintaan'], ['Buat permintaan']]}
+	sub="Isian sesuai formulir permintaan darah (Permenkes 91/2015 §5.6.1). Kirim sampel darah pasien bersama permintaan."
+/>
 
-<form class="flex max-w-4xl flex-col gap-4" onsubmit={kirim} novalidate>
+<form class="flex max-w-5xl flex-col gap-5" onsubmit={kirim} novalidate>
 	<section class="panel flex flex-col gap-4" aria-labelledby="j-pasien">
 		<h2 id="j-pasien">Pasien</h2>
 		{#if pasien}
-			<div class="flex flex-wrap items-center justify-between gap-3 rounded-md bg-halus p-3">
-				<p>
-					<span class="font-semibold">{pasien.nama}</span>
-					<span class="mono text-sm">{pasien.no_rm}</span>
-					<span class="block text-sm text-redup">Lahir {tanggal(pasien.tanggal_lahir)} · {pasien.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
+			<div class="flex flex-wrap items-center gap-4 rounded-xl border border-garis bg-latar p-4">
+				<span class="grid size-12 shrink-0 place-items-center rounded-full bg-kartu text-base font-bold text-teks-2" aria-hidden="true">{inisial(pasien.nama)}</span>
+				<p class="min-w-0 flex-1">
+					<span class="block text-lg font-bold">{pasien.nama}</span>
+					<span class="text-sm text-redup"
+						><span class="mono font-semibold text-teks-2">{pasien.no_rm}</span> · lahir {tanggal(pasien.tanggal_lahir)} · {pasien.jenis_kelamin === 'L'
+							? 'Laki-laki'
+							: 'Perempuan'}</span
+					>
 				</p>
 				<button type="button" class="btn" onclick={() => (pasien = null)}>Ganti pasien</button>
 			</div>
 		{:else if baru}
-			<div class="form-grid">
+			<div class="grid gap-4 sm:grid-cols-2">
 				<Isian label="No. rekam medis" id="no_rm" galat={aksi.isian.no_rm}>
 					<input id="no_rm" class="input mono" bind:value={identitas.no_rm} required />
 				</Isian>
@@ -141,12 +149,12 @@
 					<p class="text-sm text-redup">Pasien tidak ditemukan. Isi identitas pasien baru bila belum pernah terdaftar.</p>
 				{/if}
 				{#if hasil.length}
-					<ul class="divide-y divide-halus rounded-md border border-garis">
+					<ul class="divide-y divide-garis overflow-hidden rounded-xl border border-garis">
 						{#each hasil as h (h.no_rm)}
 							<li>
-								<button type="button" class="flex min-h-11 w-full flex-wrap items-center gap-x-3 px-3 py-2 text-left hover:bg-halus" onclick={() => (pasien = h)}>
-									<span class="font-medium">{h.nama}</span>
-									<span class="mono text-sm">{h.no_rm}</span>
+								<button type="button" class="flex min-h-11 w-full cursor-pointer flex-wrap items-center gap-x-3 px-3.5 py-2.5 text-left hover:bg-halus" onclick={() => (pasien = h)}>
+									<span class="font-semibold">{h.nama}</span>
+									<span class="mono text-sm text-teks-2">{h.no_rm}</span>
 									<span class="text-sm text-redup">lahir {tanggal(h.tanggal_lahir)} · {h.jenis_kelamin}</span>
 								</button>
 							</li>
@@ -160,14 +168,14 @@
 
 	<section class="panel flex flex-col gap-4" aria-labelledby="j-klinis">
 		<h2 id="j-klinis">Data klinis</h2>
-		<div class="form-grid">
+		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			<Isian label="Ruang perawatan" id="ruang" galat={aksi.isian.ruang}>
 				<input id="ruang" class="input" bind:value={f.ruang} required />
 			</Isian>
 			{#if dokterSendiri}
 				<div>
 					<p class="label">Dokter peminta</p>
-					<p class="text-sm">{sesi.profil?.nama} (akun Anda)</p>
+					<p class="flex min-h-10 items-center rounded-[10px] bg-halus px-3 text-sm font-medium">{sesi.profil?.nama} (akun Anda)</p>
 				</div>
 			{:else}
 				<Isian label="Nama DPJP/dokter peminta" id="dokter" galat={aksi.isian.dokter}>
@@ -186,20 +194,25 @@
 			<Isian label="Trombosit terakhir (/µL)" id="trombosit" galat={aksi.isian.trombosit}>
 				<input id="trombosit" class="input" type="number" step="1000" min="0" bind:value={f.trombosit} />
 			</Isian>
-			<Isian label="Golongan ABO menurut catatan klinis (bila ada)" id="abo_klinis" galat={aksi.isian.abo_klinis}>
-				<select id="abo_klinis" class="input" bind:value={f.abo_klinis}>
-					<option value="">Tidak diketahui</option>
-					{#each ABO as a (a)}<option value={a}>{a}</option>{/each}
-				</select>
-			</Isian>
-			<Isian label="Rhesus menurut catatan klinis (bila ada)" id="rhesus_klinis">
-				<select id="rhesus_klinis" class="input" bind:value={f.rhesus_klinis}>
-					<option value="">Tidak diketahui</option>
-					{#each RH as [v, l] (v)}<option value={v}>{l}</option>{/each}
-				</select>
-			</Isian>
+			<div class="lg:col-span-2">
+				<Pilihan
+					legend="Golongan ABO menurut catatan klinis (bila ada)"
+					name="abo_klinis"
+					opsi={[['', 'Tidak diketahui'], ...ABO.map((a) => [a, a] as [string, string])]}
+					bind:value={f.abo_klinis}
+					galat={aksi.isian.abo_klinis}
+				/>
+			</div>
+			<Pilihan legend="Rhesus menurut catatan klinis (bila ada)" name="rhesus_klinis" opsi={[['', 'Tidak diketahui'], ...RH]} bind:value={f.rhesus_klinis} />
 			<Pilihan legend="Pernah transfusi sebelumnya?" name="riwayat_transfusi" opsi={YA_TIDAK} bind:value={f.riwayat_transfusi} galat={aksi.isian.riwayat_transfusi} />
-			<Pilihan legend="Pernah reaksi transfusi?" name="riwayat_reaksi" opsi={YA_TIDAK} bind:value={f.riwayat_reaksi} galat={aksi.isian.riwayat_reaksi} />
+			<Pilihan
+				legend="Pernah reaksi transfusi?"
+				name="riwayat_reaksi"
+				opsi={YA_TIDAK}
+				bahaya={[true]}
+				bind:value={f.riwayat_reaksi}
+				galat={aksi.isian.riwayat_reaksi}
+			/>
 		</div>
 		{#if f.abo_klinis}
 			<p class="text-xs text-redup">Golongan klinis {golongan(f.abo_klinis, f.rhesus_klinis)} hanya keterangan; bank darah tetap memeriksa golongan dari sampel.</p>
@@ -208,8 +221,15 @@
 
 	<section class="panel flex flex-col gap-4" aria-labelledby="j-minta">
 		<h2 id="j-minta">Darah yang diminta</h2>
-		<div class="form-grid">
-			<Pilihan legend="Jenis permintaan" name="jenis" opsi={Object.entries(JENIS_PERMINTAAN).map(([k, [l]]) => [k, l] as [string, string])} bind:value={f.jenis} galat={aksi.isian.jenis} />
+		<div class="grid gap-4 sm:grid-cols-2">
+			<Pilihan
+				legend="Jenis permintaan"
+				name="jenis"
+				opsi={Object.entries(JENIS_PERMINTAAN).map(([k, [l]]) => [k, l] as [string, string])}
+				bahaya={['darurat']}
+				bind:value={f.jenis}
+				galat={aksi.isian.jenis}
+			/>
 			<Isian label="Rencana transfusi" id="rencana" galat={aksi.isian.rencana_transfusi} bantuan="Paling lambat 3 hari dari hari ini.">
 				<input id="rencana" class="input" type="date" min={hariIni()} max={maks} bind:value={f.rencana_transfusi} required />
 			</Isian>
@@ -223,7 +243,7 @@
 		<fieldset class="flex flex-col gap-3" aria-describedby={aksi.isian.baris ? 'baris-galat' : undefined}>
 			<legend class="label">Komponen dan jumlah kantong</legend>
 			{#each baris as b, i (i)}
-				<div class="grid items-end gap-3 rounded-md border border-garis p-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
+				<div class="grid items-end gap-3 rounded-xl border border-garis bg-latar p-4 sm:grid-cols-[2fr_1fr_1fr_auto]">
 					<div>
 						<label class="label" for="komponen-{i}">Komponen</label>
 						<select id="komponen-{i}" class="input" bind:value={b.komponen}>
@@ -255,8 +275,8 @@
 	</section>
 
 	<PesanAksi {aksi} />
-	<div class="flex gap-2">
+	<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+		<a class="btn btn--teks btn--besar" href="/permintaan">Batal</a>
 		<button class="btn btn--utama btn--besar" disabled={aksi.sibuk}>{aksi.sibuk ? 'Mengirim…' : 'Kirim permintaan'}</button>
-		<a class="btn btn--besar" href="/permintaan">Batal</a>
 	</div>
 </form>

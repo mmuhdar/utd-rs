@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { inisial } from '#lib/format.ts';
 	import '../app.css';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -40,14 +41,6 @@
 		})).filter((g) => g.menu.length)
 	);
 
-	// "dr. Kepala BDRS" -> "KB": gelar (berakhiran titik) dilewati.
-	const inisial = (nama: string) =>
-		nama
-			.split(/\s+/)
-			.filter((k) => k && !k.endsWith('.'))
-			.slice(0, 2)
-			.map((k) => k[0].toUpperCase())
-			.join('');
 
 	// Menu aktif = awalan jalur terpanjang, jadi /permintaan/12 menyorot "Permintaan darah", /permintaan/baru menyorot "Buat permintaan".
 	const semuaHref = GRUP.flatMap((g) => g.menu.map((m) => m.href));

@@ -44,8 +44,11 @@
 
 <Keadaan sumber={profil} apakahKosong={() => false} baris={4}>
 	{#snippet children(p)}
-		<form class="panel flex max-w-2xl flex-col gap-4" onsubmit={simpan}>
-			<h2>Profil instalasi</h2>
+		<form class="panel flex max-w-3xl flex-col gap-5" onsubmit={simpan}>
+			<div>
+				<h2>Profil instalasi</h2>
+				<p class="text-sm text-redup">Identitas RS dan mode kerja instalasi. Terakhir diubah {waktu(p.diubah_pada)}.</p>
+			</div>
 			<div class="form-grid">
 				<Isian label="Nama rumah sakit" id="p-nama" galat={aksi.isian.nama_rs} bantuan="Tampil di kop laporan dan menu.">
 					<input id="p-nama" class="input" bind:value={isi.nama_rs} required />
@@ -56,18 +59,18 @@
 			</div>
 			<fieldset>
 				<legend class="label">Mode instalasi</legend>
-				<div class="flex flex-col gap-2">
-					<label class="flex items-start gap-2 rounded-md border border-garis p-3 text-sm">
+				<div class="grid gap-3 sm:grid-cols-2">
+					<label class="flex cursor-pointer items-start gap-3 rounded-xl border border-garis p-4 text-sm has-checked:border-utama has-checked:bg-halus">
 						<input type="radio" name="jenis" value="bdrs" bind:group={isi.jenis} class="mt-1" />
 						<span>
-							<span class="font-medium">BDRS saja</span>
+							<span class="font-bold">BDRS saja</span>
 							<span class="block text-redup">Bank darah RS menerima kantong dari UTD mitra, menguji pratransfusi, dan menyerahkan ke ruang. Tidak menerima donor.</span>
 						</span>
 					</label>
-					<label class="flex items-start gap-2 rounded-md border border-garis p-3 text-sm">
+					<label class="flex cursor-pointer items-start gap-3 rounded-xl border border-garis p-4 text-sm has-checked:border-utama has-checked:bg-halus">
 						<input type="radio" name="jenis" value="utd_rs" bind:group={isi.jenis} class="mt-1" />
 						<span>
-							<span class="font-medium">UTD-RS</span>
+							<span class="font-bold">UTD-RS</span>
 							<span class="block text-redup">
 								Selain BDRS, RS menjalankan UTD sendiri: menu donor, donasi, uji saring IMLTD, pengolahan, dan pelulusan aktif; laporan UTD tersedia;
 								kantong hasil donasi yang diluluskan atau dimusnahkan masuk antrean SATUSEHAT.
@@ -77,9 +80,10 @@
 				</div>
 				{#if aksi.isian.jenis}<p class="mt-1 text-sm text-bahaya" role="alert">{aksi.isian.jenis}</p>{/if}
 			</fieldset>
-			<p class="text-xs text-redup">Terakhir diubah {waktu(p.diubah_pada)}.</p>
 			<PesanAksi {aksi} />
-			<button class="btn btn--utama self-start" disabled={aksi.sibuk}>Simpan profil</button>
+			<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+				<button class="btn btn--utama" disabled={aksi.sibuk}>Simpan profil</button>
+			</div>
 		</form>
 	{/snippet}
 </Keadaan>

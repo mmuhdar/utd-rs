@@ -8,6 +8,7 @@
 	import Isian from '#lib/Isian.svelte';
 	import Chip from '#lib/Chip.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import Copy from '@lucide/svelte/icons/copy';
 
@@ -23,6 +24,7 @@
 		['simrs', 'Layanan SIMRS (token API)'],
 		['logger', 'Layanan data logger suhu (token API)']
 	];
+	const NAMA_PERAN = Object.fromEntries(PERAN);
 	const LAYANAN = ['simrs', 'logger'];
 	const layanan = (peran: string[]) => peran.some((r) => LAYANAN.includes(r));
 
@@ -132,14 +134,15 @@
 	</fieldset>
 {/snippet}
 
-<h1 class="mb-4">Akun pengguna</h1>
+<KepalaHalaman judul="Akun pengguna" jalur={[['Pengaturan'], ['Akun pengguna']]} sub="Akun petugas dan akun layanan. Akun tidak pernah dihapus, hanya dinonaktifkan." />
 
 {#if !sesi.boleh('akun.kelola')}
 	<p class="catatan">Anda tidak berhak mengelola akun.</p>
 {:else}
-	<div class="grid gap-4 xl:grid-cols-[1fr_24rem]">
+	<div class="grid items-start gap-5 xl:grid-cols-[1fr_360px]">
 		<section class="panel min-w-0" aria-labelledby="judul-daftar">
-			<h2 id="judul-daftar" class="mb-3">Daftar akun</h2>
+			<h2 id="judul-daftar">Daftar akun</h2>
+			<p class="mb-3 text-sm text-redup">Pilih Kelola untuk mengubah peran, menonaktifkan, mereset sandi, atau menerbitkan token API.</p>
 			<Keadaan sumber={akun}>
 				{#snippet kosong()}<p>Belum ada akun.</p>{/snippet}
 				{#snippet children(data)}
@@ -151,10 +154,14 @@
 							<tbody>
 								{#each data as a (a.id)}
 									<tr class={pilih?.id === a.id ? 'bg-halus' : ''}>
-										<td class="mono">{a.nama_pengguna}</td>
+										<td class="mono font-semibold">{a.nama_pengguna}</td>
 										<td>{a.nama}</td>
 										<td class="mono">{a.nip ?? '—'}</td>
-										<td>{a.peran.join(', ')}</td>
+										<td>
+											<span class="flex flex-wrap gap-1">
+												{#each a.peran as r (r)}<Chip polos nada={LAYANAN.includes(r) ? 'info' : 'netral'}>{NAMA_PERAN[r] ?? r}</Chip>{/each}
+											</span>
+										</td>
 										<td>
 											<span class="flex flex-wrap gap-1">
 												<Chip nada={a.aktif ? 'aman' : 'netral'}>{a.aktif ? 'Aktif' : 'Nonaktif'}</Chip>
@@ -174,8 +181,11 @@
 		<div class="flex flex-col gap-4">
 			{#if pilih}
 				<section class="panel flex flex-col gap-4" aria-labelledby="judul-ubah">
-					<div class="flex items-baseline justify-between">
-						<h2 id="judul-ubah">Kelola <span class="mono">{pilih.nama_pengguna}</span></h2>
+					<div class="flex items-start justify-between gap-3">
+						<div class="min-w-0">
+							<h2 id="judul-ubah">Kelola <span class="mono">{pilih.nama_pengguna}</span></h2>
+							<p class="text-sm text-redup">{pilih.nama}</p>
+						</div>
 						<button class="btn btn--teks" onclick={() => (pilih = null)}>Tutup</button>
 					</div>
 					<form class="form-grid" onsubmit={simpan}>
@@ -192,7 +202,9 @@
 						</label>
 						<div class="flex flex-col gap-2 sm:col-span-2">
 							<PesanAksi aksi={aksiUbah} />
-							<button class="btn btn--utama self-start" disabled={aksiUbah.sibuk}>Simpan perubahan</button>
+							<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+								<button class="btn btn--utama" disabled={aksiUbah.sibuk}>Simpan perubahan</button>
+							</div>
 						</div>
 					</form>
 
@@ -211,7 +223,7 @@
 								</div>
 							{/if}
 							<PesanAksi aksi={aksiToken} />
-							<div class="flex flex-wrap gap-2">
+							<div class="flex flex-wrap justify-end gap-2.5">
 								<button class="btn btn--utama" onclick={terbitkan} disabled={aksiToken.sibuk || !pilih.aktif}>Terbitkan token</button>
 								<button class="btn btn--bahaya" onclick={cabut} disabled={aksiToken.sibuk}>Cabut semua token</button>
 							</div>
@@ -223,14 +235,17 @@
 								<input id="u-sandi" class="input" type="password" autocomplete="new-password" bind:value={sandiReset} required />
 							</Isian>
 							<PesanAksi aksi={aksiReset} />
-							<button class="btn self-start" disabled={aksiReset.sibuk}>Reset sandi</button>
+							<div class="flex justify-end"><button class="btn" disabled={aksiReset.sibuk}>Reset sandi</button></div>
 						</form>
 					{/if}
 				</section>
 			{/if}
 
 			<form class="panel form-grid" onsubmit={buat} aria-labelledby="judul-buat">
-				<h2 id="judul-buat" class="sm:col-span-2">Buat akun</h2>
+				<div class="sm:col-span-2">
+					<h2 id="judul-buat">Buat akun</h2>
+					<p class="text-sm text-redup">Petugas wajib mengganti sandi sementara saat pertama masuk.</p>
+				</div>
 				<Isian label="Nama pengguna" id="b-nama-pengguna" galat={aksiBuat.isian.nama_pengguna} bantuan="3–40 huruf kecil, angka, titik, garis bawah, atau tanda hubung.">
 					<input id="b-nama-pengguna" class="input mono" autocomplete="off" bind:value={baru.nama_pengguna} required />
 				</Isian>
@@ -251,7 +266,9 @@
 				{/if}
 				<div class="flex flex-col gap-2 sm:col-span-2">
 					<PesanAksi aksi={aksiBuat} />
-					<button class="btn btn--utama self-start" disabled={aksiBuat.sibuk}>Buat akun</button>
+					<div class="flex justify-end gap-2.5 border-t border-garis pt-4">
+						<button class="btn btn--utama" disabled={aksiBuat.sibuk}>Buat akun</button>
+					</div>
 				</div>
 			</form>
 		</div>

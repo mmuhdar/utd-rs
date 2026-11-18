@@ -8,14 +8,23 @@
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { keRfc3339, lokal, relatif, waktu } from '#lib/format.ts';
 	import Pilihan from '#lib/pelayanan/Pilihan.svelte';
+	import Bagian from './Bagian.svelte';
 	import { ALASAN_TOLAK_SAMPEL, JENIS_SAMPEL, PENYIMPANAN, STATUS_SAMPEL, batasUsiaJam } from '#lib/pelayanan/darah.ts';
 
-	let { p, aktif, muat }: { p: any; aktif: boolean; muat: () => Promise<void> } = $props();
+	let { p, aktif, muat, sekarang }: { p: any; aktif: boolean; muat: () => Promise<void>; sekarang: number } = $props();
 
 	const kosong = () => ({ diambil_pada: lokal(), diambil_oleh: '', jenis: 'edta', penyimpanan: 'suhu_ruang', diterima: true as boolean, alasan_tolak: '' });
 	let f = $state(kosong());
 	const usia = $derived(batasUsiaJam(f.jenis, f.penyimpanan));
 	const aksi = new Aksi();
+	const layak = $derived(p.sampel.find((s: any) => s.layak));
+	const ringkas = $derived(
+		layak
+			? `${JENIS_SAMPEL[layak.jenis] ?? layak.jenis} · diterima ${waktu(layak.diterima_pada)} · berlaku ${relatif(layak.batas_pakai)}`
+			: p.sampel.length
+				? 'Tidak ada sampel layak — minta sampel baru dari ruang'
+				: 'Belum ada sampel; permintaan diproses setelah sampel diterima'
+	);
 
 	async function kirim(e: SubmitEvent) {
 		e.preventDefault();
@@ -35,8 +44,7 @@
 	}
 </script>
 
-<section class="panel flex flex-col gap-4" aria-labelledby="j-sampel">
-	<h2 id="j-sampel">Sampel pratransfusi</h2>
+<Bagian id="bagian-sampel" nomor={1} bukaAwal={sekarang === 0} judul="Sampel pratransfusi" selesai={!!layak} {ringkas}>
 	{#if p.sampel.length}
 		<div class="overflow-x-auto">
 			<table class="tabel">
@@ -71,8 +79,8 @@
 	{/if}
 
 	{#if aktif && sesi.boleh('permintaan.proses')}
-		<form class="tanpa-cetak flex flex-col gap-4 border-t border-garis pt-4" onsubmit={kirim}>
-			<h3 class="font-semibold">Terima sampel</h3>
+		<form class="tanpa-cetak flex flex-col gap-4 rounded-xl border border-garis bg-latar/50 p-4" onsubmit={kirim}>
+			<h3 class="font-bold">Terima sampel</h3>
 			<div class="form-grid">
 				<Isian label="Waktu pengambilan" id="s-diambil" galat={aksi.isian.diambil_pada}>
 					<input id="s-diambil" class="input" type="datetime-local" bind:value={f.diambil_pada} required />
@@ -108,9 +116,11 @@
 				</Isian>
 			{/if}
 			<PesanAksi {aksi} />
-			<button class="btn {f.diterima ? 'btn--utama' : 'btn--bahaya'} self-start" disabled={aksi.sibuk}>
-				{f.diterima ? 'Terima sampel' : 'Catat penolakan sampel'}
-			</button>
+			<div class="flex justify-end">
+				<button class="btn {f.diterima ? 'btn--utama' : 'btn--bahaya'}" disabled={aksi.sibuk}>
+					{f.diterima ? 'Terima sampel' : 'Catat penolakan sampel'}
+				</button>
+			</div>
 		</form>
 	{/if}
-</section>
+</Bagian>

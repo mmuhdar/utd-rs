@@ -2,6 +2,7 @@
 	import { merek } from '#lib/merek.svelte.ts';
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import Tab, { tabAktif } from '#lib/utd/Tab.svelte';
+	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
 	import Profil from './Profil.svelte';
 	import UtdMitra from './UtdMitra.svelte';
 	import AlatSimpan from './AlatSimpan.svelte';
@@ -22,7 +23,7 @@
 
 <svelte:head><title>Data induk & aturan — {merek.judul}</title></svelte:head>
 
-<h1 class="mb-4">Data induk & aturan</h1>
+<KepalaHalaman judul="Data induk & aturan" jalur={[['Pengaturan'], ['Data induk & aturan']]} sub="Profil instalasi, UTD mitra, alat simpan, dan aturan klinis. Setiap perubahan tercatat di jejak audit." />
 
 {#if !daftar.length}
 	<p class="catatan">Anda tidak berhak mengelola data induk atau aturan.</p>
