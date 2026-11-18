@@ -9,6 +9,7 @@ use axum::routing::{get, post, put};
 use axum::{Json, Router};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sha2::Digest;
 use uuid::Uuid;
 
 pub fn rute() -> Router<AppState> {
@@ -16,6 +17,14 @@ pub fn rute() -> Router<AppState> {
         .route("/akun", get(daftar).post(buat))
         .route("/akun/{id}", put(ubah))
         .route("/akun/{id}/reset-sandi", post(reset_sandi))
+        .route("/akun/{id}/token", post(terbitkan_token))
+        .route("/akun/{id}/token/cabut", post(cabut_token))
+}
+
+pub const LAYANAN: [&str; 2] = ["simrs", "logger"];
+
+fn layanan(peran: &[String]) -> bool {
+    peran.iter().any(|r| LAYANAN.contains(&r.as_str()))
 }
 
 #[derive(Serialize, sqlx::FromRow)]
@@ -54,6 +63,9 @@ fn periksa_peran(peran: &[String]) -> Hasil<()> {
     if peran.is_empty() || peran.iter().any(|r| hak_peran(r).is_empty()) {
         return Err(tolak("peran", "Pilih minimal satu peran yang dikenal."));
     }
+    if layanan(peran) && peran.len() > 1 {
+        return Err(tolak("peran", "Akun layanan (simrs, logger) tidak boleh digabung dengan peran lain."));
+    }
     Ok(())
 }
 
@@ -61,7 +73,9 @@ async fn buat(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianAkun>) 
     p.wajib("akun.kelola")?;
     periksa_peran(&i.peran)?;
     let nama_pengguna = i.nama_pengguna.as_deref().unwrap_or("").trim().to_lowercase();
-    let sandi = i.sandi_sementara.as_deref().unwrap_or("");
+    // Akun layanan tidak pernah masuk dengan sandi; sandinya acak dan tidak diketahui siapa pun.
+    let acak = hex::encode(token_acak()?);
+    let sandi = if layanan(&i.peran) { acak.as_str() } else { i.sandi_sementara.as_deref().unwrap_or("") };
     periksa_sandi(sandi).map_err(|e| tolak("sandi_sementara", e))?;
     let mut tx = s.db.begin().await?;
     let id: Uuid = sqlx::query_scalar(
@@ -165,4 +179,44 @@ async fn reset_sandi(
     audit::ubah(&mut tx, &p, "reset_sandi", "akun", id, json!({})).await?;
     tx.commit().await?;
     Ok(Json(json!({})))
+}
+
+fn token_acak() -> anyhow::Result<[u8; 32]> {
+    let mut t = [0u8; 32];
+    getrandom::fill(&mut t).map_err(|e| anyhow::anyhow!("acak gagal: {e}"))?;
+    Ok(t)
+}
+
+/// Token hanya ditampilkan sekali; database menyimpan hash-nya.
+async fn terbitkan_token(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>) -> Hasil<Json<serde_json::Value>> {
+    p.wajib("akun.kelola")?;
+    let peran: Option<Vec<String>> =
+        sqlx::query_scalar("select peran from akun where id = $1 and aktif").bind(id).fetch_optional(&s.db).await?;
+    if !layanan(&peran.ok_or_else(|| Galat::TidakDitemukan("Akun aktif tidak ditemukan.".into()))?) {
+        return Err(Galat::Konflik("Token API hanya untuk akun layanan (simrs, logger).".into()));
+    }
+    let token = token_acak()?;
+    let mut tx = s.db.begin().await?;
+    sqlx::query("insert into token_api (hash, akun_id) values ($1, $2)")
+        .bind(sha2::Sha256::digest(token).to_vec())
+        .bind(id)
+        .execute(&mut *tx)
+        .await?;
+    audit::ubah(&mut tx, &p, "terbitkan_token", "akun", id, json!({})).await?;
+    tx.commit().await?;
+    use base64::Engine;
+    Ok(Json(json!({ "token": base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(token) })))
+}
+
+async fn cabut_token(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>) -> Hasil<Json<serde_json::Value>> {
+    p.wajib("akun.kelola")?;
+    let mut tx = s.db.begin().await?;
+    let n = sqlx::query("update token_api set dicabut_pada = now() where akun_id = $1 and dicabut_pada is null")
+        .bind(id)
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
+    audit::ubah(&mut tx, &p, "cabut_token", "akun", id, json!({ "jumlah": n })).await?;
+    tx.commit().await?;
+    Ok(Json(json!({ "dicabut": n })))
 }

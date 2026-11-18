@@ -29,35 +29,63 @@ const BATAS_GAGAL: i32 = 5;
 /// Hak tiap peran. Pemisahan tugas: dokter meminta, teknisi menguji dan menyerahkan, perawat memberikan,
 /// kepala (penanggung jawab pelayanan darah) memverifikasi dan menutup laporan, auditor hanya membaca.
 pub fn hak_peran(peran: &str) -> &'static [&'static str] {
+    const TEKNISI: &[&str] = &[
+        "pasien.lihat",
+        "pasien.tulis",
+        "permintaan.lihat",
+        "permintaan.proses",
+        "stok.lihat",
+        "stok.kelola",
+        "uji.input",
+        "uji.verifikasi",
+        "penyerahan.kelola",
+        "reaksi.telusur",
+        "suhu.catat",
+        "donor.kelola",
+        "laporan.lihat",
+    ];
+    const KEPALA: &[&str] = &[
+        "pasien.lihat",
+        "pasien.tulis",
+        "permintaan.lihat",
+        "permintaan.proses",
+        "stok.lihat",
+        "stok.kelola",
+        "uji.input",
+        "uji.verifikasi",
+        "penyerahan.kelola",
+        "reaksi.telusur",
+        "suhu.catat",
+        "donor.kelola",
+        "laporan.lihat",
+        "reaksi.tutup",
+        "aturan.kelola",
+        "donor.lulus",
+        "darurat.setujui",
+        "koreksi.lanjut",
+        "karantina.lepas",
+        "master.kelola",
+        "audit.lihat",
+    ];
     match peran {
-        "admin" => &["akun.kelola", "master.kelola", "audit.lihat", "laporan.lihat"],
-        "dokter" => &["permintaan.buat", "permintaan.lihat", "transfusi.catat", "reaksi.lapor", "pasien.lihat"],
-        "perawat" => &["permintaan.lihat", "transfusi.catat", "reaksi.lapor", "pasien.lihat"],
-        "teknisi" => &[
-            "permintaan.lihat",
-            "permintaan.proses",
+        "admin" => &["akun.kelola", "master.kelola", "audit.lihat", "laporan.lihat", "integrasi.kelola"],
+        "dokter" => &[
             "pasien.lihat",
-            "stok.kelola",
-            "uji.input",
-            "penyerahan.kelola",
-            "donor.kelola",
-            "laporan.lihat",
-        ],
-        "kepala" => &[
+            "pasien.tulis",
+            "permintaan.buat",
             "permintaan.lihat",
-            "permintaan.proses",
-            "pasien.lihat",
-            "stok.kelola",
-            "uji.input",
-            "uji.verifikasi",
-            "penyerahan.kelola",
-            "donor.kelola",
-            "reaksi.tinjau",
-            "master.kelola",
-            "audit.lihat",
-            "laporan.lihat",
+            "stok.lihat",
+            "transfusi.catat",
+            "reaksi.lapor",
+            "darurat.setujui",
         ],
-        "auditor" => &["audit.lihat", "laporan.lihat", "permintaan.lihat", "pasien.lihat"],
+        "perawat" => &["pasien.lihat", "permintaan.lihat", "stok.lihat", "transfusi.catat", "reaksi.lapor"],
+        "teknisi" => TEKNISI,
+        "kepala" => KEPALA,
+        "auditor" => &["audit.lihat", "laporan.lihat", "permintaan.lihat", "pasien.lihat", "stok.lihat"],
+        // Akun layanan: hanya lewat token API.
+        "simrs" => &["pasien.lihat", "pasien.tulis", "permintaan.buat", "permintaan.lihat"],
+        "logger" => &["suhu.catat"],
         _ => &[],
     }
 }
@@ -149,6 +177,33 @@ impl FromRequestParts<AppState> for Pengguna {
     type Rejection = Galat;
     async fn from_request_parts(parts: &mut Parts, s: &AppState) -> Result<Self, Galat> {
         let klien = Klien::from_request_parts(parts, s).await.unwrap_or_default();
+        let bearer = parts
+            .headers
+            .get(header::AUTHORIZATION)
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .and_then(|t| URL_SAFE_NO_PAD.decode(t.trim()).ok());
+        if let Some(token) = bearer {
+            // Token API akun layanan (SIMRS, data logger); tidak pernah wajib ganti sandi.
+            let b: BarisPengguna = sqlx::query_as(
+                "update token_api t set terakhir_dipakai = now() from akun a
+                 where t.hash = $1 and t.dicabut_pada is null and a.id = t.akun_id and a.aktif
+                 returning a.id, a.nama, a.nama_pengguna, a.peran, false as wajib_ganti_sandi",
+            )
+            .bind(hash_token(&token))
+            .fetch_optional(&s.db)
+            .await?
+            .ok_or_else(|| Galat::Autentikasi("Token API tidak dikenal atau sudah dicabut.".into()))?;
+            return Ok(Pengguna {
+                akun_id: b.id,
+                nama: b.nama,
+                nama_pengguna: b.nama_pengguna,
+                peran: b.peran,
+                wajib_ganti_sandi: false,
+                alamat: klien.alamat,
+                perangkat: klien.perangkat,
+            });
+        }
         let token = token_dari_cookie(&parts.headers).ok_or(Galat::BelumMasuk)?;
         // Sesi diperpanjang sekaligus diperiksa; sesi yang diam terlalu lama atau melewati batas maksimum ditolak.
         let b: BarisPengguna = sqlx::query_as(
@@ -215,6 +270,7 @@ struct AkunMasuk {
     sandi_hash: String,
     aktif: bool,
     terkunci: bool,
+    layanan: bool,
 }
 
 /// POST /api/auth/masuk
@@ -222,7 +278,8 @@ pub async fn masuk(State(s): State<AppState>, klien: Klien, Json(m): Json<Masuk>
     let nama = m.nama_pengguna.trim().to_lowercase();
     let mut tx = s.db.begin().await?;
     let akun: Option<AkunMasuk> = sqlx::query_as(
-        "select id, sandi_hash, aktif, coalesce(terkunci_sampai > now(), false) as terkunci
+        "select id, sandi_hash, aktif, coalesce(terkunci_sampai > now(), false) as terkunci,
+                peran && array['simrs', 'logger'] as layanan
          from akun where nama_pengguna = $1 for update",
     )
     .bind(&nama)
@@ -251,6 +308,9 @@ pub async fn masuk(State(s): State<AppState>, klien: Klien, Json(m): Json<Masuk>
         return Err(Galat::Autentikasi(
             "Akun dikunci sementara karena terlalu banyak percobaan gagal. Coba lagi 15 menit lagi atau minta admin membukanya.".into(),
         ));
+    }
+    if a.layanan {
+        return Err(Galat::Autentikasi("Akun layanan hanya bisa dipakai lewat token API.".into()));
     }
     if !a.aktif {
         return Err(Galat::Autentikasi("Akun ini sudah dinonaktifkan. Hubungi admin.".into()));

@@ -16,12 +16,13 @@ pub struct Uji {
     pub app: Router,
     pub db: PgPool,
     cookie: Option<String>,
+    bearer: Option<String>,
 }
 
 impl Uji {
     pub fn baru(db: PgPool) -> Self {
         let app = router(AppState { db: db.clone(), cfg: Arc::new(config::Config::uji()) });
-        Uji { app, db, cookie: None }
+        Uji { app, db, cookie: None, bearer: None }
     }
 
     /// Membuat akun dengan peran tertentu (sandi sudah diganti) lalu masuk.
@@ -40,10 +41,17 @@ impl Uji {
         u
     }
 
+    pub fn bearer(&mut self, token: &str) {
+        self.bearer = Some(token.to_string());
+    }
+
     pub async fn kirim(&mut self, metode: &str, uri: &str, body: Option<Value>) -> (StatusCode, Value) {
         let mut req = Request::builder().method(metode).uri(uri);
         if let Some(c) = &self.cookie {
             req = req.header(header::COOKIE, c);
+        }
+        if let Some(t) = &self.bearer {
+            req = req.header(header::AUTHORIZATION, format!("Bearer {t}"));
         }
         let req = match body {
             Some(b) => req.header(header::CONTENT_TYPE, "application/json").body(Body::from(b.to_string())),
@@ -72,6 +80,64 @@ impl Uji {
         let (st, v) = self.post(uri, body).await;
         assert_eq!(st, StatusCode::OK, "POST {uri}: {v}");
         v
+    }
+}
+
+/// Instalasi BDRS siap pakai untuk uji: kepala, dua teknisi, UTD mitra, dan tiga alat simpan.
+pub struct Bdrs {
+    pub kepala: Uji,
+    pub teknisi: Uji,
+    pub teknisi2: Uji,
+    pub utd: String,
+    pub lemari: String,
+    pub freezer: String,
+    pub inkubator: String,
+}
+
+impl Bdrs {
+    pub async fn siapkan(db: &PgPool) -> Self {
+        let mut kepala = Uji::sebagai(db, "kepala", &["kepala"]).await;
+        let teknisi = Uji::sebagai(db, "teknisi", &["teknisi"]).await;
+        let teknisi2 = Uji::sebagai(db, "teknisi2", &["teknisi"]).await;
+        let utd = kepala.ok("/api/master/utd", json!({ "kode": "UTD1", "nama": "UTD Kota", "format_label": "isbt128" })).await;
+        let alat = |kode: &'static str, jenis: &'static str, min: f64, maks: f64| {
+            json!({ "kode": kode, "nama": kode, "jenis": jenis, "suhu_min": min, "suhu_maks": maks })
+        };
+        let lemari = kepala.ok("/api/master/alat", alat("L1", "lemari", 2.0, 6.0)).await;
+        let freezer = kepala.ok("/api/master/alat", alat("F1", "freezer", -40.0, -25.0)).await;
+        let inkubator = kepala.ok("/api/master/alat", alat("I1", "inkubator", 20.0, 24.0)).await;
+        let id = |v: &Value| v["id"].as_str().unwrap().to_string();
+        Bdrs { utd: id(&utd), lemari: id(&lemari), freezer: id(&freezer), inkubator: id(&inkubator), kepala, teknisi, teknisi2 }
+    }
+
+    /// Menerima kantong-kantong (nomor, komponen, abo, rhesus) dari UTD; mengembalikan id kantong urut sesuai masukan.
+    pub async fn terima(&mut self, kantong: &[(&str, &str, &str, &str)]) -> Vec<String> {
+        let kedaluwarsa = (time::OffsetDateTime::now_utc() + time::Duration::days(20))
+            .format(&time::format_description::well_known::Rfc3339)
+            .unwrap();
+        let isi: Vec<Value> = kantong
+            .iter()
+            .map(|(nomor, komponen, abo, rh)| {
+                let alat = match *komponen {
+                    "tc" => &self.inkubator,
+                    "ffp" | "cryo" => &self.freezer,
+                    _ => &self.lemari,
+                };
+                json!({ "nomor": nomor, "komponen": komponen, "abo": abo, "rhesus": rh, "volume_ml": 250,
+                        "kedaluwarsa": kedaluwarsa, "imltd_nonreaktif": true, "diterima": true, "alat_id": alat })
+            })
+            .collect();
+        let v = self
+            .teknisi
+            .ok("/api/penerimaan", json!({ "utd_id": self.utd, "petugas_utd": "Petugas UTD", "kantong": isi }))
+            .await;
+        let detail = self.teknisi.get(&format!("/api/penerimaan/{}", v["id"].as_str().unwrap())).await.1;
+        kantong
+            .iter()
+            .map(|(nomor, ..)| {
+                detail["kantong"].as_array().unwrap().iter().find(|k| k["nomor"] == *nomor).unwrap()["id"].as_str().unwrap().to_string()
+            })
+            .collect()
     }
 }
 
