@@ -117,7 +117,7 @@
 										<td><Golongan abo={k.abo} rhesus={k.rhesus} /></td>
 										<td><Kedaluwarsa nilai={k.kedaluwarsa} /></td>
 										<td><StatusKantong status={k.status} /></td>
-										<td class="min-w-72">
+										<td class="w-full min-w-56">
 											{#if k.keputusan}
 												<Chip nada={k.keputusan === 'layak' ? 'aman' : 'bahaya'}>{k.keputusan === 'layak' ? 'Layak' : 'Tidak layak'}</Chip>
 												<span class="mt-1 block text-xs text-teks-2">{k.alasan}</span>

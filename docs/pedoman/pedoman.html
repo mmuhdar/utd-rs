@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Pedoman Penggunaan dan Pelatihan utd-rs</title>
+<style>
+@font-face { font-family: 'PJS'; font-weight: 400; src: local('Plus Jakarta Sans'), url('../../web/node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'PJS'; font-weight: 500; src: local('Plus Jakarta Sans Medium'), url('../../web/node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'PJS'; font-weight: 600; src: local('Plus Jakarta Sans SemiBold'), url('../../web/node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'PJS'; font-weight: 700; src: local('Plus Jakarta Sans Bold'), url('../../web/node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'PJS'; font-weight: 800; src: local('Plus Jakarta Sans ExtraBold'), url('../../web/node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Mono'; font-weight: 500; src: local('IBM Plex Mono Medium'), url('../../web/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2'); }
+
+@page { size: A4; margin: 17mm 16mm 18mm 16mm;
+  @bottom-left { content: "Pedoman Penggunaan dan Pelatihan utd-rs · versi 0.1"; font: 500 7.5pt 'PJS', sans-serif; color: #5d6b82; }
+  @bottom-right { content: "Halaman " counter(page) " dari " counter(pages); font: 500 7.5pt 'PJS', sans-serif; color: #5d6b82; }
+}
+@page sampul { margin: 0; @bottom-left { content: none } @bottom-right { content: none } }
+
+:root { --tinta:#0b1220; --tinta2:#344054; --redup:#5d6b82; --garis:#e4e7ec; --halus:#f0f2f5; --latar:#f4f5f8;
+  --merek:#d0103a; --aman:#05603a; --aman-l:#e9f9ef; --waspada:#93370d; --waspada-l:#fff6e5; --bahaya:#b42318; --bahaya-l:#feeeec; --info:#1d44b8; --info-l:#eaf1ff; }
+* { box-sizing: border-box; }
+html { font-family: 'PJS', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 9.6pt; line-height: 1.55; color: var(--tinta); word-spacing: 0.08em; }
+body { margin: 0; }
+code, .mono { font-family: 'Mono', 'IBM Plex Mono', monospace; font-size: 0.92em; }
+code { background: var(--halus); padding: 0.05em 0.35em; border-radius: 4px; }
+a { color: var(--info); text-decoration: none; }
+p { margin: 0 0 0.55em; }
+ul, ol { margin: 0.2em 0 0.7em; padding-left: 1.35em; }
+li { margin: 0.15em 0; }
+strong { font-weight: 700; }
+
+/* Sampul */
+.sampul { page: sampul; height: 297mm; width: 210mm; position: relative; color: #fff; overflow: hidden;
+  background: linear-gradient(35deg, #2a0612 0%, #7a0b25 55%, #c2133a 100%); padding: 26mm 22mm; display: flex; flex-direction: column; }
+.sampul .merek { display: flex; align-items: center; gap: 12px; }
+.sampul .tanda { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #f43f5e, #8e0c2a); display: grid; place-items: center; box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset; }
+.sampul .tanda svg { width: 26px; height: 26px; }
+.sampul .merek b { display: block; font-size: 15pt; font-weight: 800; }
+.sampul .merek small { display: block; font-size: 9pt; color: rgba(255,255,255,.72); }
+.sampul h1 { font-size: 34pt; line-height: 1.08; font-weight: 800; letter-spacing: -0.01em; word-spacing: 0.1em; margin: 52mm 0 6mm; max-width: 150mm; }
+.sampul .sub { font-size: 13pt; color: #ffd5de; max-width: 140mm; font-weight: 500; }
+.sampul .peran { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14mm; max-width: 160mm; }
+.sampul .peran span { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); border-radius: 999px; padding: 5px 13px; font-weight: 600; font-size: 9.5pt; }
+.sampul .kaki { margin-top: auto; display: flex; justify-content: space-between; font-size: 9pt; color: rgba(255,255,255,.75); border-top: 1px solid rgba(255,255,255,.2); padding-top: 5mm; }
+
+/* Bab dan judul */
+.bab { break-before: page; }
+h1.judul-bab { font-size: 22pt; font-weight: 800; letter-spacing: -0.005em; word-spacing: 0.12em; margin: 0 0 4mm; line-height: 1.15; display: flex; align-items: center; gap: 10px; }
+h1.judul-bab .no { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--tinta); color: #fff; font-size: 13pt; flex: none; }
+.pengantar-bab { font-size: 10.5pt; color: var(--tinta2); margin-bottom: 5mm; }
+h2 { font-size: 13pt; font-weight: 800; margin: 7mm 0 2.5mm; word-spacing: 0.1em; break-after: avoid; }
+h3 { font-size: 10.5pt; font-weight: 700; margin: 4.5mm 0 1.5mm; break-after: avoid; }
+h2 + p, h3 + p { break-before: avoid; }
+
+/* Komponen */
+.kartu-peran { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--garis); border-radius: 12px; padding: 4mm 5mm; margin: 0 0 5mm; background: var(--latar); }
+.kartu-peran .ikon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; color: #fff; flex: none; font-size: 11pt; }
+.kartu-peran dl { display: grid; grid-template-columns: 34mm 1fr; gap: 1.2mm 4mm; margin: 0; flex: 1; }
+.kartu-peran dt { color: var(--redup); font-weight: 600; }
+.kartu-peran dd { margin: 0; }
+.langkah { counter-reset: l; list-style: none; padding: 0; margin: 2mm 0 4mm; }
+.langkah > li { counter-increment: l; position: relative; padding-left: 9mm; margin: 0 0 2.2mm; break-inside: avoid; }
+.langkah > li::before { content: counter(l); position: absolute; left: 0; top: 0.05em; width: 6mm; height: 6mm; border-radius: 50%; background: var(--tinta); color: #fff; font-weight: 700; font-size: 8pt; display: grid; place-items: center; }
+.kotak { border-radius: 10px; padding: 3mm 4mm 3mm 4mm; margin: 3mm 0 4mm; break-inside: avoid; border: 1px solid; }
+.kotak > b:first-child { display: block; margin-bottom: 1mm; }
+.kotak p:last-child, .kotak ul:last-child { margin-bottom: 0; }
+.bahaya { background: var(--bahaya-l); border-color: #f04438; color: var(--bahaya); }
+.waspada { background: var(--waspada-l); border-color: #f79009; color: var(--waspada); }
+.info { background: var(--info-l); border-color: #2e6bff; color: var(--info); }
+.aman { background: var(--aman-l); border-color: #12b76a; color: var(--aman); }
+figure { margin: 3mm 0 5mm; break-inside: avoid; }
+figure img { width: 100%; border: 1px solid var(--garis); border-radius: 8px; display: block; }
+figure.setengah img { width: 78%; margin: 0 auto; }
+figcaption { font-size: 8pt; color: var(--redup); margin-top: 1.5mm; text-align: center; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 5mm; font-size: 8.8pt; break-inside: auto; }
+th { text-align: left; background: var(--halus); font-weight: 700; color: var(--tinta2); font-size: 7.8pt; text-transform: uppercase; letter-spacing: 0.04em; }
+th, td { padding: 1.7mm 2.4mm; border-bottom: 1px solid var(--garis); vertical-align: top; }
+tr { break-inside: avoid; }
+.chip { display: inline-block; border-radius: 999px; padding: 0 2.2mm; font-size: 7.8pt; font-weight: 700; white-space: nowrap; }
+.chip.aman { background: var(--aman-l); color: var(--aman); border: 0; }
+.chip.waspada { background: var(--waspada-l); color: var(--waspada); border: 0; }
+.chip.bahaya { background: var(--bahaya-l); color: var(--bahaya); border: 0; }
+.chip.info { background: var(--info-l); color: var(--info); border: 0; }
+.chip.netral { background: var(--halus); color: var(--tinta2); }
+.gol { display: inline-block; font-weight: 800; border-radius: 5px; padding: 0 1.6mm; font-size: 8.5pt; }
+.go { background: #dce9ff; color: #163d9c; } .ga { background: #fff3b8; color: #6b4405; } .gb { background: #ffe1f1; color: #8f1352; } .gab { background: #fff; color: #344054; box-shadow: inset 0 0 0 1px #c4cad4; }
+.gneg { box-shadow: inset 0 0 0 1.5px currentColor; }
+.alur { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2mm; margin: 3mm 0 5mm; }
+.alur div { border: 1px solid var(--garis); border-radius: 10px; padding: 2.5mm; background: #fff; position: relative; break-inside: avoid; }
+.alur div b { display: block; font-size: 8.5pt; }
+.alur div small { color: var(--redup); font-size: 7.5pt; line-height: 1.35; display: block; margin-top: 1mm; }
+.alur .siapa { display: inline-block; font-size: 7pt; font-weight: 700; border-radius: 999px; padding: 0 1.8mm; margin-bottom: 1mm; color: #fff; }
+.latihan { border: 1.5px dashed #98a2b3; border-radius: 12px; padding: 4mm 5mm; margin: 5mm 0; break-inside: avoid; }
+.latihan h3 { margin-top: 0; }
+.latihan .akun { font-size: 8.5pt; color: var(--redup); margin-bottom: 2mm; }
+.cek { list-style: none; padding: 0; }
+.cek li { padding-left: 6.5mm; position: relative; }
+.cek li::before { content: ''; position: absolute; left: 0; top: 0.32em; width: 3.4mm; height: 3.4mm; border: 1.3px solid var(--tinta2); border-radius: 3px; }
+.toc { columns: 2; column-gap: 10mm; font-size: 9.5pt; }
+.toc div { break-inside: avoid; margin-bottom: 3mm; }
+.toc b { display: block; font-weight: 800; }
+.toc span { display: block; color: var(--tinta2); padding-left: 4mm; font-size: 8.8pt; }
+.dua { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.dua figure { margin-top: 0; }
+.ttd { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8mm; margin-top: 10mm; text-align: center; font-size: 8.5pt; }
+.ttd div { padding-top: 16mm; border-bottom: 1px solid var(--tinta); }
+.ttd small { display: block; margin-top: 1mm; color: var(--redup); }
+.kecil { font-size: 8.5pt; color: var(--redup); }
+.c-dokter { background: #1d44b8; } .c-perawat { background: #05603a; } .c-teknisi { background: #93370d; }
+.c-kepala { background: #8e0c2a; } .c-admin { background: #344054; } .c-auditor { background: #5d3fd3; } .c-sistem { background: #0b1220; }
+</style>
+</head>
+<body>
+
+<!-- ================= SAMPUL ================= -->
+<section class="sampul">
+  <div class="merek">
+    <span class="tanda"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></span>
+    <span><b>utd-rs</b><small>Sistem Informasi Bank Darah Rumah Sakit</small></span>
+  </div>
+  <h1>Pedoman Penggunaan dan Pelatihan</h1>
+  <p class="sub">Panduan langkah demi langkah untuk setiap peran di Bank Darah Rumah Sakit (BDRS) dan UTD-RS, lengkap dengan latihan dan daftar periksa kompetensi.</p>
+  <div class="peran"><span>Dokter</span><span>Perawat</span><span>Teknisi BDRS</span><span>Kepala BDRS</span><span>Admin TI</span><span>Auditor</span></div>
+  <div class="kaki"><span>Versi aplikasi 0.1 · Pedoman edisi 1</span><span>18 November 2026</span></div>
+</section>
+
+<!-- ================= DAFTAR ISI ================= -->
+<section class="bab">
+  <h1 class="judul-bab">Daftar isi</h1>
+  <div class="toc">
+    <div><b>1. Pendahuluan</b><span>Tujuan, peran dan tugasnya, alur pelayanan darah, prinsip keselamatan, cara memakai pedoman untuk pelatihan</span></div>
+    <div><b>2. Dasar penggunaan (semua peran)</b><span>Masuk dan sesi, tata letak layar, tanda dan warna, pemindai barcode, tanda tangan elektronik, verifikasi kedua, mencetak, saat sistem mati, kerahasiaan data</span></div>
+    <div><b>3. Dokter</b><span>Membuat permintaan darah, memantau status, persetujuan pengeluaran darurat, riwayat pasien, latihan</span></div>
+    <div><b>4. Perawat</b><span>Menerima kantong, verifikasi samping tempat tidur, observasi, menyelesaikan transfusi, melapor reaksi, latihan</span></div>
+    <div><b>5. Teknisi BDRS</b><span>Rutinitas dinas, permintaan ke UTD, penerimaan, stok, suhu, sampel, golongan, uji silang, alokasi, pengeluaran, penelusuran reaksi, berita acara, lacak, mode UTD-RS, latihan</span></div>
+    <div><b>6. Kepala BDRS</b><span>Pemantauan, penyimpangan suhu, lepas karantina, persetujuan darurat, menutup penelusuran, pelulusan, aturan, laporan dan mutu, peninjauan berkala, latihan</span></div>
+    <div><b>7. Admin TI</b><span>Akun dan peran, token API, profil instalasi, kop surat, data induk, SATUSEHAT, backup, latihan</span></div>
+    <div><b>8. Auditor</b><span>Jejak audit, keutuhan rantai, kajian berkala, laporan, latihan</span></div>
+    <div><b>9. Akun layanan SIMRS dan data logger</b><span>Untuk tim TI integrasi</span></div>
+    <div><b>Lampiran</b><span>A. Matriks hak akses · B. Status kantong dan permintaan · C. Pesan penting dan tindakannya · D. Istilah · E. Lembar evaluasi pelatihan</span></div>
+  </div>
+</section>
+
+<!-- ================= BAB 1 ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">1</span>Pendahuluan</h1>
+  <p class="pengantar-bab">utd-rs adalah sistem informasi untuk Bank Darah Rumah Sakit (BDRS), dengan mode tambahan untuk RS yang menjalankan UTD sendiri (UTD-RS). Sistem ini menelusuri setiap kantong darah dari penerimaan di bank darah sampai ditransfusikan ke pasien, dan mencatat siapa mengerjakan apa dan kapan.</p>
+
+  <h2>1.1 Tujuan pedoman</h2>
+  <ul>
+    <li>Menjadi acuan kerja harian bagi setiap pengguna sesuai perannya.</li>
+    <li>Menjadi bahan pelatihan pengguna baru, lengkap dengan latihan dan daftar periksa kompetensi (Lampiran E).</li>
+    <li>Menjelaskan aturan keselamatan yang dijaga sistem, supaya petugas memahami alasan di balik setiap peringatan dan blokir.</li>
+  </ul>
+  <p>Pedoman ini melengkapi, bukan menggantikan, Standar Prosedur Operasional (SPO) pelayanan darah di RS Anda dan Permenkes 91/2015 tentang Standar Pelayanan Transfusi Darah.</p>
+
+  <h2>1.2 Peran dan tugasnya</h2>
+  <p>Setiap akun punya satu atau lebih peran. Menu dan tombol yang tampil menyesuaikan hak peran. Pembagian tugasnya mengikuti prinsip pemisahan tugas: dokter meminta, teknisi menguji dan menyerahkan, perawat memberikan, kepala BDRS memverifikasi dan menutup, auditor hanya membaca.</p>
+  <table>
+    <tr><th style="width:22%">Peran</th><th>Tugas utama di sistem</th><th style="width:12%">Bab</th></tr>
+    <tr><td><b>Dokter</b></td><td>Membuat permintaan darah, menyetujui pengeluaran darah darurat, mencatat transfusi dan melapor reaksi bila perlu.</td><td>3</td></tr>
+    <tr><td><b>Perawat</b></td><td>Menerima kantong dari BDRS, verifikasi dua petugas di samping tempat tidur, mencatat observasi, menyelesaikan transfusi, melapor reaksi.</td><td>4</td></tr>
+    <tr><td><b>Teknisi BDRS</b></td><td>Penerimaan dan stok kantong, suhu alat simpan, sampel, golongan darah, uji silang, alokasi, pengeluaran, penelusuran reaksi, berita acara; donor dan IMLTD pada mode UTD-RS.</td><td>5</td></tr>
+    <tr><td><b>Kepala BDRS</b></td><td>Semua tugas teknisi, ditambah penilaian penyimpangan suhu, lepas karantina, persetujuan darurat, menutup penelusuran reaksi, pelulusan kantong donasi, aturan komponen dan donor, laporan, jejak audit.</td><td>6</td></tr>
+    <tr><td><b>Admin TI</b></td><td>Akun dan peran, token API, profil instalasi, kop surat, data induk, integrasi SATUSEHAT, backup.</td><td>7</td></tr>
+    <tr><td><b>Auditor</b></td><td>Membaca jejak audit, memeriksa keutuhan rantai audit, membaca laporan. Tidak dapat mengubah data.</td><td>8</td></tr>
+  </table>
+
+  <h2>1.3 Alur pelayanan darah</h2>
+  <div class="alur">
+    <div><span class="siapa c-dokter">Dokter</span><b>Permintaan</b><small>Formulir permintaan darah dan sampel pasien dikirim ke BDRS.</small></div>
+    <div><span class="siapa c-teknisi">Teknisi</span><b>Sampel &amp; golongan</b><small>Sampel diterima, golongan pasien diperiksa dan diverifikasi teknisi kedua.</small></div>
+    <div><span class="siapa c-teknisi">Teknisi</span><b>Uji silang</b><small>Kantong kompatibel diuji silang; hasil diverifikasi kedua, lalu kantong teralokasi.</small></div>
+    <div><span class="siapa c-teknisi">Teknisi</span><b>Pengeluaran</b><small>Kantong diserahkan ke petugas ruang. Transfusi harus dimulai dalam 30 menit.</small></div>
+    <div><span class="siapa c-perawat">Perawat</span><b>Samping tempat tidur</b><small>Dua perawat mencocokkan gelang pasien dan label kantong; ketidakcocokan diblokir.</small></div>
+    <div><span class="siapa c-perawat">Perawat</span><b>Observasi &amp; reaksi</b><small>Tanda vital dicatat per tahap; reaksi dilaporkan dan ditelusuri BDRS.</small></div>
+  </div>
+  <figure><img src="../tangkapan-layar/04b-permintaan-ringkasan.png" alt=""><figcaption>Gambar 1.1 — Detail permintaan darah: kartu pasien, enam tahap alur, dan kartu ringkas di kolom kanan.</figcaption></figure>
+
+  <h2>1.4 Prinsip keselamatan yang berlaku untuk semua</h2>
+  <ul>
+    <li><b>Akun bersifat pribadi.</b> Jangan meminjamkan akun atau sandi. Setiap tindakan tercatat atas nama pemilik akun dan dapat ditelusuri.</li>
+    <li><b>Tanda tangan elektronik sama dengan tanda tangan basah.</b> Dengan mengetik ulang sandi, Anda menyatakan telah memeriksa dan bertanggung jawab atas catatan itu.</li>
+    <li><b>Verifikasi kedua.</b> Hasil yang diinput manual (golongan pasien, uji silang, golongan donasi, IMLTD) baru berlaku setelah diperiksa ulang oleh petugas lain. Sistem menolak bila penginput memverifikasi hasilnya sendiri.</li>
+    <li><b>Data tidak pernah dihapus.</b> Kesalahan diperbaiki dengan pembatalan atau koreksi yang beralasan; catatan aslinya tetap tersimpan.</li>
+    <li><b>Peringatan merah bukan saran.</b> Peringatan klinis tidak hilang sendiri dan selalu menyebut tindakan berikutnya. Ikuti tindakan itu, lalu laporkan sesuai SPO.</li>
+    <li><b>Setiap pembukaan data pasien tercatat.</b> Buka data pasien hanya untuk keperluan pelayanan.</li>
+  </ul>
+
+  <h2>1.5 Cara memakai pedoman ini untuk pelatihan</h2>
+  <ol>
+    <li>Pakai <b>lingkungan latihan</b> terpisah dari server produksi, berisi data demo fiktif (perintah <code>utdrs seed-demo</code>, dijalankan admin TI). Jangan berlatih di server produksi.</li>
+    <li>Peserta membaca Bab 2 (dasar) lalu bab perannya sendiri.</li>
+    <li>Kerjakan kotak <b>Latihan</b> di akhir setiap bab bersama pelatih. Akun latihan tercantum di setiap kotak; sandinya <code>demo-utd-rs</code>.</li>
+    <li>Pelatih mengisi <b>Lembar evaluasi</b> (Lampiran E) dan menyimpannya sebagai bukti pelatihan pegawai.</li>
+  </ol>
+  <div class="kotak info"><b>Akun latihan pada data demo</b>
+  <p><code>dokter</code>, <code>perawat</code> dan <code>perawat2</code>, <code>teknisi</code> dan <code>teknisi2</code>, <code>kepala</code>, <code>admin</code>, <code>auditor</code>. Pasangan akun berperan sama dipakai untuk berlatih langkah yang wajib dikerjakan dua orang berbeda.</p></div>
+</section>
+
+<!-- ================= BAB 2 ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">2</span>Dasar penggunaan</h1>
+  <p class="pengantar-bab">Bab ini berlaku untuk semua peran. Pahami dulu bagian ini sebelum mempelajari bab peran Anda.</p>
+
+  <h2>2.1 Masuk, sesi, dan keluar</h2>
+  <div class="dua">
+    <figure><img src="../tangkapan-layar/01-masuk.png" alt=""><figcaption>Gambar 2.1 — Halaman masuk. Nama dan logo RS mengikuti kop surat.</figcaption></figure>
+    <figure><img src="gambar/umum-akun-saya.png" alt=""><figcaption>Gambar 2.2 — Akun saya: ganti kata sandi dan tema tampilan.</figcaption></figure>
+  </div>
+  <ol class="langkah">
+    <li>Buka alamat aplikasi yang diberikan admin TI di browser (Chrome, Edge, atau Firefox terbaru).</li>
+    <li>Isi <b>Nama pengguna</b> dan <b>Kata sandi</b>, lalu klik <b>Masuk</b>.</li>
+    <li>Pada masuk pertama, atau setelah sandi direset admin, Anda diarahkan ke <b>Akun saya</b> dan wajib mengganti sandi. Sandi minimal 10 karakter; kalimat pendek lebih mudah diingat dan lebih kuat.</li>
+    <li>Untuk keluar, klik ikon keluar di kartu nama Anda di pojok kiri bawah. Selalu keluar sebelum meninggalkan komputer bersama.</li>
+  </ol>
+  <table>
+    <tr><th>Aturan sesi</th><th>Keterangan</th></tr>
+    <tr><td>Tanpa aktivitas 30 menit</td><td>Sesi berakhir otomatis; Anda diminta masuk lagi.</td></tr>
+    <tr><td>Lama sesi maksimal 12 jam</td><td>Setelah 12 jam, masuk ulang wajib walau terus aktif.</td></tr>
+    <tr><td>5 kali salah sandi</td><td>Akun terkunci 15 menit. Bila lupa sandi, minta admin TI mereset; reset sekaligus membuka kunci.</td></tr>
+  </table>
+
+  <h2>2.2 Tata letak layar</h2>
+  <figure><img src="../tangkapan-layar/02-beranda.png" alt=""><figcaption>Gambar 2.3 — Beranda: bilah samping berisi menu sesuai peran, angka utama, stok per golongan, permintaan berjalan, suhu alat simpan.</figcaption></figure>
+  <ul>
+    <li><b>Bilah samping (kiri)</b> berisi menu yang dikelompokkan: Pelayanan, Bank darah, UTD, Laporan, Pengaturan. Menu yang tidak sesuai hak Anda tidak tampil. Di kartu nama bawah ada tombol tema (terang, gelap, ikuti sistem) dan tombol keluar.</li>
+    <li><b>Kepala halaman</b> berisi jalur (mis. <i>Permintaan darah › PD-261118-0001</i>), judul, dan tombol aksi utama di kanan atas.</li>
+    <li><b>Kartu</b> mengelompokkan isi. Tombol simpan selalu di kanan bawah kartu.</li>
+    <li><b>Beranda</b> menampilkan peringatan yang perlu ditindaklanjuti lebih dulu (penyimpangan suhu, kantong terlalu lama di luar bank darah), lalu ringkasan sesuai peran.</li>
+  </ul>
+
+  <h2>2.3 Membaca tanda di layar</h2>
+  <table>
+    <tr><th style="width:30%">Tanda</th><th>Arti</th></tr>
+    <tr><td><span class="chip aman">● Tersedia</span> <span class="chip info">● Diproses</span></td><td>Chip status selalu berisi teks; warna hanya membantu. Hijau = aman/selesai baik, biru = sedang diproses, kuning = perlu perhatian, merah = bahaya, abu = netral/arsip.</td></tr>
+    <tr><td><span class="gol go">O+</span> <span class="gol ga">A+</span> <span class="gol gb">B+</span> <span class="gol gab">AB+</span> <span class="gol go gneg">O−</span></td><td>Lencana golongan darah memakai warna label ISBT 128: O biru, A kuning, B merah muda, AB putih. Rhesus negatif selalu bergaris tepi tegas.</td></tr>
+    <tr><td><span class="chip bahaya">Peringatan merah</span></td><td>Bahaya klinis atau blokir. Tidak hilang sendiri dan menyebut tindakan wajib, mis. "JANGAN TRANSFUSIKAN".</td></tr>
+    <tr><td><span class="chip waspada">Catatan kuning</span></td><td>Waspada: segera kedaluwarsa, sampel hampir habis masa berlakunya, data perlu diperiksa ulang.</td></tr>
+    <tr><td>Angka/teks <code>mono</code></td><td>Nomor kantong, no. RM, dan nomor dokumen memakai huruf mono: nol bertitik (0) mudah dibedakan dari huruf O.</td></tr>
+  </table>
+
+  <h2>2.4 Pemindai barcode</h2>
+  <ol class="langkah">
+    <li>Klik bidang bertanda ikon barcode (mis. <b>Pindai label kantong</b>). Bidang ini biasanya sudah aktif saat halaman dibuka.</li>
+    <li>Arahkan pemindai ke barcode. Pemindai mengetik nomor dan menekan Enter secara otomatis.</li>
+    <li>Bidang langsung kosong dan siap untuk pindaian berikutnya. Hasil pindaian tampil di bawahnya untuk Anda periksa.</li>
+    <li>Label ISBT 128 diurai otomatis (nomor donasi, kode produk, golongan, kedaluwarsa). Bila barcode tidak terbaca, ketik nomornya lalu tekan Enter.</li>
+  </ol>
+  <div class="kotak waspada"><b>Selalu cocokkan hasil pindai dengan label fisik</b><p>Sistem menampilkan apa yang terbaca. Bila hasil di layar berbeda dengan tulisan di label, hentikan dan periksa ulang kantong serta labelnya.</p></div>
+
+  <h2>2.5 Tanda tangan elektronik dan verifikasi kedua</h2>
+  <figure class="setengah"><img src="../tangkapan-layar/05-tanda-tangan.png" alt=""><figcaption>Gambar 2.4 — Dialog tanda tangan elektronik.</figcaption></figure>
+  <ul>
+    <li>Tindakan penting meminta <b>tanda tangan elektronik</b>: dialog terbuka, ketik ulang kata sandi Anda, lalu klik <b>Tanda tangani</b>. Tekan Esc atau <b>Batal</b> untuk membatalkan.</li>
+    <li>Bila tindakan membutuhkan <b>petugas kedua</b> (verifikasi samping tempat tidur, persetujuan darurat), dialog meminta <b>nama pengguna dan sandi petugas kedua</b>. Petugas kedua mengetiknya sendiri; jangan mengetikkan sandi orang lain.</li>
+    <li><b>Verifikasi kedua</b> hasil laboratorium dikerjakan oleh teknisi lain dari akunnya sendiri lewat tombol <b>Setujui</b> atau <b>Tolak…</b> (dengan alasan). Hasil yang ditolak dibatalkan dan dapat diinput ulang.</li>
+    <li>Bila sandi salah, pesan galat tampil di halaman. Buka dialog lagi dan ulangi.</li>
+  </ul>
+
+  <h2>2.6 Mencetak dokumen</h2>
+  <p>Berita acara, berita serah terima, formulir permintaan, Formulir 3, laporan reaksi, dan lembar darurat dapat dicetak lewat tombol <b>Cetak</b>. Dokumen cetak memakai kop surat RS dan selalu berwarna terang. Elemen layar (menu, tombol) tidak ikut tercetak.</p>
+
+  <h2>2.7 Bila sistem tidak tersedia</h2>
+  <ol class="langkah">
+    <li>Setiap pergantian dinas, teknisi mencetak <b>Lembar darurat</b> (menu Laporan → Lembar darurat) dan menyimpannya di map BDRS. Isinya stok tersedia, golongan pasien terverifikasi, permintaan berjalan, dan prosedur manual.</li>
+    <li>Saat sistem mati, pakai formulir kertas cadangan (permintaan, lembar kerja golongan dan uji silang, buku pengeluaran, verifikasi samping tempat tidur).</li>
+    <li>Darurat tanpa golongan terverifikasi: hanya PRC/WB golongan <span class="gol go gneg">O−</span> atau plasma golongan <span class="gol gab">AB</span>, dengan persetujuan dokter tertulis.</li>
+    <li>Setelah sistem pulih, setiap petugas memasukkan entri susulan pekerjaannya sendiri dengan keterangan "entri susulan downtime" dan jam aslinya. Verifikasi kedua tetap dilakukan.</li>
+  </ol>
+
+  <h2>2.8 Kerahasiaan data</h2>
+  <ul>
+    <li>Data pasien dan donor adalah data pribadi kesehatan (UU 27/2022). Buka hanya untuk pelayanan yang sedang Anda kerjakan.</li>
+    <li>Jangan memotret layar atau mengirim data pasien lewat aplikasi pesan pribadi.</li>
+    <li>Kunci atau keluar dari komputer saat ditinggalkan. Dugaan kebocoran data dilaporkan ke tim TI dan petugas pelindungan data RS.</li>
+  </ul>
+</section>
+
+<!-- ================= BAB 3 DOKTER ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">3</span>Dokter</h1>
+  <div class="kartu-peran"><span class="ikon c-dokter">Dr</span>
+    <dl><dt>Menu</dt><dd>Beranda, Permintaan darah, Buat permintaan, Transfusi di ruang, Stok kantong, Pengembalian &amp; pemusnahan, Suhu alat simpan, Lacak kantong, dan Look-back (hanya lihat), Lembar darurat.</dd>
+    <dt>Dapat</dt><dd>Membuat permintaan, melihat status, menyetujui pengeluaran darurat, mencatat transfusi dan observasi, melapor reaksi, melihat riwayat pasien.</dd>
+    <dt>Tidak dapat</dt><dd>Menginput atau memverifikasi hasil laboratorium, mengeluarkan kantong, mengubah stok.</dd></dl></div>
+
+  <h2>3.1 Membuat permintaan darah</h2>
+  <figure><img src="gambar/dokter-permintaan-baru.png" alt=""><figcaption>Gambar 3.1 — Formulir Buat permintaan darah (Permenkes 91/2015 §5.6.1).</figcaption></figure>
+  <ol class="langkah">
+    <li>Klik <b>Buat permintaan</b> di menu Pelayanan, atau tombol <b>Buat permintaan</b> di Beranda.</li>
+    <li><b>Pasien.</b> Ketik no. RM atau nama (minimal 3 huruf) di <b>Cari pasien</b>, lalu pilih pasien. Bila pasien belum ada (biasanya data pasien dikirim SIMRS), klik <b>Pasien baru</b> dan isi no. rekam medis, nama, tanggal lahir, dan jenis kelamin persis seperti di gelang pasien.</li>
+    <li><b>Data klinis.</b> Isi ruang perawatan, diagnosis klinis, dan indikasi transfusi. Bila Anda masuk dengan akun dokter, <b>Dokter peminta</b> terisi otomatis dengan nama Anda; selain itu isi nama DPJP/dokter peminta. Isi <b>Hb terakhir</b> atau <b>Trombosit terakhir</b> (minimal salah satu). Bila ada, pilih golongan ABO dan Rhesus menurut catatan klinis, serta riwayat transfusi dan riwayat reaksi.</li>
+    <li><b>Darah yang diminta.</b> Pilih jenis permintaan: <b>Elektif</b>, <b>Rutin</b>, atau <b>Darurat</b>. Untuk darurat, isi <b>Alasan permintaan darurat</b>. Isi rencana transfusi (paling lambat 3 hari dari hari ini).</li>
+    <li>Tambahkan komponen (PRC, WB, TC, FFP, kriopresipitat) beserta jumlah kantong dan, bila perlu, volume.</li>
+    <li>Klik <b>Kirim permintaan</b>. Nomor permintaan (mis. <code>PD-261118-0001</code>) terbentuk. Kirim sampel darah pasien ke BDRS bersama permintaan.</li>
+  </ol>
+  <div class="kotak info"><b>Riwayat transfusi dan reaksi itu penting</b><p>Pasien yang pernah ditransfusi atau pernah bereaksi berisiko membentuk antibodi. Isi kolom ini dengan benar; BDRS memakainya dalam pemeriksaan pratransfusi.</p></div>
+
+  <h2>3.2 Memantau status permintaan</h2>
+  <figure><img src="gambar/dokter-daftar-permintaan.png" alt=""><figcaption>Gambar 3.2 — Daftar permintaan darah dengan saringan status. Permintaan darurat selalu di atas.</figcaption></figure>
+  <table>
+    <tr><th style="width:26%">Status</th><th>Arti</th></tr>
+    <tr><td><span class="chip waspada">● Menunggu sampel</span></td><td>Permintaan diterima; BDRS menunggu sampel darah pasien.</td></tr>
+    <tr><td><span class="chip info">● Diproses</span></td><td>Sampel diterima; golongan dan uji silang sedang dikerjakan.</td></tr>
+    <tr><td><span class="chip aman">● Siap diambil</span></td><td>Kantong sudah dialokasikan dan siap diserahkan ke petugas ruang.</td></tr>
+    <tr><td><span class="chip netral">● Selesai</span></td><td>Semua kantong sudah ditransfusikan atau permintaan ditutup BDRS.</td></tr>
+    <tr><td><span class="chip bahaya">● Ditolak</span> / <span class="chip netral">● Batal</span></td><td>Ditolak BDRS (formulir tidak lengkap/tidak sesuai) atau dibatalkan, beserta alasannya.</td></tr>
+  </table>
+  <p>Buka permintaan untuk melihat enam tahapnya: Sampel → Golongan darah → Uji silang serasi → Alokasi → Pengeluaran → Transfusi.</p>
+
+  <h2>3.3 Persetujuan pengeluaran darah darurat</h2>
+  <p>Pada keadaan darurat, BDRS dapat mengeluarkan kantong sebelum uji silang selesai. Pengeluaran ini wajib disetujui dokter dengan tanda tangan elektronik.</p>
+  <ol class="langkah">
+    <li>Teknisi BDRS menyiapkan kantong di layar permintaan (bagian <b>Alokasi langsung</b>) dan meminta persetujuan Anda.</li>
+    <li>Periksa kantong dan alasan klinis di layar teknisi. Bila setuju, ketik <b>nama pengguna dan sandi Anda sendiri</b> di dialog persetujuan.</li>
+    <li>Selama golongan pasien belum terverifikasi, sistem hanya mengizinkan PRC/WB golongan <span class="gol go gneg">O−</span> atau plasma golongan <span class="gol gab">AB</span>.</li>
+  </ol>
+  <div class="kotak waspada"><b>Tanggung jawab persetujuan darurat</b><p>Persetujuan Anda tercatat di jejak audit dan dikaji bulanan oleh penanggung jawab BDRS. Uji silang tetap diselesaikan BDRS setelah kantong keluar.</p></div>
+
+  <h2>3.4 Transfusi, reaksi, dan riwayat pasien</h2>
+  <ul>
+    <li>Dokter dapat mengerjakan langkah perawat di ruang (verifikasi samping tempat tidur, observasi, lapor reaksi), lihat Bab 4.</li>
+    <li>Riwayat pasien (dari tautan no. RM) memuat semua permintaan, transfusi, reaksi, dan pemeriksaan golongan pasien tersebut.</li>
+  </ul>
+
+  <div class="latihan"><h3>Latihan dokter</h3><p class="akun">Akun: <code>dokter</code> · durasi ±20 menit</p>
+    <ol>
+      <li>Buat permintaan rutin 2 kantong PRC untuk pasien <i>Rina Wulandari (fiktif)</i>, lengkap dengan data klinis.</li>
+      <li>Buat permintaan darurat 1 kantong PRC dengan alasan "perdarahan aktif". Perhatikan permintaan itu tampil paling atas di daftar.</li>
+      <li>Saring daftar dengan status <b>Menunggu sampel</b>, lalu buka permintaan Anda dan jelaskan arti keenam tahapnya.</li>
+      <li>Bersama peserta teknisi: setujui pengeluaran darurat di layar teknisi dengan akun Anda sendiri.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 4 PERAWAT ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">4</span>Perawat</h1>
+  <div class="kartu-peran"><span class="ikon c-perawat">Pr</span>
+    <dl><dt>Menu</dt><dd>Beranda, Permintaan darah (lihat), Transfusi di ruang, Stok kantong, Pengembalian &amp; pemusnahan, Suhu alat simpan, Lacak kantong, dan Look-back (hanya lihat), Lembar darurat.</dd>
+    <dt>Dapat</dt><dd>Verifikasi samping tempat tidur, mencatat observasi dan koreksinya, menyelesaikan atau menghentikan transfusi, melapor reaksi transfusi.</dd>
+    <dt>Perangkat</dt><dd>Tablet atau komputer ruang dengan pemindai barcode. Tombol dibuat besar untuk layar sentuh.</dd></dl></div>
+
+  <h2>4.1 Menerima kantong dari BDRS</h2>
+  <ul>
+    <li>Saat mengambil kantong, sebutkan nama Anda ke teknisi; nama penerima dicatat pada pengeluaran.</li>
+    <li>Periksa fisik kantong (kebocoran, warna, bekuan) dan label sebelum dibawa.</li>
+    <li><b>Transfusi harus dimulai dalam 30 menit</b> sejak kantong keluar dari bank darah. Lewat dari itu, sistem meminta alasan bila tetap ditransfusikan; bila tidak jadi dipakai, kembalikan kantong ke BDRS sesegera mungkin.</li>
+  </ul>
+
+  <h2>4.2 Verifikasi samping tempat tidur</h2>
+  <div class="dua">
+    <figure><img src="../tangkapan-layar/06-samping-tempat-tidur.png" alt=""><figcaption>Gambar 4.1 — Gelang pasien dan label kantong. Peringatan dini muncul bila tujuan kantong berbeda.</figcaption></figure>
+    <figure><img src="../tangkapan-layar/07-blokir-transfusi.png" alt=""><figcaption>Gambar 4.2 — Transfusi diblokir karena tidak cocok; tercatat sebagai KNC.</figcaption></figure>
+  </div>
+  <p>Dilakukan <b>dua petugas</b> di samping tempat tidur pasien, sesaat sebelum transfusi dimulai.</p>
+  <ol class="langkah">
+    <li>Buka <b>Transfusi di ruang</b>. Kantong yang sudah keluar dari BDRS tampil di daftar <b>Kantong menunggu ditransfusikan</b>, lengkap dengan menit sejak keluar.</li>
+    <li><b>1. Pindai gelang pasien</b> (no. RM).</li>
+    <li><b>2. Pindai label kantong.</b> Tujuan kantong (nama, no. RM, golongan) tampil. Bila no. RM gelang berbeda dengan tujuan kantong, muncul peringatan kuning: periksa ulang sebelum melanjutkan.</li>
+    <li><b>3. Tanyakan tanggal lahir</b> kepada pasien (atau baca dari gelang bila pasien tidak sadar) dan isi.</li>
+    <li>Centang <b>Pasien rawat jalan</b> bila berlaku (observasi pasca-transfusi 1 jam).</li>
+    <li>Klik <b>Cocokkan dan mulai transfusi</b>. Petugas kedua mengetik <b>nama pengguna dan sandinya sendiri</b> pada dialog, menyatakan telah mencocokkan sendiri.</li>
+    <li>Server mencocokkan pasien, kantong, golongan, kedaluwarsa, dan tanggal lahir. Bila cocok, halaman transfusi terbuka.</li>
+  </ol>
+  <div class="kotak bahaya"><b>Bila muncul "JANGAN TRANSFUSIKAN"</b>
+    <ul><li>Jangan pasang kantong. Tutup kembali dan beri tanda "ditolak di ruang".</li>
+    <li>Bawa kantong ke bank darah dalam 30 menit bersama formulir permintaan.</li>
+    <li>Hubungi bank darah untuk kantong pengganti. Kejadian sudah otomatis tercatat sebagai Kejadian Nyaris Cedera (KNC); pindai ulang tidak membuka blokir.</li></ul></div>
+
+  <h2>4.3 Observasi selama transfusi</h2>
+  <figure><img src="gambar/perawat-transfusi-detail.png" alt=""><figcaption>Gambar 4.3 — Halaman transfusi: tanda vital terakhir, tabel observasi, dan formulir catat observasi.</figcaption></figure>
+  <table>
+    <tr><th style="width:26%">Tahap</th><th>Kapan dicatat</th></tr>
+    <tr><td>Pra-transfusi</td><td>Sebelum kantong dipasang (tanda vital awal).</td></tr>
+    <tr><td>15 menit</td><td>15 menit setelah mulai; masa paling rawan reaksi akut. Daftar transfusi menandai bila belum dicatat.</td></tr>
+    <tr><td>Berkala</td><td>Selama transfusi sesuai SPO ruang.</td></tr>
+    <tr><td>Selesai</td><td>Saat kantong habis atau dihentikan.</td></tr>
+    <tr><td>Pasca-transfusi</td><td>Setelah transfusi; pasien rawat jalan diobservasi 1 jam.</td></tr>
+  </table>
+  <ol class="langkah">
+    <li>Di <b>Catat observasi</b>, pilih <b>Tahap</b>, isi suhu, nadi, sistolik, diastolik, napas, dan keluhan bila ada.</li>
+    <li>Klik <b>Simpan observasi</b>. Suhu ≥ 38 °C ditandai merah ("Demam"): nilai kemungkinan reaksi transfusi.</li>
+    <li>Salah ketik? Klik <b>Koreksi</b> pada baris itu, perbaiki, dan isi <b>Alasan koreksi</b>. Pencatat dapat mengoreksi sendiri dalam 2×24 jam; di luar itu atau oleh orang lain, koreksi dilakukan kepala BDRS.</li>
+  </ol>
+
+  <h2>4.4 Menyelesaikan atau menghentikan transfusi</h2>
+  <ol class="langkah">
+    <li>Di <b>Selesaikan transfusi</b>, isi <b>Volume masuk (mL)</b>.</li>
+    <li>Klik <b>Transfusi selesai</b>, atau <b>Hentikan transfusi</b> bila dihentikan; catatan wajib diisi bila dihentikan.</li>
+    <li>Lanjutkan observasi pasca-transfusi. Bila semua kantong permintaan sudah ditransfusikan, permintaan otomatis selesai.</li>
+  </ol>
+
+  <h2>4.5 Melapor reaksi transfusi</h2>
+  <figure><img src="gambar/perawat-lapor-reaksi.png" alt=""><figcaption>Gambar 4.4 — Formulir laporkan reaksi transfusi.</figcaption></figure>
+  <ol class="langkah">
+    <li><b>Hentikan transfusi</b>, pertahankan jalur infus dengan NaCl 0,9%, dan lapor DPJP.</li>
+    <li>Di halaman transfusi, isi <b>Waktu reaksi</b>, centang semua <b>gejala</b> yang ada, dan tulis <b>Tindakan yang sudah dilakukan</b>.</li>
+    <li>Klik <b>Laporkan reaksi</b>. Peringatan "Reaksi transfusi dilaporkan" tampil di halaman transfusi, dan BDRS menerima laporan untuk ditelusuri.</li>
+    <li>Kirim kantong (beserta selang) dan sampel darah pasien baru ke BDRS.</li>
+  </ol>
+
+  <div class="latihan"><h3>Latihan perawat</h3><p class="akun">Akun: <code>perawat</code> dan <code>perawat2</code> · durasi ±30 menit · teknisi latihan mengeluarkan satu kantong lebih dulu</p>
+    <ol>
+      <li>Lakukan verifikasi samping tempat tidur yang <b>benar</b> untuk kantong permintaan <i>Budi Santoso (fiktif)</i>, dengan <code>perawat2</code> sebagai petugas kedua.</li>
+      <li>Catat observasi pra-transfusi dan 15 menit. Koreksi satu nilai dengan alasan.</li>
+      <li>Ulangi verifikasi untuk kantong lain dengan memindai gelang pasien <b>yang salah</b>. Amati blokir dan sebutkan tiga tindakan yang wajib dilakukan.</li>
+      <li>Laporkan reaksi dengan gejala demam dan menggigil, lalu hentikan transfusi dengan catatan.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 5 TEKNISI ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">5</span>Teknisi BDRS</h1>
+  <div class="kartu-peran"><span class="ikon c-teknisi">Tk</span>
+    <dl><dt>Menu</dt><dd>Beranda, Permintaan darah, Reaksi &amp; insiden, Stok kantong, Penerimaan dari UTD, Permintaan ke UTD, Pengembalian &amp; pemusnahan, Suhu alat simpan, Lacak kantong, Look-back, Donor dan Donasi (mode UTD-RS), Laporan, Lembar darurat.</dd>
+    <dt>Dapat</dt><dd>Mengelola stok, mencatat suhu, menerima/menolak sampel, menginput dan memverifikasi hasil (hasil teknisi lain), mengalokasikan dan mengeluarkan kantong, menelusuri reaksi, membuat berita acara, mengelola donor.</dd>
+    <dt>Tidak dapat</dt><dd>Melepas karantina, menilai penyimpangan suhu, menutup penelusuran reaksi, meluluskan kantong donasi (tugas kepala BDRS).</dd></dl></div>
+
+  <h2>5.1 Rutinitas setiap dinas</h2>
+  <ul class="cek">
+    <li>Buka <b>Beranda</b> dan tindak lanjuti peringatan merah/kuning lebih dulu.</li>
+    <li>Catat suhu setiap alat simpan minimal dua kali per dinas (bila tidak memakai data logger).</li>
+    <li>Periksa kantong <b>Segera kedaluwarsa</b>; utamakan kantong itu untuk permintaan yang cocok (FEFO).</li>
+    <li>Periksa <b>Kantong di luar bank darah</b> yang mendekati 30 menit; hubungi ruang.</li>
+    <li>Cetak <b>Lembar darurat</b> saat pergantian dinas dan simpan di map BDRS.</li>
+  </ul>
+
+  <h2>5.2 Permintaan ke UTD dan penerimaan kantong</h2>
+  <figure><img src="gambar/teknisi-penerimaan.png" alt=""><figcaption>Gambar 5.1 — Penerimaan dari UTD: data serah terima dan pindai kantong satu per satu.</figcaption></figure>
+  <ol class="langkah">
+    <li><b>Permintaan ke UTD</b>: pilih UTD mitra dan jenis (rutin, khusus, darurat), tambahkan baris komponen–golongan–jumlah, lalu simpan. Perbarui statusnya saat UTD memenuhi.</li>
+    <li><b>Penerimaan dari UTD</b>: pilih UTD mitra (dan permintaan ke UTD bila ada), isi nomor dokumen UTD, petugas UTD yang menyerahkan, suhu minimum dan maksimum selama transportasi.</li>
+    <li>Pindai label setiap kantong. Periksa hasil uraian (komponen, golongan, kedaluwarsa, volume); lengkapi bila label lokal.</li>
+    <li>Pilih <b>Alat simpan</b> tujuan yang sesuai komponen (lemari darah, freezer plasma, agitator trombosit).</li>
+    <li>Untuk kantong yang tidak layak (bocor, lisis, label rusak, suhu transport di luar rentang), pilih <b>Keputusan: Tolak</b> dan isi alasan.</li>
+    <li>Simpan, lalu cetak <b>Berita serah terima</b> untuk ditandatangani kedua pihak.</li>
+  </ol>
+
+  <h2>5.3 Stok kantong</h2>
+  <figure><img src="../tangkapan-layar/03-stok.png" alt=""><figcaption>Gambar 5.2 — Stok kantong diurutkan kedaluwarsa terdekat (FEFO), dengan aksi per kantong.</figcaption></figure>
+  <ul>
+    <li>Pindai label di bidang atas untuk langsung membuka <b>Lacak kantong</b>.</li>
+    <li>Saring per komponen, golongan, rhesus, dan status.</li>
+    <li><b>Pindah</b>: memindahkan kantong ke alat simpan lain (hanya alat aktif yang sesuai dan bebas penyimpangan).</li>
+    <li><b>Cairkan</b> (FFP/kriopresipitat): kedaluwarsa dipersingkat otomatis sesuai aturan komponen; plasma cair disimpan di lemari darah.</li>
+    <li><b>Karantina</b>: isi alasan. Kantong yang sedang dialokasikan dilepas dari alokasinya. Pelepasan karantina dikerjakan kepala BDRS.</li>
+  </ul>
+
+  <h2>5.4 Suhu alat simpan</h2>
+  <figure><img src="gambar/teknisi-suhu-menyimpang.png" alt=""><figcaption>Gambar 5.3 — Kartu per alat; alat yang menyimpang berwarna merah dan semua kantongnya dikarantina.</figcaption></figure>
+  <ol class="langkah">
+    <li>Di <b>Catat suhu manual</b>, pilih alat, isi suhu (°C) dan waktu pembacaan, lalu klik <b>Catat</b>.</li>
+    <li>Bila suhu di luar rentang alat, sistem membuka <b>penyimpangan</b> dan <b>mengarantina semua kantong</b> di alat itu.</li>
+    <li>Pindahkan kantong ke alat cadangan bila perlu, perbaiki penyebab (pintu, listrik), dan laporkan ke kepala BDRS untuk penilaian.</li>
+  </ol>
+
+  <h2>5.5 Sampel pratransfusi</h2>
+  <figure><img src="gambar/teknisi-sampel.png" alt=""><figcaption>Gambar 5.4 — Tahap sampel terbuka pada permintaan yang menunggu sampel.</figcaption></figure>
+  <ol class="langkah">
+    <li>Buka permintaan dari daftar. Tahap yang sedang dikerjakan terbuka otomatis; tahap yang selesai dilipat menjadi satu baris ringkasan.</li>
+    <li>Di <b>Terima sampel</b>, isi waktu pengambilan dan nama pengambil sampel; pilih jenis sampel (EDTA, serum/plasma) dan penyimpanan.</li>
+    <li>Sistem menghitung batas pakai: <b>EDTA</b> 24 jam di suhu ruang atau 3 hari dingin; <b>serum/plasma</b> 7 hari, hanya bila disimpan dingin (4 °C).</li>
+    <li>Pilih <b>Terima</b>, atau <b>Tolak</b> dengan alasan baku: lisis, bekuan, volume kurang, label tidak sesuai, tanpa label. Minta sampel baru dari ruang bila ditolak.</li>
+  </ol>
+
+  <h2>5.6 Pemeriksaan golongan pasien</h2>
+  <ol class="langkah">
+    <li>Isi hasil <b>cell grouping</b> (Anti-A, Anti-B, Anti-D) dan <b>serum grouping</b> (Sel A, Sel B), serta metode.</li>
+    <li>Tafsir golongan tampil otomatis. Bila cell dan serum grouping tidak konsisten, ulangi pemeriksaan; bila tetap, rujuk sampel ke UTD.</li>
+    <li>Klik <b>Simpan hasil golongan</b>. Hasil berstatus <span class="chip waspada">● Menunggu verifikasi kedua</span>.</li>
+    <li>Teknisi lain membuka permintaan dan klik <b>Setujui</b> (tanda tangan) atau <b>Tolak…</b> dengan alasan.</li>
+  </ol>
+  <div class="kotak bahaya"><b>Diskrepansi golongan</b><p>Bila hasil berbeda dari golongan terverifikasi sebelumnya untuk no. RM yang sama, sistem menandai diskrepansi dan sampel tidak dapat dipakai. Minta sampel baru sebelum darah dikeluarkan; curigai salah identifikasi pasien atau sampel.</p></div>
+
+  <h2>5.7 Uji silang serasi</h2>
+  <figure><img src="../tangkapan-layar/04-permintaan-uji-silang.png" alt=""><figcaption>Gambar 5.5 — Saran kantong kompatibel (FEFO), konfirmasi golongan dari selang, hasil mayor/minor/autokontrol.</figcaption></figure>
+  <ol class="langkah">
+    <li>Pilih kantong dari <b>Saran kantong kompatibel</b> (kedaluwarsa terdekat lebih dulu), atau pindai nomor kantong.</li>
+    <li><b>Konfirmasi golongan kantong dari selang</b>: pilih ABO dan Rh hasil pemeriksaan ulang selang kantong. Bila berbeda dengan label, kantong otomatis dikarantina untuk dikembalikan ke UTD.</li>
+    <li>Isi <b>Mayor</b>, <b>Minor</b>, dan <b>Autokontrol</b> sesuai aturan komponen, serta metode. Untuk metode tabung, konfirmasi CCC.</li>
+    <li>Kesimpulan dihitung sistem. Hasil <b>Positif</b> berwarna merah dan memunculkan peringatan "tidak serasi": pilih kantong lain; bila autokontrol positif, lakukan DAT atau rujuk sampel ke UTD.</li>
+    <li>Klik <b>Simpan hasil uji silang</b>. Setelah teknisi lain memverifikasi, kantong serasi <b>otomatis dialokasikan</b> ke permintaan.</li>
+  </ol>
+
+  <h2>5.8 Alokasi langsung dan darurat</h2>
+  <figure><img src="gambar/teknisi-alokasi-darurat.png" alt=""><figcaption>Gambar 5.6 — Bagian Alokasi pada permintaan darurat.</figcaption></figure>
+  <ul>
+    <li><b>Alokasi langsung</b> dipakai untuk komponen yang menurut aturan komponen tidak memerlukan uji silang.</li>
+    <li><b>Pengeluaran darurat tanpa uji silang</b>: centang pilihan itu, isi <b>Alasan klinis pengeluaran darurat</b>, lalu minta dokter (atau kepala BDRS) menandatangani persetujuan dengan akunnya sendiri. Golongan belum terverifikasi → hanya PRC/WB <span class="gol go gneg">O−</span> atau plasma <span class="gol gab">AB</span>.</li>
+    <li><b>Lepas</b> alokasi bila kantong tidak jadi dipakai; kantong kembali tersedia.</li>
+  </ul>
+
+  <h2>5.9 Pengeluaran ke ruang dan penerimaan kembali</h2>
+  <ol class="langkah">
+    <li>Di bagian <b>Alokasi dan pengeluaran</b>, klik <b>Keluarkan</b> pada kantong, isi nama petugas ruang penerima, lalu klik <b>Keluarkan kantong</b>.</li>
+    <li>Ingatkan petugas: transfusi harus dimulai dalam 30 menit. Beranda menandai kantong yang terlambat.</li>
+    <li>Kantong yang dikembalikan ruang diterima lewat <b>Terima kembali dari ruang</b> dengan alasan; nilai kelayakannya sesuai SPO.</li>
+  </ol>
+
+  <h2>5.10 Penelusuran reaksi transfusi</h2>
+  <figure><img src="gambar/kepala-reaksi.png" alt=""><figcaption>Gambar 5.7 — Penelusuran reaksi: laporan dari ruang, data transfusi dan kantong, observasi, arsip uji silang.</figcaption></figure>
+  <ol class="langkah">
+    <li>Buka <b>Reaksi &amp; insiden</b>, pilih laporan berstatus <span class="chip waspada">● Menunggu penelusuran</span>.</li>
+    <li>Periksa ulang ABO dan Rh pasien (sampel baru) dan kantong, lakukan uji silang ulang, catat sisa volume kantong.</li>
+    <li>Tulis <b>Kesimpulan penelusuran</b> dan klik <b>Simpan penelusuran</b>. Kepala BDRS menutup penelusuran.</li>
+  </ol>
+
+  <h2>5.11 Pengembalian, pemusnahan, lacak, dan look-back</h2>
+  <ul>
+    <li><b>Pengembalian &amp; pemusnahan</b>: pilih jenis berita acara, pilih kantong (karantina, kedaluwarsa, tidak layak) beserta alasannya, isi metode pemusnahan, simpan, lalu cetak berita acara.</li>
+    <li><b>Lacak kantong</b>: pindai atau ketik nomor kantong untuk melihat identitas dan seluruh riwayatnya, dari diterima sampai ditransfusikan atau dimusnahkan.</li>
+    <li><b>Look-back</b>: bila UTD memberi tahu donor belakangan reaktif, catat nomor donasinya. Sistem menampilkan kantong terkait dan pasien penerimanya untuk ditindaklanjuti sesuai SPO.</li>
+  </ul>
+  <figure><img src="../tangkapan-layar/09-lacak.png" alt=""><figcaption>Gambar 5.8 — Lacak kantong: identitas dan linimasa riwayat.</figcaption></figure>
+
+  <h2>5.12 Mode UTD-RS: donor dan donasi</h2>
+  <p>Bagian ini hanya berlaku bila RS menjalankan UTD sendiri (mode UTD-RS aktif).</p>
+  <ol class="langkah">
+    <li><b>Donor</b>: cari dengan NIK atau nama; daftarkan donor baru dengan identitas sesuai KTP. Donor yang dicekal tidak dapat mendonor.</li>
+    <li><b>Seleksi</b>: isi kuesioner dan pemeriksaan fisik (Hb, tekanan darah, nadi, suhu, berat badan). Sistem memeriksa ambang dan interval antardonasi sesuai aturan donor, lalu catat keputusan.</li>
+    <li><b>Pengambilan darah</b>: pilih jenis donasi dan jenis kantong, catat volume. Pengambilan yang gagal dicatat lewat formulir donasi gagal.</li>
+    <li><b>Golongan donasi</b> dan <b>uji saring IMLTD</b> (HIV, HBsAg, HCV, sifilis wajib; malaria opsional): input hasil, lalu verifikasi kedua oleh teknisi lain. Hasil <b>Reaktif</b> otomatis mencekal donor dan membuka look-back atas donasinya terdahulu.</li>
+    <li><b>Pengolahan</b>: buat kantong komponen. Kantong tetap karantina sampai <b>diluluskan</b> kepala BDRS.</li>
+  </ol>
+  <figure><img src="../tangkapan-layar/10-donasi.png" alt=""><figcaption>Gambar 5.9 — Donasi: tahap seleksi sampai pelulusan dan daftar verifikasi kedua.</figcaption></figure>
+
+  <div class="latihan"><h3>Latihan teknisi</h3><p class="akun">Akun: <code>teknisi</code> dan <code>teknisi2</code> · durasi ±60 menit</p>
+    <ol>
+      <li>Terima 3 kantong dari UTD mitra demo; tolak satu dengan alasan "bocor". Cetak berita serah terima.</li>
+      <li>Catat suhu manual untuk semua alat. Cairkan satu kantong FFP dan perhatikan perubahan kedaluwarsanya.</li>
+      <li>Pada permintaan <i>Agus Pratama (fiktif)</i>: terima sampel EDTA, input golongan, lalu verifikasi dengan <code>teknisi2</code>.</li>
+      <li>Lakukan uji silang dua kantong; coba pilih <b>Positif</b> pada mayor untuk melihat peringatannya, lalu simpan hasil negatif. Verifikasi dengan <code>teknisi2</code> dan pastikan kantong teralokasi.</li>
+      <li>Keluarkan satu kantong ke petugas ruang; terima kembali satu kantong dengan alasan.</li>
+      <li>Telusuri laporan reaksi yang ada dan simpan kesimpulannya.</li>
+      <li>Buat berita acara pemusnahan untuk kantong kedaluwarsa, lalu cetak.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 6 KEPALA ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">6</span>Kepala BDRS</h1>
+  <div class="kartu-peran"><span class="ikon c-kepala">Kp</span>
+    <dl><dt>Menu</dt><dd>Semua menu teknisi, ditambah Kop surat, Data induk &amp; aturan, dan Jejak audit.</dd>
+    <dt>Hak tambahan</dt><dd>Menilai dan menutup penyimpangan suhu, melepas karantina, menyetujui pengeluaran darurat, menutup penelusuran reaksi, meluluskan kantong donasi, mencabut cekal donor, koreksi observasi lanjutan, mengatur aturan komponen dan donor, melihat jejak audit.</dd></dl></div>
+  <p>Kepala BDRS adalah penanggung jawab pelayanan darah. Selain dapat mengerjakan semua tugas teknisi (Bab 5), kepala memegang keputusan yang tidak boleh diambil sendiri oleh petugas pelaksana.</p>
+
+  <h2>6.1 Pemantauan harian</h2>
+  <figure><img src="gambar/kepala-beranda-peringatan.png" alt=""><figcaption>Gambar 6.1 — Beranda kepala BDRS dengan peringatan penyimpangan suhu terbuka.</figcaption></figure>
+  <ul>
+    <li>Tindak lanjuti peringatan di Beranda: penyimpangan suhu, kantong terlambat ditransfusikan.</li>
+    <li>Perhatikan kartu <b>Stok tersedia per golongan</b>: garis merah berarti stok di bawah minimal (rerata pemakaian mingguan). Ajukan permintaan ke UTD.</li>
+    <li>Pantau <b>Permintaan berjalan</b>, terutama yang darurat.</li>
+  </ul>
+
+  <h2>6.2 Menilai dan menutup penyimpangan suhu</h2>
+  <figure><img src="gambar/kepala-penyimpangan.png" alt=""><figcaption>Gambar 6.2 — Penilaian setiap kantong di alat yang menyimpang, lalu penutupan bertanda tangan.</figcaption></figure>
+  <ol class="langkah">
+    <li>Buka penyimpangan dari Beranda atau menu Suhu alat simpan.</li>
+    <li>Nilai setiap kantong: <b>Layak</b> (kembali tersedia) atau <b>Tidak layak</b> (tetap karantina untuk dikembalikan atau dimusnahkan), dengan dasar penilaian.</li>
+    <li>Setelah semua kantong dinilai, isi <b>Kesimpulan dan tindakan perbaikan</b>, lalu klik <b>Tutup dengan tanda tangan</b>.</li>
+  </ol>
+
+  <h2>6.3 Melepas karantina</h2>
+  <p>Di <b>Stok kantong</b>, saring status Karantina, klik <b>Lepas karantina</b> pada kantong, isi alasan, dan tanda tangani. Kantong hasil donasi RS tidak dilepas dengan cara ini; kantong itu keluar dari karantina lewat <b>pelulusan</b>.</p>
+
+  <h2>6.4 Persetujuan darurat dan penelusuran reaksi</h2>
+  <ul>
+    <li>Kepala dapat menyetujui pengeluaran darurat seperti dokter (Bab 3.3).</li>
+    <li>Setelah teknisi menyimpan penelusuran reaksi, kepala meninjaunya lalu klik <b>Tutup penelusuran</b> dengan tanda tangan. Cetak laporan reaksi dan teruskan ke tim keselamatan pasien RS (Permenkes 91/2015 §5.9 h).</li>
+  </ul>
+
+  <h2>6.5 Pelulusan kantong donasi dan cabut cekal (mode UTD-RS)</h2>
+  <ul>
+    <li>Kantong hasil pengolahan diluluskan bila golongan dan seluruh IMLTD wajib sudah terverifikasi non-reaktif. Klik <b>Luluskan</b> pada kantong dan tanda tangani; kantong menjadi tersedia dan dikirim ke antrean SATUSEHAT.</li>
+    <li>Cekal donor hanya dapat dicabut kepala BDRS, dengan alasan, setelah kajian sesuai SPO.</li>
+  </ul>
+
+  <h2>6.6 Koreksi lanjutan observasi</h2>
+  <p>Koreksi observasi transfusi lebih dari 2×24 jam, atau koreksi atas catatan petugas lain, hanya dapat dilakukan kepala BDRS, selalu dengan alasan. Semua koreksi tercatat di jejak audit.</p>
+
+  <h2>6.7 Aturan komponen dan aturan donor</h2>
+  <figure><img src="gambar/kepala-aturan-komponen.png" alt=""><figcaption>Gambar 6.3 — Data induk &amp; aturan: aturan per komponen.</figcaption></figure>
+  <ul>
+    <li><b>Aturan komponen</b>: jenis uji silang per komponen (mayor dan minor, minor saja, atau tidak perlu), batas peringatan kedaluwarsa, umur setelah dicairkan, jenis alat simpan.</li>
+    <li><b>Aturan donor</b>: ambang umur, berat badan, Hb, tekanan darah, nadi, suhu, dan interval antardonasi.</li>
+    <li>Ubah aturan hanya berdasarkan keputusan tertulis (SPO/regulasi terbaru). Setiap perubahan tercatat di jejak audit.</li>
+  </ul>
+
+  <h2>6.8 Laporan dan mutu</h2>
+  <figure><img src="gambar/kepala-laporan-mutu.png" alt=""><figcaption>Gambar 6.4 — Laporan mutu bulanan.</figcaption></figure>
+  <table>
+    <tr><th style="width:26%">Tab</th><th>Isi</th></tr>
+    <tr><td>Formulir 3 bulanan</td><td>Laporan kegiatan BDRS (Permenkes 91/2015): permintaan ke UTD, penerimaan, pemakaian per ruang, reaksi, pengembalian dan pemusnahan, persediaan. Siap cetak dengan kop.</td></tr>
+    <tr><td>Mutu</td><td>Rasio C:T per komponen, waktu tunggu permintaan darurat, permintaan tidak terpenuhi, kantong kedaluwarsa dan dimusnahkan, reaksi, insiden.</td></tr>
+    <tr><td>Perencanaan</td><td>Stok minimal dan ideal dari rerata pemakaian mingguan, dibanding stok tersedia.</td></tr>
+    <tr><td>Ketersediaan</td><td>Ketersediaan darah per komponen dan golongan saat ini.</td></tr>
+    <tr><td>Laporan UTD</td><td>Kegiatan donor dan donasi (mode UTD-RS).</td></tr>
+  </table>
+
+  <h2>6.9 Peninjauan berkala</h2>
+  <table>
+    <tr><th>Kegiatan</th><th style="width:16%">Frekuensi</th><th style="width:28%">Oleh</th></tr>
+    <tr><td>Kajian jejak audit: koreksi data, pelepasan karantina, pengeluaran darurat, pencabutan cekal; periksa keutuhan rantai audit</td><td>Bulanan</td><td>Kepala BDRS + auditor mutu</td></tr>
+    <tr><td>Tinjau aturan komponen dan aturan donor terhadap regulasi terbaru</td><td>Tahunan</td><td>Kepala BDRS</td></tr>
+    <tr><td>Simulasi prosedur saat sistem mati</td><td>Tahunan</td><td>BDRS + TI</td></tr>
+  </table>
+
+  <div class="latihan"><h3>Latihan kepala BDRS</h3><p class="akun">Akun: <code>kepala</code> · durasi ±40 menit · pelatih membuat penyimpangan suhu lebih dulu</p>
+    <ol>
+      <li>Nilai semua kantong pada penyimpangan suhu latihan (sebagian layak, sebagian tidak layak), lalu tutup dengan kesimpulan.</li>
+      <li>Lepas karantina satu kantong dengan alasan.</li>
+      <li>Tinjau dan tutup penelusuran reaksi yang sudah disimpan teknisi; cetak laporannya.</li>
+      <li>Luluskan satu kantong donasi yang IMLTD-nya sudah terverifikasi.</li>
+      <li>Buka Laporan → Mutu dan jelaskan rasio C:T bulan berjalan. Cetak Formulir 3.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 7 ADMIN ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">7</span>Admin TI</h1>
+  <div class="kartu-peran"><span class="ikon c-admin">TI</span>
+    <dl><dt>Menu</dt><dd>Beranda, Reaksi &amp; insiden dan Laporan &amp; mutu (lihat), Akun pengguna, Kop surat, Data induk &amp; aturan, Jejak audit, Integrasi SATUSEHAT.</dd>
+    <dt>Dapat</dt><dd>Mengelola akun dan peran, reset sandi, token API, profil instalasi, kop surat, UTD mitra, alat simpan, integrasi SATUSEHAT, membaca jejak audit.</dd>
+    <dt>Tidak dapat</dt><dd>Mengerjakan pelayanan darah (permintaan, uji, pengeluaran, transfusi). Pisahkan akun admin dari akun klinis.</dd></dl></div>
+
+  <h2>7.1 Akun pengguna</h2>
+  <figure><img src="gambar/admin-akun.png" alt=""><figcaption>Gambar 7.1 — Akun pengguna: daftar akun, peran, dan status.</figcaption></figure>
+  <ol class="langkah">
+    <li><b>Buat akun</b>: isi nama pengguna (huruf kecil, angka, titik, garis bawah, atau tanda hubung; 3–40 karakter), nama lengkap, NIP (opsional), peran, dan sandi sementara. Pengguna wajib mengganti sandi saat masuk pertama.</li>
+    <li><b>Kelola</b> akun untuk mengubah nama, peran, atau menonaktifkan. Akun tidak pernah dihapus supaya jejak audit tetap dapat dirujuk; nonaktifkan pegawai yang pindah atau keluar.</li>
+    <li><b>Reset sandi</b> bila pengguna lupa sandi atau akunnya terkunci; reset sekaligus membuka kunci. Serahkan sandi sementara secara langsung, bukan lewat pesan grup.</li>
+    <li>Satu orang boleh memiliki lebih dari satu peran sesuai tugas (mis. teknisi yang juga kepala), tetapi hindari menggabungkan peran admin dengan peran klinis.</li>
+  </ol>
+
+  <h2>7.2 Akun layanan dan token API</h2>
+  <ol class="langkah">
+    <li>Buat akun berperan <code>simrs</code> (integrasi SIMRS) atau <code>logger</code> (data logger suhu). Peran layanan tidak dapat digabung dengan peran lain dan tidak dapat masuk lewat layar.</li>
+    <li>Klik <b>Terbitkan token</b>. Token tampil <b>sekali saja</b>; salin dan pasang di sistem tujuan, lalu klik <b>Saya sudah menyalinnya</b>.</li>
+    <li>Bila token bocor atau sistem tujuan diganti, klik <b>Cabut semua token</b> lalu terbitkan yang baru.</li>
+  </ol>
+
+  <h2>7.3 Profil instalasi, kop surat, dan data induk</h2>
+  <div class="dua">
+    <figure><img src="gambar/admin-master.png" alt=""><figcaption>Gambar 7.2 — Profil instalasi dan mode kerja.</figcaption></figure>
+    <figure><img src="../tangkapan-layar/12-kop-surat.png" alt=""><figcaption>Gambar 7.3 — Kop surat dengan pratinjau.</figcaption></figure>
+  </div>
+  <ul>
+    <li><b>Profil instalasi</b>: nama RS, kode faskes, dan mode <b>BDRS saja</b> atau <b>UTD-RS</b>. Mengubah mode memengaruhi menu dan alur; lakukan atas keputusan manajemen.</li>
+    <li><b>Kop surat</b>: pemerintah daerah, nama RS, unit, alamat, kontak, akreditasi, logo kiri dan kanan (PNG/JPEG maks. 512 KB). Kop dipakai di semua dokumen cetak; nama RS dan logo kanan (atau kiri) juga menjadi judul dan logo aplikasi.</li>
+    <li><b>UTD mitra</b>: kode, nama, alamat, format label (ISBT 128 atau lokal).</li>
+    <li><b>Alat simpan</b>: kode, nama, jenis (lemari darah, freezer plasma, inkubator/agitator trombosit), nomor seri, lokasi, rentang suhu minimum–maksimum. Rentang ini menentukan kapan penyimpangan terbuka; isi sesuai spesifikasi alat dan SPO.</li>
+  </ul>
+
+  <h2>7.4 Integrasi SATUSEHAT</h2>
+  <figure><img src="gambar/admin-integrasi.png" alt=""><figcaption>Gambar 7.4 — Status koneksi dan antrean kiriman SATUSEHAT.</figcaption></figure>
+  <p>Hanya aktif pada mode UTD-RS bila kredensial SATUSEHAT diisi di konfigurasi server. Kantong yang diluluskan atau dimusnahkan dikirim lewat antrean dengan percobaan ulang otomatis. Kiriman berstatus <span class="chip bahaya">● Perlu dikirim ulang</span> dapat dijadwalkan ulang dari tabel antrean setelah penyebabnya diperbaiki.</p>
+
+  <h2>7.5 Jejak audit, backup, dan pembaruan</h2>
+  <ul>
+    <li>Gunakan jejak audit untuk menyelidiki insiden keamanan (Bab 8). Setiap pembukaan data pasien tercatat.</li>
+    <li>Backup terenkripsi berjalan harian dan disalin ke lokasi kedua. <b>Uji pemulihan setiap 3 bulan</b> sesuai <code>docs/operasional.md</code>; frasa sandi backup disimpan di brankas.</li>
+    <li>Pembaruan versi: ikuti <code>docs/pemasangan.md</code>; migrasi database berjalan otomatis. Umumkan jadwal pembaruan ke BDRS dan siapkan lembar darurat.</li>
+    <li><b>Tinjau akun aktif setiap bulan</b> dan nonaktifkan akun yang tidak lagi diperlukan.</li>
+  </ul>
+
+  <div class="latihan"><h3>Latihan admin TI</h3><p class="akun">Akun: <code>admin</code> · durasi ±30 menit</p>
+    <ol>
+      <li>Buat akun teknisi baru, masuk dengannya di jendela lain, dan ganti sandinya. Nonaktifkan akun itu.</li>
+      <li>Reset sandi akun <code>perawat2</code> dan pastikan pengguna wajib mengganti sandi.</li>
+      <li>Buat akun berperan <code>logger</code>, terbitkan token, lalu cabut token.</li>
+      <li>Isi kop surat lengkap dengan logo dan periksa hasilnya di dokumen cetak serta di judul aplikasi.</li>
+      <li>Tambahkan alat simpan baru dengan rentang 2–6 °C.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 8 AUDITOR ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">8</span>Auditor</h1>
+  <div class="kartu-peran"><span class="ikon c-auditor">Au</span>
+    <dl><dt>Menu</dt><dd>Beranda, Permintaan darah, Reaksi &amp; insiden, Stok kantong, Pengembalian &amp; pemusnahan, Suhu alat simpan, Lacak kantong, Look-back, Laporan &amp; mutu, Lembar darurat, Jejak audit (semua hanya baca).</dd>
+    <dt>Dapat</dt><dd>Membaca jejak audit, memeriksa keutuhan rantai audit, membaca laporan, permintaan, stok, dan data pasien untuk keperluan audit.</dd>
+    <dt>Tidak dapat</dt><dd>Mengubah data apa pun.</dd></dl></div>
+
+  <h2>8.1 Jejak audit</h2>
+  <figure><img src="gambar/auditor-audit.png" alt=""><figcaption>Gambar 8.1 — Jejak audit dengan saringan dan pemeriksaan keutuhan rantai.</figcaption></figure>
+  <ul>
+    <li>Setiap baris berisi waktu, akun pelaku, aksi, objek (mis. <code>kantong</code>, <code>permintaan</code>, <code>akun</code>), ID objek, alasan, dan nomor urut. Data sebelum dan sesudah perubahan tersimpan.</li>
+    <li>Saring berdasarkan akun pelaku, objek, atau ID objek, lalu klik <b>Terapkan saringan</b>. Klik <b>Muat lebih lama</b> untuk catatan sebelumnya.</li>
+    <li>Kartu <b>Keutuhan rantai</b> menyatakan apakah rantai hash audit utuh. Bila tidak utuh, sistem menunjuk baris pertama yang rusak: laporkan segera ke kepala BDRS dan tim TI sebagai insiden keamanan.</li>
+  </ul>
+
+  <h2>8.2 Hal yang dikaji setiap bulan</h2>
+  <ul class="cek">
+    <li>Koreksi data (observasi, pembatalan hasil) beserta alasannya.</li>
+    <li>Pelepasan karantina dan penilaian penyimpangan suhu.</li>
+    <li>Pengeluaran darah darurat tanpa uji silang dan persetujuannya.</li>
+    <li>Pencabutan cekal donor (mode UTD-RS).</li>
+    <li>Kejadian nyaris cedera (KNC) di samping tempat tidur dan reaksi transfusi.</li>
+    <li>Akun yang dibuat, diubah perannya, atau direset sandinya.</li>
+    <li>Pembukaan data pasien yang tidak wajar (mis. di luar jam dinas atau tanpa permintaan terkait).</li>
+  </ul>
+
+  <div class="latihan"><h3>Latihan auditor</h3><p class="akun">Akun: <code>auditor</code> · durasi ±20 menit</p>
+    <ol>
+      <li>Periksa keutuhan rantai audit dan catat hasilnya.</li>
+      <li>Saring jejak audit untuk objek <code>kantong</code>; temukan satu pelepasan karantina atau penilaian penyimpangan dan baca alasannya.</li>
+      <li>Temukan catatan KNC dari latihan perawat dan identifikasi kedua petugas yang terlibat.</li>
+      <li>Buka Laporan → Mutu dan Formulir 3 bulan berjalan.</li>
+    </ol></div>
+</section>
+
+<!-- ================= BAB 9 LAYANAN ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">9</span>Akun layanan SIMRS dan data logger</h1>
+  <p class="pengantar-bab">Bagian ini untuk tim TI yang menghubungkan SIMRS dan data logger suhu. Akun layanan tidak dipakai manusia dan tidak dapat masuk lewat layar.</p>
+  <table>
+    <tr><th style="width:30%">Endpoint</th><th style="width:12%">Peran</th><th>Fungsi</th></tr>
+    <tr><td><code>POST /api/pasien</code></td><td>simrs</td><td>Kirim atau perbarui identitas pasien. Data induk pasien tetap milik SIMRS.</td></tr>
+    <tr><td><code>POST /api/permintaan</code></td><td>simrs</td><td>Kirim permintaan darah dari order di SIMRS.</td></tr>
+    <tr><td><code>GET /api/permintaan/{id}</code></td><td>simrs</td><td>Baca status, alokasi, dan transfusi permintaan.</td></tr>
+    <tr><td><code>POST /api/suhu</code></td><td>logger</td><td>Kirim pembacaan suhu, mis. <code>{"alat_kode":"LD-01","suhu":4.2}</code>. Pembacaan di luar rentang membuka penyimpangan otomatis.</td></tr>
+  </table>
+  <ul>
+    <li>Kirim token sebagai header <code>Authorization: Bearer &lt;token&gt;</code>. Semua permintaan yang mengubah data harus berformat JSON.</li>
+    <li>Galat dikembalikan sebagai <code>{"pesan": "...", "isian": [...]}</code> dalam bahasa Indonesia; tampilkan pesan itu ke pengguna SIMRS.</li>
+    <li>Pantau data logger: bila pembacaan berhenti masuk, petugas BDRS harus kembali mencatat manual.</li>
+  </ul>
+</section>
+
+<!-- ================= LAMPIRAN ================= -->
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">A</span>Matriks hak akses</h1>
+  <p>✓ = memiliki hak. Hak ditetapkan di sistem dan tidak dapat diubah per akun; ubah peran akun bila tugasnya berubah.</p>
+  <table style="font-size:8pt">
+    <tr><th>Hak</th><th>Dokter</th><th>Perawat</th><th>Teknisi</th><th>Kepala</th><th>Admin</th><th>Auditor</th></tr>
+    <tr><td>Melihat data pasien</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>✓</td></tr>
+    <tr><td>Menulis data pasien</td><td>✓</td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Membuat permintaan darah</td><td>✓</td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Melihat permintaan</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>✓</td></tr>
+    <tr><td>Memproses permintaan (sampel, tolak, batal, selesai)</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Melihat stok</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>✓</td></tr>
+    <tr><td>Mengelola stok, penerimaan, berita acara</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Mencatat suhu</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Input hasil (golongan, uji silang, IMLTD)</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Verifikasi kedua hasil</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Mengeluarkan kantong, terima kembali</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Verifikasi samping tempat tidur, observasi</td><td>✓</td><td>✓</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Melapor reaksi</td><td>✓</td><td>✓</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>Menelusuri reaksi</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Menutup penelusuran reaksi</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Menyetujui pengeluaran darurat</td><td>✓</td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Lepas karantina, nilai/tutup penyimpangan suhu</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Koreksi observasi lanjutan</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Kelola donor, seleksi, donasi, pengolahan</td><td></td><td></td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Pelulusan kantong donasi, cabut cekal</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Aturan komponen dan aturan donor</td><td></td><td></td><td></td><td>✓</td><td></td><td></td></tr>
+    <tr><td>Data induk dan kop surat</td><td></td><td></td><td></td><td>✓</td><td>✓</td><td></td></tr>
+    <tr><td>Melihat laporan</td><td></td><td></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Melihat jejak audit</td><td></td><td></td><td></td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Mengelola akun dan token</td><td></td><td></td><td></td><td></td><td>✓</td><td></td></tr>
+    <tr><td>Integrasi SATUSEHAT</td><td></td><td></td><td></td><td></td><td>✓</td><td></td></tr>
+  </table>
+</section>
+
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">B</span>Status kantong dan permintaan</h1>
+  <h2>Status kantong</h2>
+  <table>
+    <tr><th style="width:24%">Status</th><th>Arti dan langkah berikutnya</th></tr>
+    <tr><td><span class="chip waspada">● Karantina</span></td><td>Belum boleh dipakai: menunggu pelulusan (donasi), penilaian penyimpangan suhu, atau keputusan lain. Dilepas oleh kepala BDRS atau lewat pelulusan.</td></tr>
+    <tr><td><span class="chip aman">● Tersedia</span></td><td>Siap dipakai; muncul di saran uji silang (FEFO).</td></tr>
+    <tr><td><span class="chip info">● Dialokasikan</span></td><td>Dicadangkan untuk satu permintaan setelah uji silang terverifikasi atau alokasi langsung.</td></tr>
+    <tr><td><span class="chip info">● Dikeluarkan</span></td><td>Sudah diserahkan ke petugas ruang; transfusi harus dimulai dalam 30 menit.</td></tr>
+    <tr><td><span class="chip netral">● Ditransfusikan</span></td><td>Sudah diberikan ke pasien.</td></tr>
+    <tr><td><span class="chip netral">● Dikembalikan</span> / <span class="chip netral">● Dimusnahkan</span></td><td>Sudah dikembalikan ke UTD atau dimusnahkan dengan berita acara.</td></tr>
+  </table>
+  <h2>Kesimpulan uji silang</h2>
+  <table>
+    <tr><th style="width:34%">Kesimpulan</th><th>Arti</th></tr>
+    <tr><td><span class="chip aman">● Serasi</span></td><td>Boleh dialokasikan setelah verifikasi kedua.</td></tr>
+    <tr><td><span class="chip bahaya">● Tidak serasi</span></td><td>Jangan dikeluarkan; pilih kantong lain, lakukan DAT bila autokontrol positif, atau rujuk ke UTD.</td></tr>
+    <tr><td><span class="chip bahaya">● Golongan kantong tidak sesuai label</span></td><td>Konfirmasi selang berbeda dari label; kantong dikarantina untuk dikembalikan ke UTD.</td></tr>
+  </table>
+  <p>Status permintaan dijelaskan di Bab 3.2.</p>
+
+  <h1 class="judul-bab" style="margin-top:9mm"><span class="no">C</span>Pesan penting dan tindakannya</h1>
+  <table>
+    <tr><th style="width:38%">Pesan di layar</th><th>Tindakan</th></tr>
+    <tr><td><b>JANGAN TRANSFUSIKAN</b> (samping tempat tidur)</td><td>Jangan pasang; kembalikan kantong ke BDRS dalam 30 menit; minta kantong pengganti. KNC tercatat otomatis.</td></tr>
+    <tr><td>Kantong lebih dari 30 menit di luar bank darah</td><td>Isi alasan bila tetap ditransfusikan sesuai SPO, atau kembalikan ke BDRS.</td></tr>
+    <tr><td>Hasil positif — kantong tidak serasi</td><td>Pilih kantong lain; DAT bila autokontrol positif; rujuk sampel ke UTD bila perlu.</td></tr>
+    <tr><td>Diskrepansi golongan pasien</td><td>Sampel tidak dapat dipakai; minta sampel baru; periksa identifikasi pasien dan sampel.</td></tr>
+    <tr><td>Penyimpangan suhu di alat …</td><td>Kantong di alat itu dikarantina; perbaiki penyebab; kepala BDRS menilai setiap kantong.</td></tr>
+    <tr><td>Sampel lewat batas usia</td><td>Minta sampel baru dari ruang.</td></tr>
+    <tr><td>Peran Anda tidak mencakup hak …</td><td>Tindakan itu bukan tugas peran Anda; minta petugas yang berwenang, atau hubungi admin TI bila peran Anda keliru.</td></tr>
+    <tr><td>Akun dikunci sementara</td><td>Tunggu 15 menit atau minta admin TI mereset sandi.</td></tr>
+    <tr><td>Hasil harus diverifikasi petugas lain</td><td>Minta teknisi lain melakukan verifikasi dari akunnya sendiri.</td></tr>
+  </table>
+</section>
+
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">D</span>Istilah</h1>
+  <table>
+    <tr><th style="width:28%">Istilah</th><th>Pengertian</th></tr>
+    <tr><td>BDRS</td><td>Bank Darah Rumah Sakit: unit RS yang menyimpan darah dari UTD, melakukan uji pratransfusi, dan menyerahkan darah ke ruang.</td></tr>
+    <tr><td>UTD / UTD mitra</td><td>Unit Transfusi Darah yang memasok kantong ke BDRS.</td></tr>
+    <tr><td>Mode UTD-RS</td><td>Mode tambahan bila RS mengambil darah donor sendiri.</td></tr>
+    <tr><td>Kantong</td><td>Satu unit komponen darah dengan nomor unik (label ISBT 128 atau label lokal).</td></tr>
+    <tr><td>Komponen</td><td>WB (darah lengkap), PRC (sel darah merah pekat), TC (trombosit pekat), FFP (plasma segar beku), kriopresipitat.</td></tr>
+    <tr><td>FEFO</td><td><i>First expired, first out</i>: kantong yang paling cepat kedaluwarsa dipakai lebih dulu.</td></tr>
+    <tr><td>Sampel pratransfusi</td><td>Darah pasien untuk pemeriksaan golongan dan uji silang, dengan batas usia sejak diambil.</td></tr>
+    <tr><td>Uji silang serasi</td><td><i>Crossmatch</i>: mayor (serum pasien × sel donor), minor (plasma donor × sel pasien), autokontrol.</td></tr>
+    <tr><td>Verifikasi kedua</td><td>Pemeriksaan ulang hasil oleh petugas lain sebelum hasil berlaku.</td></tr>
+    <tr><td>Alokasi</td><td>Pencadangan kantong untuk satu permintaan.</td></tr>
+    <tr><td>Pengeluaran</td><td>Penyerahan kantong dari BDRS ke petugas ruang.</td></tr>
+    <tr><td>Verifikasi samping tempat tidur</td><td>Pencocokan gelang pasien dan label kantong oleh dua petugas sebelum transfusi.</td></tr>
+    <tr><td>KNC</td><td>Kejadian nyaris cedera: kesalahan yang tertangkap sebelum sampai ke pasien.</td></tr>
+    <tr><td>Reaksi transfusi</td><td>Gejala yang tidak diinginkan selama atau setelah transfusi; dilaporkan ruang dan ditelusuri BDRS.</td></tr>
+    <tr><td>Karantina</td><td>Kantong ditahan dan tidak boleh dipakai sampai ada keputusan.</td></tr>
+    <tr><td>Penyimpangan suhu</td><td>Suhu alat simpan di luar rentang yang diizinkan.</td></tr>
+    <tr><td>Look-back</td><td>Penelusuran ke belakang atas kantong dan penerima ketika donor belakangan diketahui reaktif.</td></tr>
+    <tr><td>IMLTD</td><td>Infeksi menular lewat transfusi darah (HIV, hepatitis B, hepatitis C, sifilis, malaria).</td></tr>
+    <tr><td>Cekal</td><td>Penundaan atau penolakan donor, sementara atau permanen.</td></tr>
+    <tr><td>Pelulusan</td><td>Keputusan bahwa kantong hasil donasi layak dipakai, bertanda tangan penanggung jawab.</td></tr>
+    <tr><td>Rasio C:T</td><td>Jumlah kantong diuji silang dibanding kantong ditransfusikan; indikator efisiensi permintaan.</td></tr>
+  </table>
+</section>
+
+<section class="bab">
+  <h1 class="judul-bab"><span class="no">E</span>Lembar evaluasi pelatihan</h1>
+  <p>Diisi pelatih untuk setiap peserta. Peserta dinyatakan kompeten bila semua butir untuk perannya tercentang. Simpan lembar ini di berkas kepegawaian atau berkas pelatihan unit.</p>
+  <table>
+    <tr><td style="width:30%">Nama peserta</td><td></td></tr>
+    <tr><td>Peran / unit</td><td></td></tr>
+    <tr><td>Tanggal pelatihan</td><td></td></tr>
+    <tr><td>Nama pelatih</td><td></td></tr>
+  </table>
+  <div class="dua">
+    <div>
+      <h3>Semua peran</h3>
+      <ul class="cek">
+        <li>Masuk, ganti sandi, keluar; memahami batas sesi</li>
+        <li>Membaca chip status, lencana golongan, peringatan</li>
+        <li>Memakai pemindai dan mencocokkan hasilnya</li>
+        <li>Menandatangani secara elektronik; memahami verifikasi kedua</li>
+        <li>Mengetahui prosedur saat sistem mati</li>
+      </ul>
+      <h3>Dokter</h3>
+      <ul class="cek">
+        <li>Membuat permintaan rutin dan darurat dengan lengkap</li>
+        <li>Membaca status dan tahap permintaan</li>
+        <li>Menyetujui pengeluaran darurat dengan benar</li>
+      </ul>
+      <h3>Perawat</h3>
+      <ul class="cek">
+        <li>Verifikasi samping tempat tidur dua petugas</li>
+        <li>Tindakan saat transfusi diblokir</li>
+        <li>Mencatat dan mengoreksi observasi per tahap</li>
+        <li>Menyelesaikan/menghentikan transfusi</li>
+        <li>Melapor reaksi transfusi</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Teknisi BDRS</h3>
+      <ul class="cek">
+        <li>Menerima kantong, menolak dengan alasan, cetak serah terima</li>
+        <li>Stok: pindah, cairkan, karantina</li>
+        <li>Mencatat suhu; tindakan saat menyimpang</li>
+        <li>Menerima/menolak sampel</li>
+        <li>Input dan verifikasi golongan pasien</li>
+        <li>Uji silang dan verifikasi; alokasi</li>
+        <li>Pengeluaran darurat dengan persetujuan dokter</li>
+        <li>Pengeluaran dan terima kembali</li>
+        <li>Penelusuran reaksi; berita acara; lacak</li>
+      </ul>
+      <h3>Kepala BDRS</h3>
+      <ul class="cek">
+        <li>Menilai dan menutup penyimpangan suhu</li>
+        <li>Lepas karantina; menutup penelusuran reaksi</li>
+        <li>Pelulusan kantong donasi (bila UTD-RS)</li>
+        <li>Membaca laporan mutu; cetak Formulir 3</li>
+      </ul>
+      <h3>Admin TI / Auditor</h3>
+      <ul class="cek">
+        <li>Membuat, mengubah, menonaktifkan akun; reset sandi</li>
+        <li>Token API: terbitkan dan cabut</li>
+        <li>Kop surat, alat simpan, UTD mitra</li>
+        <li>Membaca jejak audit; periksa keutuhan rantai</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:4mm"><b>Hasil:</b> &nbsp; ☐ Kompeten &nbsp;&nbsp; ☐ Perlu pelatihan ulang pada butir: ______________________________</p>
+  <div class="ttd">
+    <div></div><div></div><div></div>
+  </div>
+  <div class="ttd" style="margin-top:1mm;padding-top:0">
+    <small>Peserta</small><small>Pelatih</small><small>Kepala BDRS</small>
+  </div>
+</section>
+
+</body>
+</html>

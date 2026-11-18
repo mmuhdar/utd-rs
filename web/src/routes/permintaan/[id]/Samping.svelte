@@ -36,7 +36,7 @@
 			<p class="text-sm text-redup">Belum ada sampel layak pakai.</p>
 		{/if}
 		{#if p.riwayat_transfusi}
-			<p class="rounded-xl bg-info-latar px-3 py-2 text-sm font-medium text-info">Pasien pernah ditransfusi: sampel uji silang harus baru (batas usia lebih pendek).</p>
+			<p class="rounded-xl bg-info-latar px-3 py-2 text-sm font-medium text-info">Pasien pernah ditransfusi sebelumnya: waspadai antibodi, pakai sampel yang diambil untuk permintaan ini.</p>
 		{/if}
 	</section>
 

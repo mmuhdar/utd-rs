@@ -60,7 +60,7 @@ Semua data di tangkapan layar ini fiktif, dibuat dengan `utdrs seed-demo`.
 ### Pelayanan pasien
 
 - **Permintaan darah** sesuai formulir Permenkes 91/2015 §5.6, termasuk jalur darurat. SIMRS juga dapat mengirim permintaan lewat API.
-- **Sampel pratransfusi** dengan batas usia sampel (lebih pendek bila pasien pernah ditransfusi) dan alasan penolakan sampel yang baku.
+- **Sampel pratransfusi** dengan batas usia sesuai jenis dan penyimpanan (EDTA 24 jam di suhu ruang atau 3 hari dingin, serum 7 hari dingin) dan alasan penolakan sampel yang baku.
 - **Golongan ABO/Rh pasien** (cell dan serum grouping) dengan tafsir otomatis, deteksi diskrepansi terhadap riwayat, dan **verifikasi kedua**.
 - **Uji silang serasi** per kantong: saran kantong kompatibel, konfirmasi golongan dari selang kantong, mayor/minor/autokontrol sesuai aturan per komponen, dan CCC untuk metode tabung. Kesimpulan dihitung sistem; kantong yang golongan selangnya beda dari label otomatis dikarantina.
 - **Alokasi dan pengeluaran** ke petugas ruang, dengan pengingat 30 menit. Kantong yang tidak jadi dipakai bisa diterima kembali.
@@ -367,6 +367,7 @@ Konvensi kode ada di [`CLAUDE.md`](CLAUDE.md). Ringkasnya:
 | [`docs/adr/`](docs/adr/) | Catatan keputusan arsitektur |
 | [`docs/research/regulasi-utd-rs.md`](docs/research/regulasi-utd-rs.md) | Riset regulasi dan requirement (FR/NFR) |
 | [`GLOSSARY.md`](GLOSSARY.md) | Istilah domain: kantong, uji silang serasi, alokasi, KNC, cekal, pelulusan, … |
+| [`docs/pedoman/Pedoman-Penggunaan-utd-rs.pdf`](docs/pedoman/Pedoman-Penggunaan-utd-rs.pdf) | **Pedoman penggunaan dan pelatihan** untuk semua peran (PDF, 41 halaman); sumbernya `pedoman.html`, dibuat ulang dengan `docs/pedoman/buat-pdf.sh` |
 | [`docs/pemasangan.md`](docs/pemasangan.md) | Kebutuhan server, pemasangan, admin pertama, TLS, pembaruan versi |
 | [`docs/operasional.md`](docs/operasional.md) | Backup dan uji pemulihan, prosedur saat sistem mati, insiden, peninjauan audit |
 | [`docs/kepatuhan.md`](docs/kepatuhan.md) | Pemetaan regulasi ke fitur dan dokumen yang harus disiapkan RS |
