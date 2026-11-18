@@ -72,6 +72,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .nest("/api", api)
         .fallback_service(web)
+        .layer(middleware::from_fn(cache_web))
         .layer(middleware::from_fn(header_keamanan))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
@@ -112,6 +113,18 @@ async fn hanya_json(req: Request, next: Next) -> Response {
         return r;
     }
     res.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    res
+}
+
+/// Berkas web: aset ber-hash di /_app/immutable/ boleh di-cache selamanya; index.html dan berkas lain harus
+/// divalidasi ulang, supaya setelah pembaruan versi browser tidak memuat index lama yang merujuk aset yang sudah hilang.
+async fn cache_web(req: Request, next: Next) -> Response {
+    let abadi = req.uri().path().starts_with("/_app/immutable/");
+    let mut res = next.run(req).await;
+    if !res.headers().contains_key(CACHE_CONTROL) {
+        let nilai = if abadi { "public, max-age=31536000, immutable" } else { "no-cache" };
+        res.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static(nilai));
+    }
     res
 }
 

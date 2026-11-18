@@ -114,7 +114,7 @@
 					<OctagonAlert class="size-7! p-2.5!" aria-hidden="true" />
 					<div class="flex flex-col gap-2">
 						<p class="text-2xl leading-tight font-extrabold">{blokir}</p>
-						<p class="text-base">Pasien <span class="mono">{no_rm}</span> · kantong <span class="mono">{nomor}</span>. Kejadian ini otomatis dicatat sebagai Kejadian Nyaris Cedera (KNC).</p>
+						<p class="text-base">Pasien <span class="mono">{no_rm}</span> · kantong <span class="mono">{nomor}</span></p>
 					</div>
 				</div>
 				<div class="rounded-2xl border border-garis p-5">

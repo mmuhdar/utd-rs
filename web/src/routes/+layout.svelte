@@ -75,7 +75,7 @@
 		<nav
 			class="tanpa-cetak {menuTerbuka
 				? 'flex'
-				: 'hidden'} w-full shrink-0 flex-col gap-4 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto"
+				: 'hidden'} w-full shrink-0 flex-col gap-4 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto [scrollbar-color:var(--color-samping-2)_transparent] [scrollbar-width:thin]"
 			aria-label="Menu utama"
 		>
 			<a href="/" class="px-1.5" onclick={() => (menuTerbuka = false)}><Merek /></a>

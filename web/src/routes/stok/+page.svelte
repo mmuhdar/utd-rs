@@ -209,7 +209,7 @@
 									{#if k.permintaan}<span class="block text-xs text-redup">untuk {k.permintaan}</span>{/if}
 									{#if k.alasan_status && k.status === 'karantina'}<span class="block max-w-60 text-xs text-redup">{k.alasan_status}</span>{/if}
 								</td>
-								<td class="mono">{k.alat ?? '—'}</td>
+								<td class="mono whitespace-nowrap">{k.alat ?? '—'}</td>
 								<td>
 									<div class="flex flex-wrap justify-end gap-1">
 										{#if kelola}<button type="button" class="btn btn--teks" onclick={() => buka('pindah', k)}>Pindah</button>{/if}
