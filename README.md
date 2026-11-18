@@ -14,6 +14,7 @@ utd-rs menelusuri setiap kantong darah dari penerimaan di bank darah, uji pratra
 
 - [Tangkapan layar](#tangkapan-layar)
 - [Fitur](#fitur)
+- [Tech stack](#tech-stack)
 - [Keselamatan pasien dan integritas data](#keselamatan-pasien-dan-integritas-data)
 - [Dasar regulasi](#dasar-regulasi)
 - [Mencoba dengan data demo](#mencoba-dengan-data-demo)
@@ -90,6 +91,72 @@ Untuk RS yang juga mengambil darah donor (CPOB BPOM). Mode ini diaktifkan di **D
 - **Data induk dan aturan**: UTD mitra, alat simpan dan rentang suhunya, aturan per komponen (uji silang, batas peringatan kedaluwarsa, pencairan), aturan seleksi donor.
 - **Jejak audit** dengan filter dan pemeriksaan keutuhan rantai.
 - **Tema** terang, gelap, atau ikuti sistem.
+
+---
+
+## Tech stack
+
+Semua dependensi terbuka (open source) dan dibundel ke dalam image, jadi aplikasi berjalan penuh di jaringan RS tanpa akses internet. Satu-satunya layanan luar adalah SATUSEHAT, dan itu opsional.
+
+### Backend
+
+| Komponen | Versi | Kegunaan |
+|---|---|---|
+| [Rust](https://www.rust-lang.org/) | edition 2024, minimal 1.94 | Bahasa backend, dikompilasi menjadi satu binary `utdrs` |
+| [axum](https://github.com/tokio-rs/axum) | 0.8 | Router HTTP dan API JSON |
+| [tokio](https://tokio.rs/) | 1.x | Runtime async |
+| [tower-http](https://github.com/tower-rs/tower-http) | 0.7 | Penyajian berkas antarmuka, log permintaan |
+| [sqlx](https://github.com/launchbadge/sqlx) | 0.9 | Akses PostgreSQL dan migrasi; query runtime ([ADR 0007](docs/adr/0007-build-dan-query.md)) |
+| [argon2](https://crates.io/crates/argon2) | 0.6 | Hash kata sandi |
+| [sha2](https://crates.io/crates/sha2) | 0.11 | Rantai hash jejak audit, sidik tanda tangan, token API |
+| [reqwest](https://crates.io/crates/reqwest) (rustls) | 0.13 | Klien HTTPS ke SATUSEHAT |
+| [serde](https://serde.rs/) / serde_json | 1.x | Serialisasi JSON |
+| [time](https://crates.io/crates/time), [uuid](https://crates.io/crates/uuid) (v7) | 0.3 / 1.x | Waktu dan ID |
+| [tracing](https://crates.io/crates/tracing) | 0.1 | Log terstruktur (JSON) |
+| [thiserror](https://crates.io/crates/thiserror), [anyhow](https://crates.io/crates/anyhow) | 2.x / 1.x | Galat berbahasa Indonesia untuk pengguna |
+
+### Frontend
+
+| Komponen | Versi | Kegunaan |
+|---|---|---|
+| [SvelteKit](https://svelte.dev/docs/kit) + adapter-static | 3.x | Aplikasi satu halaman (SPA) statis yang dilayani langsung oleh binary Rust |
+| [Svelte](https://svelte.dev/) | 5 (runes) | Komponen antarmuka |
+| [TypeScript](https://www.typescriptlang.org/) | 6.x | Bahasa frontend |
+| [Vite](https://vite.dev/) | 8.x | Build dan server pengembangan |
+| [Tailwind CSS](https://tailwindcss.com/) | 4.x | Gaya lewat token warna (`web/src/app.css`) |
+| [Lucide](https://lucide.dev/) (`@lucide/svelte`) | 1.x | Ikon |
+| [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans), [IBM Plex Mono](https://github.com/IBM/plex) (Fontsource) | 5.x | Huruf teks dan huruf nomor kantong/no. RM, dibundel tanpa CDN |
+
+Bagian frontend tidak memakai pustaka UI, pustaka state, atau pustaka grafik tambahan. Komponennya ada di `web/src/lib/`, dan grafik suhu digambar dengan SVG.
+
+### Database dan infrastruktur
+
+| Komponen | Versi | Kegunaan |
+|---|---|---|
+| [PostgreSQL](https://www.postgresql.org/) | 17 | Database; trigger audit berantai hash, batasan data di skema |
+| [Docker](https://www.docker.com/) + Compose v2 | Engine ≥ 24 | Pemasangan on-premise: `db`, `app`, `proxy`, `backup` |
+| [Caddy](https://caddyserver.com/) | 2.10 | Reverse proxy, TLS (sertifikat RS atau sertifikat internal), HSTS |
+| Image dasar | `rust:1-bookworm` → `debian:bookworm-slim`, `node:24-alpine`, `postgres:17-alpine` | Build multi-tahap; aplikasi berjalan sebagai pengguna non-root dengan healthcheck |
+| Backup | `pg_dump` + OpenSSL AES-256 (PBKDF2) + cron | Backup harian terenkripsi, salinan ke lokasi kedua, checksum SHA-256 |
+
+### Integrasi dan standar
+
+| Standar | Dipakai untuk |
+|---|---|
+| ISBT 128 | Pengurai label kantong (nomor donasi, kode produk, golongan, kedaluwarsa) di `web/src/lib/isbt.ts` |
+| HL7 FHIR R4 (`BiologicallyDerivedProduct`) | Pengiriman ke SATUSEHAT modul UPD lewat outbox |
+| OAuth2 client credentials | Token akses SATUSEHAT |
+| REST + JSON, token Bearer | API untuk SIMRS dan data logger suhu |
+
+### Pengujian dan kualitas
+
+| Alat | Kegunaan |
+|---|---|
+| `#[sqlx::test]` + `tower::ServiceExt` | Uji API ujung ke ujung; setiap uji mendapat database PostgreSQL baru yang sudah dimigrasi |
+| `cargo clippy`, `rustfmt` | Lint dan format backend |
+| `svelte-check` | Pemeriksaan tipe Svelte/TypeScript |
+| `node --test` | Uji unit frontend (pengurai ISBT 128) |
+| [FigCraft](https://getartcraft.com/apps/figcraft) | Desain antarmuka (`design/utd-rs.figcraft`, dibangun oleh `design/layar.py`) |
 
 ---
 
@@ -235,8 +302,7 @@ Hanya modul Unit Pelayanan Darah, dan hanya dalam mode UTD-RS. Kantong yang dilu
                      └─────────────────────────────┘     └──────────────┘
 ```
 
-- **Backend**: Rust (edition 2024), axum 0.8, sqlx 0.9 dengan query runtime ([ADR 0007](docs/adr/0007-build-dan-query.md)), dan PostgreSQL 17. Satu modul per domain di `src/`; migrasi bernomor di `migrations/`.
-- **Frontend**: SvelteKit + Svelte 5 (runes), SPA statis yang dilayani binary Rust, Tailwind CSS v4, ikon Lucide, dan huruf Plus Jakarta Sans + IBM Plex Mono. Semua aset dibundel, jadi aplikasi tetap berjalan tanpa internet.
+- **Satu binary, satu database.** Binary `utdrs` melayani API di `/api` dan antarmuka SPA sekaligus, sehingga tidak ada server Node.js di produksi. Satu modul per domain di `src/`; migrasi bernomor di `migrations/` berjalan otomatis saat aplikasi dinyalakan.
 - **Satu aplikasi, dua mode**: BDRS sebagai inti, UTD-RS opsional ([ADR 0001](docs/adr/0001-bdrs-inti-mode-utd-opsional.md)). Aturan yang berbeda antar-RS dapat dikonfigurasi ([ADR 0004](docs/adr/0004-aturan-dapat-dikonfigurasi.md)).
 - **Desain antarmuka**: sumbernya di `design/utd-rs.figcraft` (dibuat dengan [FigCraft](https://getartcraft.com/apps/figcraft) lewat skrip `design/layar.py`); aturannya di [`docs/desain.md`](docs/desain.md).
 
