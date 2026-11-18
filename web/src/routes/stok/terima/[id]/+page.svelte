@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -17,7 +18,7 @@
 	const ditolak = (k: any) => k.ditolak_saat_terima === true;
 </script>
 
-<svelte:head><title>Berita serah terima — utd-rs</title></svelte:head>
+<svelte:head><title>Berita serah terima — {merek.judul}</title></svelte:head>
 
 <div class="tanpa-cetak mb-4 flex flex-wrap items-center justify-between gap-2">
 	<a class="text-sm text-utama hover:underline" href="/stok/terima">Kembali ke penerimaan</a>

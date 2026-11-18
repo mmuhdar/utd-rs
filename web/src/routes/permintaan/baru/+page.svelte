@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -89,7 +90,7 @@
 	}
 </script>
 
-<svelte:head><title>Buat permintaan darah — utd-rs</title></svelte:head>
+<svelte:head><title>Buat permintaan darah — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-1">Buat permintaan darah</h1>
 <p class="mb-4 text-sm text-redup">Isian sesuai formulir permintaan darah (Permenkes 91/2015 §5.6.1). Kirim sampel darah pasien bersama permintaan.</p>

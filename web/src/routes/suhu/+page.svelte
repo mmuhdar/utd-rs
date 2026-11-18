@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -50,7 +51,7 @@
 	}
 </script>
 
-<svelte:head><title>Suhu alat simpan — utd-rs</title></svelte:head>
+<svelte:head><title>Suhu alat simpan — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Suhu alat simpan</h1>
 

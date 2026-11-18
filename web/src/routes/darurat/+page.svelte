@@ -1,5 +1,6 @@
 <!-- Lembar cetak untuk downtime (NFR-12): dicetak berkala supaya pelayanan tetap jalan saat sistem mati. -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import Kop from '#lib/Kop.svelte';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -35,7 +36,7 @@
 	const teralokasi = (p: any): string[] => p.kantong_teralokasi ?? [];
 </script>
 
-<svelte:head><title>Lembar darurat — utd-rs</title></svelte:head>
+<svelte:head><title>Lembar darurat — {merek.judul}</title></svelte:head>
 
 <div class="tanpa-cetak mb-4 flex flex-wrap items-center justify-between gap-2">
 	<p class="text-sm text-redup">Cetak lembar ini setiap pergantian dinas dan simpan di meja BDRS untuk dipakai saat sistem tidak bisa diakses.</p>

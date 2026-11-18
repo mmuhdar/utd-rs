@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -15,7 +16,7 @@
 	});
 </script>
 
-<svelte:head><title>Reaksi & insiden — utd-rs</title></svelte:head>
+<svelte:head><title>Reaksi & insiden — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Reaksi transfusi dan insiden</h1>
 

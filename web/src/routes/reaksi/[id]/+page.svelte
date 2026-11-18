@@ -1,5 +1,6 @@
 <!-- Detail reaksi transfusi untuk penelusuran BDRS: data lengkap, form telusur, penutupan bertanda tangan. Dapat dicetak. -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -61,7 +62,7 @@
 	const opsiRh = [['', 'Tidak diperiksa'], ...RH] as [string, string][];
 </script>
 
-<svelte:head><title>{detail.data?.nomor ?? 'Reaksi transfusi'} — utd-rs</title></svelte:head>
+<svelte:head><title>{detail.data?.nomor ?? 'Reaksi transfusi'} — {merek.judul}</title></svelte:head>
 
 <TandaTangan bind:this={ttd} />
 

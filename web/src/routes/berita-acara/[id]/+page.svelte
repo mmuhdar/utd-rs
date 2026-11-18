@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -15,7 +16,7 @@
 	});
 </script>
 
-<svelte:head><title>Berita acara — utd-rs</title></svelte:head>
+<svelte:head><title>Berita acara — {merek.judul}</title></svelte:head>
 
 <div class="tanpa-cetak mb-4 flex flex-wrap items-center justify-between gap-2">
 	<a class="text-sm text-utama hover:underline" href="/berita-acara">Kembali ke daftar</a>

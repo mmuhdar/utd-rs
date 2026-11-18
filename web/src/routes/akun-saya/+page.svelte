@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import PilihTema from '#lib/PilihTema.svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
@@ -28,7 +29,7 @@
 	}
 </script>
 
-<svelte:head><title>Akun saya — utd-rs</title></svelte:head>
+<svelte:head><title>Akun saya — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-1">Akun saya</h1>
 <p class="mb-4 text-sm text-redup">{sesi.profil?.nama} · {sesi.profil?.nama_pengguna} · {sesi.profil?.peran.join(', ')}</p>

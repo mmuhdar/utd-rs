@@ -1,5 +1,6 @@
 <!-- Layar ruang (tablet): kantong yang menunggu, verifikasi samping tempat tidur, dan transfusi yang berjalan. -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { api, GalatApi, pesanGalat } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -98,7 +99,7 @@
 	}
 </script>
 
-<svelte:head><title>Transfusi di ruang — utd-rs</title></svelte:head>
+<svelte:head><title>Transfusi di ruang — {merek.judul}</title></svelte:head>
 
 <TandaTangan bind:this={ttd} />
 

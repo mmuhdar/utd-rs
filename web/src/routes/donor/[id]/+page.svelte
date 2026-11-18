@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -200,7 +201,7 @@
 	}
 </script>
 
-<svelte:head><title>{donor.data?.nama ?? 'Donor'} — utd-rs</title></svelte:head>
+<svelte:head><title>{donor.data?.nama ?? 'Donor'} — {merek.judul}</title></svelte:head>
 
 <p class="mb-2 text-sm"><a class="text-utama hover:underline" href="/donor">← Cari donor</a></p>
 

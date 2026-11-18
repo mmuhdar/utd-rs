@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -36,7 +37,7 @@
 	}
 </script>
 
-<svelte:head><title>Donor — utd-rs</title></svelte:head>
+<svelte:head><title>Donor — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Donor</h1>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -105,7 +106,7 @@
 	}
 </script>
 
-<svelte:head><title>Akun pengguna — utd-rs</title></svelte:head>
+<svelte:head><title>Akun pengguna — {merek.judul}</title></svelte:head>
 
 {#snippet pilihPeran(id: string, peran: string[], galat: string | undefined, ubahPeran: (p: string[]) => void)}
 	<fieldset class="sm:col-span-2">

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -130,7 +131,7 @@
 	}
 </script>
 
-<svelte:head><title>Penerimaan dari UTD — utd-rs</title></svelte:head>
+<svelte:head><title>Penerimaan dari UTD — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Penerimaan dari UTD</h1>
 

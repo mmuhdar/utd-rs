@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -26,7 +27,7 @@
 	}
 </script>
 
-<svelte:head><title>Look-back — utd-rs</title></svelte:head>
+<svelte:head><title>Look-back — {merek.judul}</title></svelte:head>
 
 <a class="mb-4 inline-block text-sm text-utama hover:underline" href="/lookback">Kembali ke daftar look-back</a>
 

@@ -1,5 +1,6 @@
 <!-- Pengaturan kop surat untuk semua dokumen cetak (pola sama dengan lis-rebuild): teks identitas, dua logo, pratinjau. -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import Keadaan from '#lib/Keadaan.svelte';
@@ -54,16 +55,17 @@
 		if (r) {
 			kopSurat.data = { ...r, nama_rs_profil: kopSurat.data?.nama_rs_profil };
 			isi = { ...kopSurat.data };
+			merek.muat(); // judul dan logo aplikasi mengikuti kop
 		}
 	}
 </script>
 
-<svelte:head><title>Kop surat — utd-rs</title></svelte:head>
+<svelte:head><title>Kop surat — {merek.judul}</title></svelte:head>
 
 <div class="mb-5">
 	<h1>Kop surat</h1>
 	<p class="mt-1 font-medium text-redup">
-		Dipakai di semua dokumen cetak: formulir permintaan, berita acara, serah terima, laporan, dan lembar darurat. Setiap perubahan tercatat di jejak audit.
+		Juga menjadi judul dan logo aplikasi (logo kanan; kosong = logo kiri). Dipakai di semua dokumen cetak: formulir permintaan, berita acara, serah terima, laporan, dan lembar darurat. Setiap perubahan tercatat di jejak audit.
 	</p>
 </div>
 

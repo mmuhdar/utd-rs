@@ -1,5 +1,6 @@
 <!-- Riwayat pasien: golongan darah, permintaan, dan transfusi (ketertelusuran no. RM → semua kantong). -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -16,7 +17,7 @@
 	});
 </script>
 
-<svelte:head><title>Pasien {no_rm} — utd-rs</title></svelte:head>
+<svelte:head><title>Pasien {no_rm} — {merek.judul}</title></svelte:head>
 
 <Keadaan sumber={detail} apakahKosong={() => false} baris={8}>
 	{#snippet children(p)}

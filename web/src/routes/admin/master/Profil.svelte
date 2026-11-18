@@ -6,6 +6,7 @@
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import Isian from '#lib/Isian.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
+	import { merek } from '#lib/merek.svelte.ts';
 	import { waktu } from '#lib/format.ts';
 
 	type Profil = { nama_rs: string; kode_faskes: string | null; jenis: 'bdrs' | 'utd_rs'; diubah_pada: string };
@@ -36,6 +37,7 @@
 		if (r) {
 			profil.muat();
 			sesi.muat(); // nama RS dan menu UTD di navigasi mengikuti profil
+			merek.muat(); // judul aplikasi memakai nama di profil bila kop kosong
 		}
 	}
 </script>

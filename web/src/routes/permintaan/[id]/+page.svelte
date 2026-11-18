@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -71,7 +72,7 @@
 	}
 </script>
 
-<svelte:head><title>{detail.data?.nomor ?? 'Permintaan darah'} — utd-rs</title></svelte:head>
+<svelte:head><title>{detail.data?.nomor ?? 'Permintaan darah'} — {merek.judul}</title></svelte:head>
 
 <TandaTangan bind:this={ttd} />
 

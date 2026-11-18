@@ -5,6 +5,8 @@
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { GRUP } from '#lib/navigasi.ts';
 	import GantiTema from '#lib/GantiTema.svelte';
+	import Merek from '#lib/Merek.svelte';
+	import { merek } from '#lib/merek.svelte.ts';
 	import Droplet from '@lucide/svelte/icons/droplet';
 	import Menu from '@lucide/svelte/icons/menu';
 	import LogOut from '@lucide/svelte/icons/log-out';
@@ -15,6 +17,7 @@
 
 	$effect(() => {
 		sesi.muat();
+		merek.muat();
 		const berakhir = () => {
 			sesi.profil = null;
 			goto('/masuk');
@@ -56,6 +59,8 @@
 	const aktif = (href: string) => href === hrefAktif;
 </script>
 
+<svelte:head><link rel="icon" href={merek.logo ?? '/favicon.svg'} /></svelte:head>
+
 {#if publik}
 	{@render children()}
 {:else if !sesi.siap || !sesi.profil}
@@ -72,7 +77,7 @@
 			>
 				<Menu class="size-5" aria-hidden="true" />
 			</button>
-			<span class="font-extrabold">utd-rs</span>
+			<Merek ukuran={30} sub={false} />
 		</header>
 		<nav
 			class="tanpa-cetak {menuTerbuka
@@ -80,15 +85,7 @@
 				: 'hidden'} w-full shrink-0 flex-col gap-4 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto"
 			aria-label="Menu utama"
 		>
-			<a href="/" class="flex items-center gap-2.5 px-1.5" onclick={() => (menuTerbuka = false)}>
-				<span class="grid size-9 shrink-0 place-items-center rounded-[11px] bg-linear-to-br from-[#f43f5e] to-merek-gelap">
-					<Droplet class="size-5 text-white" strokeWidth={2.5} aria-hidden="true" />
-				</span>
-				<span class="min-w-0">
-					<span class="block text-[1.05rem] leading-tight font-extrabold text-white">utd-rs</span>
-					<span class="block truncate text-xs font-medium text-samping-redup">{sesi.profil.nama_rs}</span>
-				</span>
-			</a>
+			<a href="/" class="px-1.5" onclick={() => (menuTerbuka = false)}><Merek /></a>
 			{#each grup as g (g.judul)}
 				<div>
 					{#if g.judul}

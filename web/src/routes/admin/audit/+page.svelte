@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -69,7 +70,7 @@
 	const json = (v: unknown) => (v == null ? '—' : JSON.stringify(v, null, 2));
 </script>
 
-<svelte:head><title>Jejak audit — utd-rs</title></svelte:head>
+<svelte:head><title>Jejak audit — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Jejak audit</h1>
 

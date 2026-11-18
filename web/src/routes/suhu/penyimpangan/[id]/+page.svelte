@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -45,7 +46,7 @@
 	}
 </script>
 
-<svelte:head><title>Penyimpangan suhu — utd-rs</title></svelte:head>
+<svelte:head><title>Penyimpangan suhu — {merek.judul}</title></svelte:head>
 
 <a class="mb-4 inline-block text-sm text-utama hover:underline" href="/suhu">Kembali ke suhu alat simpan</a>
 

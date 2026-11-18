@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
@@ -108,7 +109,7 @@
 	const WARNA: Record<string, string> = { bahaya: 'bg-bahaya', waspada: 'bg-waspada', aman: 'bg-aman' };
 </script>
 
-<svelte:head><title>Lacak {page.params.nomor} — utd-rs</title></svelte:head>
+<svelte:head><title>Lacak {page.params.nomor} — {merek.judul}</title></svelte:head>
 
 <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 	<h1>Lacak kantong</h1>

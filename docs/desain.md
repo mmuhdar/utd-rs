@@ -51,5 +51,10 @@ Arahnya **modern klinis**: permukaan terang dan lega, bilah samping gelap, dan w
   - logo kiri, identitas RS di tengah (pemerintah daerah, nama RS, unit, alamat, kontak, akreditasi), logo kanan, dan garis ganda di bawah;
   - baris yang kosong tidak dicetak;
   - dipasang di berita acara, serah terima, Formulir 3, dan lembar darurat; di formulir permintaan dan laporan reaksi hanya tampil saat dicetak (`cetakSaja`).
+- **Judul dan logo aplikasi** (`Merek.svelte`, `lib/merek.svelte.ts`) mengikuti kop surat, seperti di lis-rebuild:
+  - judul = nama RS di kop (kosong → nama di profil instalasi), subjudul = unit;
+  - logo = logo kanan kop (kosong → logo kiri; keduanya kosong → tanda tetes darah bawaan);
+  - dipakai di bilah samping, halaman Masuk, judul tab browser (`<Halaman> — <nama RS>`), dan favicon;
+  - sumbernya endpoint publik `GET /api/auth/info` dan `GET /api/auth/logo`, karena halaman Masuk belum punya sesi.
 - **Cetak**: elemen layar diberi `.tanpa-cetak`. Berita acara, formulir, laporan, dan lembar darurat rapi di kertas A4.
 - **Empat keadaan data** (`Keadaan.svelte`): memuat, kosong, galat, dan penuh.

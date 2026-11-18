@@ -15,6 +15,8 @@ pub fn rute() -> Router<AppState> {
     Router::new()
         .route("/master/profil", get(profil).put(simpan_profil))
         .route("/master/kop", get(kop).put(simpan_kop))
+        .route("/auth/info", get(info_instalasi))
+        .route("/auth/logo", get(logo_aplikasi))
         .route("/master/utd", get(daftar_utd).post(buat_utd))
         .route("/master/utd/{id}", put(ubah_utd))
         .route("/master/alat", get(daftar_alat).post(buat_alat))
@@ -86,6 +88,49 @@ async fn kop(State(s): State<AppState>, _p: Pengguna) -> Hasil<Json<Value>> {
     .fetch_one(&s.db)
     .await?;
     Ok(Json(v))
+}
+
+/// GET /api/auth/info — publik (halaman masuk belum punya sesi): judul aplikasi dan unit dari kop surat,
+/// plus `versi` untuk memperbarui logo yang di-cache browser. Hanya nama, tidak ada data pasien.
+async fn info_instalasi(State(s): State<AppState>) -> Hasil<Json<Value>> {
+    let v: Value = sqlx::query_scalar(
+        "select jsonb_build_object('nama_rs', coalesce(nullif(k.nama_rs, ''), p.nama_rs), 'unit', k.unit,
+                'ada_logo', k.logo_kanan <> '' or k.logo_kiri <> '',
+                'versi', extract(epoch from greatest(k.diubah_pada, p.diubah_pada))::bigint)
+         from kop_surat k, profil_instalasi p",
+    )
+    .fetch_one(&s.db)
+    .await?;
+    Ok(Json(v))
+}
+
+/// GET /api/auth/logo — publik: logo aplikasi = logo kanan kop (kosong → logo kiri); tanpa logo → 404 (ikon bawaan).
+async fn logo_aplikasi(State(s): State<AppState>, headers: axum::http::HeaderMap) -> Hasil<axum::response::Response> {
+    use axum::http::{StatusCode, header};
+    use axum::response::IntoResponse;
+    use base64::Engine;
+    let logo: String = sqlx::query_scalar("select coalesce(nullif(logo_kanan, ''), logo_kiri) from kop_surat")
+        .fetch_one(&s.db)
+        .await?;
+    let Some((jenis, isi)) = logo.strip_prefix("data:").and_then(|r| r.split_once(";base64,")) else {
+        return Ok(StatusCode::NOT_FOUND.into_response());
+    };
+    // ETag dari isi: browser memvalidasi ulang (no-cache), jadi logo baru langsung terlihat tanpa unduh ulang yang lama.
+    let etag = {
+        use sha2::{Digest, Sha256};
+        format!("\"{}\"", &hex::encode(Sha256::digest(isi.as_bytes()))[..16])
+    };
+    if headers.get(header::IF_NONE_MATCH).and_then(|v| v.to_str().ok()) == Some(etag.as_str()) {
+        return Ok((StatusCode::NOT_MODIFIED, [(header::ETAG, etag)]).into_response());
+    }
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(isi)
+        .map_err(|_| Galat::Konflik("Logo di kop surat rusak. Unggah ulang di Pengaturan → Kop surat.".into()))?;
+    Ok((
+        [(header::CONTENT_TYPE, jenis.to_string()), (header::CACHE_CONTROL, "no-cache".into()), (header::ETAG, etag)],
+        bytes,
+    )
+        .into_response())
 }
 
 #[derive(Deserialize)]

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -206,7 +207,7 @@
 	<span class="block text-xs text-redup">Diinput {h.petugas}, {waktu(h.dicatat_pada)}</span>
 {/snippet}
 
-<svelte:head><title>Donasi {donasi.data?.nomor ?? ''} — utd-rs</title></svelte:head>
+<svelte:head><title>Donasi {donasi.data?.nomor ?? ''} — {merek.judul}</title></svelte:head>
 
 <p class="mb-2 text-sm"><a class="text-utama hover:underline" href="/donasi">← Daftar donasi</a></p>
 

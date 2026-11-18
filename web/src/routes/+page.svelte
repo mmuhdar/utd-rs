@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
 	import Keadaan from '#lib/Keadaan.svelte';
@@ -81,7 +82,7 @@
 	const keluarRentang = (a: any) => a.suhu_terakhir && (Number(a.suhu_terakhir.suhu) < Number(a.suhu_min) || Number(a.suhu_terakhir.suhu) > Number(a.suhu_maks));
 </script>
 
-<svelte:head><title>Beranda — utd-rs</title></svelte:head>
+<svelte:head><title>Beranda — {merek.judul}</title></svelte:head>
 
 <div class="flex flex-col gap-5">
 	<header class="flex flex-wrap items-end justify-between gap-4">

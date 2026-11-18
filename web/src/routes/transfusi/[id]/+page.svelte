@@ -1,5 +1,6 @@
 <!-- Detail transfusi: observasi (tambah/koreksi), selesai atau hentikan, dan laporan reaksi. Tata letak untuk tablet. -->
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -98,7 +99,7 @@
 	}
 </script>
 
-<svelte:head><title>Transfusi — utd-rs</title></svelte:head>
+<svelte:head><title>Transfusi — {merek.judul}</title></svelte:head>
 
 <Keadaan sumber={detail} apakahKosong={() => false} baris={8}>
 	{#snippet children(t)}

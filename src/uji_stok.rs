@@ -196,4 +196,19 @@ async fn kop_surat_validasi_dan_audit(db: PgPool) {
             .await
             .unwrap();
     assert!(sesudah["logo_kiri"].as_str().unwrap().starts_with("sha256:"));
+
+    // Judul dan logo aplikasi mengikuti kop, tanpa sesi (halaman masuk).
+    let mut tamu = Uji::baru(db.clone());
+    let (st, i) = tamu.get("/api/auth/info").await;
+    assert_eq!(st, StatusCode::OK);
+    assert_eq!(i["nama_rs"], "RSUD Uji");
+    assert_eq!(i["ada_logo"], true);
+    let res = tower::ServiceExt::oneshot(
+        tamu.app.clone(),
+        axum::http::Request::builder().uri("/api/auth/logo").body(axum::body::Body::empty()).unwrap(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.headers()["content-type"], "image/png");
 }

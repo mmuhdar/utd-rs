@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import Tab, { tabAktif } from '#lib/utd/Tab.svelte';
 	import Profil from './Profil.svelte';
@@ -19,7 +20,7 @@
 	const tab = $derived(tabAktif(daftar));
 </script>
 
-<svelte:head><title>Data induk & aturan — utd-rs</title></svelte:head>
+<svelte:head><title>Data induk & aturan — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Data induk & aturan</h1>
 

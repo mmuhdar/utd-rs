@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import Pindai from '#lib/Pindai.svelte';
 </script>
 
-<svelte:head><title>Lacak kantong — utd-rs</title></svelte:head>
+<svelte:head><title>Lacak kantong — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Lacak kantong</h1>
 <div class="panel max-w-md">

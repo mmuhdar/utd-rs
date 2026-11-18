@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import PilihTema from '#lib/PilihTema.svelte';
+	import Merek from '#lib/Merek.svelte';
 	import { sesi, type Profil } from '#lib/sesi.svelte.ts';
 	import Droplet from '@lucide/svelte/icons/droplet';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
@@ -28,22 +30,14 @@
 	}
 </script>
 
-<svelte:head><title>Masuk — utd-rs</title></svelte:head>
+<svelte:head><title>Masuk — {merek.judul}</title></svelte:head>
 
 <main class="flex min-h-screen bg-kartu">
 	<section
 		class="hidden flex-1 flex-col justify-between bg-linear-to-tr from-[#2a0612] via-[#7a0b25] to-[#c2133a] p-14 text-white lg:flex"
-		aria-label="Tentang utd-rs"
+		aria-label="Tentang aplikasi"
 	>
-		<div class="flex items-center gap-3">
-			<span class="grid size-11 place-items-center rounded-[13px] bg-linear-to-br from-[#f43f5e] to-merek-gelap">
-				<Droplet class="size-6" strokeWidth={2.5} aria-hidden="true" />
-			</span>
-			<span>
-				<span class="block text-lg leading-tight font-extrabold">utd-rs</span>
-				<span class="block text-xs font-medium text-white/70">Bank Darah RS</span>
-			</span>
-		</div>
+		<div class="max-w-md"><Merek ukuran={48} besar /></div>
 		<div class="max-w-xl">
 			<p class="text-5xl leading-[1.1] font-extrabold tracking-tight">Setiap kantong tertelusur, dari UTD sampai samping tempat tidur.</p>
 			<p class="mt-5 max-w-lg text-lg leading-relaxed font-medium text-[#ffd5de]">
@@ -67,15 +61,10 @@
 	<div class="relative flex w-full items-center justify-center p-6 lg:w-[620px] lg:shrink-0">
 		<div class="absolute top-5 right-5 w-56"><PilihTema /></div>
 		<form class="flex w-full max-w-[400px] flex-col gap-5" onsubmit={masuk}>
-			<div class="mb-1 flex items-center gap-2.5 lg:hidden">
-				<span class="grid size-10 place-items-center rounded-xl bg-linear-to-br from-[#f43f5e] to-merek-gelap">
-					<Droplet class="size-5 text-white" strokeWidth={2.5} aria-hidden="true" />
-				</span>
-				<span class="text-lg font-extrabold">utd-rs</span>
-			</div>
+			<div class="mb-1 lg:hidden"><Merek ukuran={40} terang={false} /></div>
 			<div>
 				<h1>Masuk</h1>
-				<p class="mt-1 font-medium text-redup">Instalasi Bank Darah Rumah Sakit</p>
+				<p class="mt-1 font-medium text-redup">{merek.unit} · {merek.judul}</p>
 			</div>
 			<div>
 				<label class="label" for="nama">Nama pengguna</label>

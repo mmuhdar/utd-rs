@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -35,7 +36,7 @@
 	}
 </script>
 
-<svelte:head><title>Integrasi SATUSEHAT — utd-rs</title></svelte:head>
+<svelte:head><title>Integrasi SATUSEHAT — {merek.judul}</title></svelte:head>
 
 <h1 class="mb-4">Integrasi SATUSEHAT</h1>
 
