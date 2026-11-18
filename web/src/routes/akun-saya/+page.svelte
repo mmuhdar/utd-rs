@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { minimalSandi } from '#lib/kebijakanSandi.svelte.ts';
+	import { minimalSandi, muatKebijakanSandi } from '#lib/kebijakanSandi.svelte.ts';
 	import { merek } from '#lib/merek.svelte.ts';
 	import PilihTema from '#lib/PilihTema.svelte';
 	import KepalaHalaman from '#lib/KepalaHalaman.svelte';
@@ -29,6 +29,7 @@
 			if (wajib) goto('/');
 		}
 	}
+	$effect(muatKebijakanSandi);
 </script>
 
 <svelte:head><title>Akun saya — {merek.judul}</title></svelte:head>

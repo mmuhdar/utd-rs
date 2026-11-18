@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { minimalSandi } from '#lib/kebijakanSandi.svelte.ts';
+	import { minimalSandi, muatKebijakanSandi } from '#lib/kebijakanSandi.svelte.ts';
 	import { merek } from '#lib/merek.svelte.ts';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -107,6 +107,7 @@
 		disalin = true;
 		setTimeout(() => (disalin = false), 2000);
 	}
+	$effect(muatKebijakanSandi);
 </script>
 
 <svelte:head><title>Akun pengguna — {merek.judul}</title></svelte:head>

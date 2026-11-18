@@ -5,8 +5,10 @@ import { Sumber } from './sumber.svelte.ts';
 export type KebijakanSandi = { panjang_min: number; diubah_pada: string };
 export const kebijakanSandi = new Sumber(() => api<KebijakanSandi>('GET', '/kebijakan-sandi'));
 
-/** "Minimal N karakter" untuk teks bantuan; memuat kebijakan bila belum. */
-export function minimalSandi(): string {
-	if (!kebijakanSandi.data && !kebijakanSandi.memuat && !kebijakanSandi.galat) kebijakanSandi.muat();
-	return `Minimal ${kebijakanSandi.data?.panjang_min ?? 10} karakter`;
+/** Panggil di dalam $effect halaman yang memakai minimalSandi() (tidak boleh saat render). */
+export function muatKebijakanSandi() {
+	if (!kebijakanSandi.data && !kebijakanSandi.memuat) kebijakanSandi.muat();
 }
+
+/** "Minimal N karakter" untuk teks bantuan. */
+export const minimalSandi = () => `Minimal ${kebijakanSandi.data?.panjang_min ?? 10} karakter`;
