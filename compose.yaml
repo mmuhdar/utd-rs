@@ -1,0 +1,73 @@
+# Pemasangan on-prem utd-rs (docs/pemasangan.md). Rahasia diisi di berkas .env (lihat deploy/env.contoh),
+# bukan di sini. Hanya proxy HTTPS yang dibuka ke jaringan RS; database tidak pernah dibuka.
+name: utd-rs
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: utdrs
+      POSTGRES_USER: utdrs
+      POSTGRES_PASSWORD: ${UTD_DB_SANDI:?isi UTD_DB_SANDI di .env}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'utdrs', '-d', 'utdrs']
+      interval: 5s
+      retries: 20
+
+  app:
+    image: utd-rs:${UTD_VERSI:-lokal}
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://utdrs:${UTD_DB_SANDI}@db:5432/utdrs
+      UTD_COOKIE_SECURE: '1'
+      UTD_DI_BALIK_PROXY: '1'
+      TZ: ${TZ:-Asia/Jakarta}
+      UTD_SATUSEHAT_ENV: ${UTD_SATUSEHAT_ENV:-}
+      UTD_SATUSEHAT_CLIENT_ID: ${UTD_SATUSEHAT_CLIENT_ID:-}
+      UTD_SATUSEHAT_CLIENT_SECRET: ${UTD_SATUSEHAT_CLIENT_SECRET:-}
+      UTD_SATUSEHAT_ORG_ID: ${UTD_SATUSEHAT_ORG_ID:-}
+
+  proxy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - '${UTD_PORT_HTTPS:-443}:443'
+      - '${UTD_PORT_HTTP:-80}:80'
+    environment:
+      UTD_DOMAIN: ${UTD_DOMAIN:-utd.rs.lokal}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/sertifikat:/sertifikat:ro
+      - caddy:/data
+
+  backup:
+    build:
+      context: deploy
+      dockerfile: backup.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: utdrs
+      PGDATABASE: utdrs
+      PGPASSWORD: ${UTD_DB_SANDI}
+      BACKUP_PASSPHRASE: ${UTD_BACKUP_PASSPHRASE:?isi UTD_BACKUP_PASSPHRASE di .env}
+      BACKUP_RETENSI_HARI: ${UTD_BACKUP_RETENSI_HARI:-30}
+      TZ: ${TZ:-Asia/Jakarta}
+    volumes:
+      - ${UTD_DIR_BACKUP:-./backup}:/backup
+      # Salinan di lokasi berbeda (Permenkes 24/2022 Pasal 20): mount NAS/server cadangan di host ke sini.
+      - ${UTD_DIR_OFFSITE:-./backup-offsite}:/offsite
+
+volumes:
+  db:
+  caddy:

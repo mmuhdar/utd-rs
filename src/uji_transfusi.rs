@@ -204,6 +204,14 @@ async fn alur_lengkap_sampai_reaksi(db: PgPool) {
             )
             .await;
     }
+    // Koreksi observasi (FR-34): hanya penginput dalam 2×24 jam, beralasan; ditandai dikoreksi.
+    let (_, td) = a.perawat.get(&format!("/api/transfusi/{tid}")).await;
+    let oid = td["observasi"][0]["id"].as_i64().unwrap();
+    let koreksi = json!({ "tahap": "pra", "suhu": 37.0, "nadi": 90, "alasan": "Salah ketik suhu" });
+    let (st, _) = a.perawat2.post(&format!("/api/observasi/{oid}/koreksi"), koreksi.clone()).await;
+    assert_eq!(st, StatusCode::FORBIDDEN);
+    let v = a.perawat.ok(&format!("/api/observasi/{oid}/koreksi"), koreksi).await;
+    assert!(v["dikoreksi_pada"].is_string());
     let (st, _) =
         a.perawat.post(&format!("/api/transfusi/{tid}/observasi"), json!({ "tahap": "pasca", "suhu": 36.8 })).await;
     assert_eq!(st, StatusCode::CONFLICT, "pasca sebelum selesai");
@@ -341,7 +349,7 @@ async fn pengeluaran_darurat_tanpa_golongan(db: PgPool) {
 }
 
 #[sqlx::test]
-async fn ffp_minor_dan_koreksi_observasi(db: PgPool) {
+async fn ffp_uji_minor_dan_aturan_komponen(db: PgPool) {
     let mut a = Alur::siapkan(&db).await;
     a.b.terima(&[("FFP-A1", "ffp", "A", "pos")]).await;
     let (pid, sid) = a.siap_uji("RM005", "O", "pos", json!([{ "komponen": "ffp", "jumlah": 1 }])).await;
