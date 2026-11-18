@@ -1,0 +1,4 @@
+# Versi minimum dijaga oleh `rust-version` di Cargo.toml (1.94, mengikuti sqlx 0.9).
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
