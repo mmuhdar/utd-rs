@@ -17,6 +17,8 @@
   .lanjut { display: inline-block; color: #0b1220; font-weight: 700; margin-top: 4px; }
   ol { margin: 0; padding-left: 20px; } li { margin: 4px 0; }
   code { background: #f0f2f5; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  pre { background: #f0f2f5; border-radius: 8px; padding: 10px 12px; overflow-x: auto; margin: 6px 0 8px; }
+  pre code { background: none; padding: 0; font-size: 12.5px; }
   .catatan { background: #fff6e5; border: 1px solid #f79009; color: #93370d; border-radius: 12px; padding: 12px 16px; }
 </style>
 </head>
@@ -67,10 +69,24 @@
   </div>
 
   <div class="kartu">
-    <h2>Linux (Ubuntu)</h2>
+    <h2>Linux (Ubuntu): Brave, Chrome, Chromium, Edge</h2>
+    <p class="redup" style="margin:0 0 6px">Di Linux, browser ini <b>tidak</b> membaca penyimpanan sertifikat sistem; mereka punya penyimpanan sendiri (NSS). Unduh sertifikat ke folder Unduhan, lalu jalankan di Terminal:</p>
+<pre><code>sudo apt install libnss3-tools        # bila perintah certutil belum ada
+mkdir -p ~/.pki/nssdb
+certutil -d sql:$HOME/.pki/nssdb -L >/dev/null 2>&amp;1 || certutil -d sql:$HOME/.pki/nssdb -N --empty-password
+certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "utd-rs root CA" -i ~/Downloads/utd-rs-root-ca.crt</code></pre>
     <ol>
-      <li><code>sudo cp utd-rs-root-ca.crt /usr/local/share/ca-certificates/ &amp;&amp; sudo update-ca-certificates</code></li>
-      <li>Chrome/Chromium: <b>Setelan → Privasi dan keamanan → Keamanan → Kelola sertifikat</b>, impor di tab <b>Otoritas</b>.</li>
+      <li>Sesuaikan <code>~/Downloads</code> bila berkas tersimpan di folder lain (mis. <code>~/Unduhan</code>).</li>
+      <li>Chromium versi snap memakai folder <code>~/snap/chromium/current/.pki/nssdb</code> sebagai pengganti <code>~/.pki/nssdb</code>.</li>
+      <li><b>Tutup browser sepenuhnya</b> (semua jendela), lalu buka lagi.</li>
+    </ol>
+  </div>
+
+  <div class="kartu">
+    <h2>Linux: Firefox dan aplikasi lain</h2>
+    <ol>
+      <li>Firefox: ikuti langkah <b>Firefox (semua sistem)</b> di atas.</li>
+      <li>Aplikasi baris perintah (curl, wget) dan sistem: <code>sudo cp ~/Downloads/utd-rs-root-ca.crt /usr/local/share/ca-certificates/ &amp;&amp; sudo update-ca-certificates</code></li>
     </ol>
   </div>
 

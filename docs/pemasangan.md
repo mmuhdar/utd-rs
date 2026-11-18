@@ -31,7 +31,7 @@
 
 Proxy Caddy melayani HTTPS. Karena utd-rs berjalan di jaringan lokal RS, bawaannya memakai CA internal Caddy (root CA berlaku 10 tahun). Root CA itu dipasang **sekali di setiap komputer dan tablet** supaya browser tidak menampilkan peringatan:
 
-1. Dari perangkat klien, buka `http://<UTD_DOMAIN>/sertifikat` (HTTP biasa, tanpa "s"). Halaman ini berisi tombol unduh `utd-rs-root-ca.crt` dan langkah pemasangan untuk Windows, Firefox, Android, iPad/iPhone, dan Linux. Halaman Masuk juga menautkannya.
+1. Dari perangkat klien, buka `http://<UTD_DOMAIN>/sertifikat` (HTTP biasa, tanpa "s"). Halaman ini berisi tombol unduh `utd-rs-root-ca.crt` dan langkah pemasangan untuk Windows, Firefox, Android, iPad/iPhone, dan Linux. Halaman Masuk juga menautkannya. Di Linux, Brave/Chrome/Chromium/Edge memakai penyimpanan sertifikat sendiri (NSS, `~/.pki/nssdb`), bukan penyimpanan sistem; halaman itu memuat perintah `certutil`-nya.
 2. Sebelum memasang, cocokkan sidik jari SHA-256 berkasnya dengan milik server. Di server (folder `utd-rs`): `docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt utd-rs-root-ca.crt && openssl x509 -in utd-rs-root-ca.crt -noout -fingerprint -sha256`. Nilai yang sama tampil di Windows (tab *Details* → *Thumbprint* SHA-256 / sidik jari) dan Android saat memasang.
 3. Root CA disimpan di volume `caddy`. **Jangan hapus volume itu**: bila hilang, Caddy membuat CA baru dan semua perangkat harus memasang ulang. Ikutkan berkas root CA dalam arsip konfigurasi server.
 

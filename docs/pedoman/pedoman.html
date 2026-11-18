@@ -227,8 +227,12 @@ tr { break-inside: avoid; }
   <ol class="langkah">
     <li>Buka <code>http://&lt;alamat-server&gt;/sertifikat</code> (dengan <b>http</b>, tanpa "s"), atau klik tautan <b>Pasang sertifikat utd-rs</b> di bawah formulir Masuk.</li>
     <li>Klik <b>Unduh sertifikat</b>, lalu ikuti langkah untuk Windows, Firefox, Android, iPad/iPhone, atau Linux di halaman itu. Pemasangan di Windows perlu izin administrator; minta bantuan admin TI.</li>
-    <li>Tutup dan buka lagi browser. Peringatan tidak muncul lagi.</li>
+    <li>Tutup browser sepenuhnya (semua jendela), lalu buka lagi. Peringatan tidak muncul lagi.</li>
   </ol>
+  <div class="kotak info"><b>Komputer Linux dengan Brave, Chrome, Chromium, atau Edge</b>
+  <p>Di Linux, browser-browser ini tidak membaca penyimpanan sertifikat sistem, sehingga <code>update-ca-certificates</code> saja tidak cukup. Pasang sertifikat ke penyimpanan browser (NSS) dengan perintah di bagian <b>Linux</b> halaman sertifikat:</p>
+  <p><code>certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "utd-rs root CA" -i ~/Downloads/utd-rs-root-ca.crt</code></p>
+  <p>Perintah <code>certutil</code> ada di paket <code>libnss3-tools</code>. Bila folder <code>~/.pki/nssdb</code> belum ada, buat dulu dengan <code>mkdir -p ~/.pki/nssdb &amp;&amp; certutil -d sql:$HOME/.pki/nssdb -N --empty-password</code>.</p></div>
   <figure class="setengah"><img src="gambar/umum-sertifikat.png" alt=""><figcaption>Gambar 2.3 — Halaman pemasangan sertifikat di http://&lt;alamat-server&gt;/sertifikat.</figcaption></figure>
 
   <h2>2.2 Tata letak layar</h2>
