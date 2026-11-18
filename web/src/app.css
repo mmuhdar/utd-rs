@@ -1,0 +1,164 @@
+/* Desain utd-rs (docs/desain.md): Swiss minimal, padat, mode terang bawaan; warna hanya lewat token. */
+@import 'tailwindcss';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-code/500.css';
+
+@theme {
+	--font-sans: 'Fira Sans', system-ui, sans-serif;
+	--font-mono: 'Fira Code', ui-monospace, monospace;
+	--color-latar: #f8fafc;
+	--color-kartu: #ffffff;
+	--color-teks: #0f172a;
+	--color-redup: #475569;
+	--color-garis: #cbd5e1;
+	--color-halus: #f1f5f9;
+	--color-utama: #0e7490;
+	--color-utama-gelap: #155e75;
+	--color-pada-utama: #ffffff;
+	--color-bahaya: #b91c1c;
+	--color-bahaya-latar: #fef2f2;
+	--color-waspada: #92400e;
+	--color-waspada-latar: #fffbeb;
+	--color-aman: #15803d;
+	--color-aman-latar: #f0fdf4;
+	--color-info-latar: #ecfeff;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-latar: #0b1220;
+		--color-kartu: #111a2b;
+		--color-teks: #e2e8f0;
+		--color-redup: #94a3b8;
+		--color-garis: #334155;
+		--color-halus: #1e293b;
+		--color-utama: #22d3ee;
+		--color-utama-gelap: #67e8f9;
+		--color-pada-utama: #082f49;
+		--color-bahaya: #fca5a5;
+		--color-bahaya-latar: #3b1212;
+		--color-waspada: #fcd34d;
+		--color-waspada-latar: #33260a;
+		--color-aman: #86efac;
+		--color-aman-latar: #0f2e1b;
+		--color-info-latar: #0c2a33;
+	}
+}
+
+@layer base {
+	html {
+		font-size: 15px;
+	}
+	body {
+		@apply bg-latar text-teks font-sans antialiased;
+		line-height: 1.5;
+	}
+	:focus-visible {
+		outline: 3px solid var(--color-utama);
+		outline-offset: 2px;
+	}
+	h1 {
+		@apply text-xl font-semibold;
+	}
+	h2 {
+		@apply text-base font-semibold;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		* {
+			transition: none !important;
+			animation: none !important;
+		}
+	}
+	@media print {
+		.tanpa-cetak {
+			display: none !important;
+		}
+		body {
+			background: white;
+			color: black;
+		}
+	}
+}
+
+@layer components {
+	.btn {
+		@apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-garis bg-kartu px-3.5 py-2 text-sm font-medium transition-colors duration-150 hover:bg-halus disabled:cursor-not-allowed disabled:opacity-50;
+	}
+	.btn--utama {
+		@apply border-utama bg-utama text-pada-utama hover:bg-utama-gelap;
+	}
+	.btn--bahaya {
+		@apply border-bahaya bg-bahaya text-white hover:opacity-90;
+	}
+	.btn--teks {
+		@apply border-transparent bg-transparent text-utama hover:bg-halus;
+	}
+	.btn--besar {
+		@apply min-h-12 px-5 text-base;
+	}
+	.label {
+		@apply mb-1 block text-sm font-medium;
+	}
+	.input {
+		@apply block min-h-10 w-full rounded-md border border-garis bg-kartu px-3 py-2 text-sm placeholder:text-redup aria-[invalid=true]:border-bahaya;
+	}
+	.mono {
+		@apply font-mono tracking-tight;
+	}
+	.panel {
+		@apply rounded-lg border border-garis bg-kartu p-4;
+	}
+	.tabel {
+		@apply w-full border-collapse text-sm;
+	}
+	.tabel th {
+		@apply border-b border-garis px-3 py-2 text-left text-xs font-semibold tracking-wide text-redup uppercase;
+	}
+	.tabel td {
+		@apply border-b border-halus px-3 py-2 align-top;
+	}
+	.tabel tbody tr:hover {
+		@apply bg-halus;
+	}
+	.chip {
+		@apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+	}
+	.chip--netral {
+		@apply border-garis bg-halus text-teks;
+	}
+	.chip--aman {
+		@apply border-aman/30 bg-aman-latar text-aman;
+	}
+	.chip--waspada {
+		@apply border-waspada/30 bg-waspada-latar text-waspada;
+	}
+	.chip--bahaya {
+		@apply border-bahaya/30 bg-bahaya-latar text-bahaya;
+	}
+	.chip--info {
+		@apply border-utama/30 bg-info-latar text-utama;
+	}
+	.peringatan {
+		@apply flex items-start gap-3 rounded-lg border-2 border-bahaya bg-bahaya-latar p-4 font-medium text-bahaya;
+	}
+	.catatan {
+		@apply flex items-start gap-3 rounded-lg border border-waspada/40 bg-waspada-latar p-3 text-sm text-waspada;
+	}
+	.form-grid {
+		@apply grid gap-4 sm:grid-cols-2;
+	}
+	.keadaan {
+		@apply flex flex-col items-center gap-2 py-10 text-center text-redup;
+	}
+	.keadaan--galat {
+		@apply text-bahaya;
+	}
+	.kerangka {
+		@apply flex flex-col gap-2 py-2;
+	}
+	.kerangka__baris {
+		@apply block h-8 animate-pulse rounded bg-halus;
+	}
+}

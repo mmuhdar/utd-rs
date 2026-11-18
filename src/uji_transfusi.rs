@@ -192,6 +192,8 @@ async fn alur_lengkap_sampai_reaksi(db: PgPool) {
     assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
     let t = a.perawat.ok("/api/transfusi/verifikasi", samping("RM001", "perawat2")).await;
     let tid = t["id"].as_str().unwrap();
+    let (_, d) = a.b.teknisi.get(&format!("/api/permintaan/{pid}")).await;
+    assert_eq!(d["status"], "selesai", "semua kantong sudah ditransfusikan");
 
     // Observasi dan selesai.
     for tahap in ["pra", "15_menit", "selesai"] {

@@ -288,6 +288,18 @@ async fn verifikasi_samping(
     .fetch_one(&mut *tx)
     .await?;
     audit::ubah(&mut tx, &p, "mulai", "transfusi", v["id"].as_str().unwrap_or_default(), v.clone()).await?;
+    // Permintaan selesai otomatis bila semua kantong yang diminta sudah ditransfusikan.
+    sqlx::query(
+        "update permintaan r set status = 'selesai', alasan_status = 'Semua kantong ditransfusikan'
+         where r.id = (select a.permintaan_id from pengeluaran g join alokasi a on a.id = g.alokasi_id where g.id = $1)
+           and r.status in ('diproses', 'siap')
+           and (select coalesce(sum((b->>'jumlah')::int), 0) from jsonb_array_elements(r.baris) b)
+               <= (select count(*) from transfusi t join pengeluaran g on g.id = t.pengeluaran_id join alokasi a on a.id = g.alokasi_id
+                   where a.permintaan_id = r.id)",
+    )
+    .bind(c.pengeluaran)
+    .execute(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(Json(v))
 }
