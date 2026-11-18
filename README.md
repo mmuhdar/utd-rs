@@ -267,7 +267,7 @@ Untuk Docker, variabel diisi di `.env` (contoh: [`deploy/env.contoh`](deploy/env
 | `UTD_PORT_HTTPS` / `UTD_PORT_HTTP` | `443` / `80` | Port di host |
 | `UTD_DB_SANDI` | — | Sandi PostgreSQL (wajib) |
 | `UTD_BACKUP_PASSPHRASE` | — | Frasa sandi enkripsi backup (wajib) |
-| `UTD_BACKUP_SIMPAN` | `3` | Jumlah backup harian (pukul 01.00) yang disimpan di tiap folder; yang paling lama dihapus saat ada backup baru |
+| `UTD_BACKUP_RETENSI_HARI` | `30` | Lama backup harian (pukul 01.00) disimpan di folder lokal dan offsite |
 | `UTD_DIR_BACKUP` / `UTD_DIR_OFFSITE` | `./backup` / `./backup-offsite` | Folder backup lokal dan salinan di lokasi kedua |
 | `TZ` | `Asia/Jakarta` | Zona waktu |
 | `UTD_SATUSEHAT_ENV` | kosong (mati) | `sandbox` atau `production` |

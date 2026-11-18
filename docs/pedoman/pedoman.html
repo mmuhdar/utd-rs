@@ -212,7 +212,7 @@ tr { break-inside: avoid; }
   <ol class="langkah">
     <li>Buka alamat aplikasi yang diberikan admin TI di browser (Chrome, Edge, atau Firefox terbaru).</li>
     <li>Isi <b>Nama pengguna</b> dan <b>Kata sandi</b>, lalu klik <b>Masuk</b>.</li>
-    <li>Pada masuk pertama, atau setelah sandi direset admin, Anda diarahkan ke <b>Akun saya</b> dan wajib mengganti sandi. Sandi minimal 10 karakter; kalimat pendek lebih mudah diingat dan lebih kuat.</li>
+    <li>Pada masuk pertama, atau setelah sandi direset admin, Anda diarahkan ke <b>Akun saya</b> dan wajib mengganti sandi. Panjang minimal sandi mengikuti kebijakan yang diatur admin TI (bawaan 10 karakter); kalimat pendek lebih mudah diingat dan lebih kuat.</li>
     <li>Untuk keluar, klik ikon keluar di kartu nama Anda di pojok kiri bawah. Selalu keluar sebelum meninggalkan komputer bersama.</li>
   </ol>
   <table>
@@ -222,8 +222,17 @@ tr { break-inside: avoid; }
     <tr><td>5 kali salah sandi</td><td>Akun terkunci 15 menit. Bila lupa sandi, minta admin TI mereset; reset sekaligus membuka kunci.</td></tr>
   </table>
 
+  <h3>Pertama kali di perangkat baru: pasang sertifikat</h3>
+  <p>utd-rs berjalan di jaringan lokal RS dengan sertifikat HTTPS yang diterbitkan servernya sendiri. Bila browser menampilkan peringatan "koneksi tidak aman", pasang sertifikatnya <b>sekali</b> di perangkat itu:</p>
+  <ol class="langkah">
+    <li>Buka <code>http://&lt;alamat-server&gt;/sertifikat</code> (dengan <b>http</b>, tanpa "s"), atau klik tautan <b>Pasang sertifikat utd-rs</b> di bawah formulir Masuk.</li>
+    <li>Klik <b>Unduh sertifikat</b>, lalu ikuti langkah untuk Windows, Firefox, Android, iPad/iPhone, atau Linux di halaman itu. Pemasangan di Windows perlu izin administrator; minta bantuan admin TI.</li>
+    <li>Tutup dan buka lagi browser. Peringatan tidak muncul lagi.</li>
+  </ol>
+  <figure class="setengah"><img src="gambar/umum-sertifikat.png" alt=""><figcaption>Gambar 2.3 — Halaman pemasangan sertifikat di http://&lt;alamat-server&gt;/sertifikat.</figcaption></figure>
+
   <h2>2.2 Tata letak layar</h2>
-  <figure><img src="../tangkapan-layar/02-beranda.png" alt=""><figcaption>Gambar 2.3 — Beranda: bilah samping berisi menu sesuai peran, angka utama, stok per golongan, permintaan berjalan, suhu alat simpan.</figcaption></figure>
+  <figure><img src="../tangkapan-layar/02-beranda.png" alt=""><figcaption>Gambar 2.4 — Beranda: bilah samping berisi menu sesuai peran, angka utama, stok per golongan, permintaan berjalan, suhu alat simpan.</figcaption></figure>
   <ul>
     <li><b>Bilah samping (kiri)</b> berisi menu yang dikelompokkan: Pelayanan, Bank darah, UTD, Laporan, Pengaturan. Menu yang tidak sesuai hak Anda tidak tampil. Di kartu nama bawah ada tombol tema (terang, gelap, ikuti sistem) dan tombol keluar.</li>
     <li><b>Kepala halaman</b> berisi jalur (mis. <i>Permintaan darah › PD-261118-0001</i>), judul, dan tombol aksi utama di kanan atas.</li>
@@ -251,7 +260,7 @@ tr { break-inside: avoid; }
   <div class="kotak waspada"><b>Selalu cocokkan hasil pindai dengan label fisik</b><p>Sistem menampilkan apa yang terbaca. Bila hasil di layar berbeda dengan tulisan di label, hentikan dan periksa ulang kantong serta labelnya.</p></div>
 
   <h2>2.5 Tanda tangan elektronik dan verifikasi kedua</h2>
-  <figure class="setengah"><img src="../tangkapan-layar/05-tanda-tangan.png" alt=""><figcaption>Gambar 2.4 — Dialog tanda tangan elektronik.</figcaption></figure>
+  <figure class="setengah"><img src="../tangkapan-layar/05-tanda-tangan.png" alt=""><figcaption>Gambar 2.5 — Dialog tanda tangan elektronik.</figcaption></figure>
   <ul>
     <li>Tindakan penting meminta <b>tanda tangan elektronik</b>: dialog terbuka, ketik ulang kata sandi Anda, lalu klik <b>Tanda tangani</b>. Tekan Esc atau <b>Batal</b> untuk membatalkan.</li>
     <li>Bila tindakan membutuhkan <b>petugas kedua</b> (verifikasi samping tempat tidur, persetujuan darurat), dialog meminta <b>nama pengguna dan sandi petugas kedua</b>. Petugas kedua mengetiknya sendiri; jangan mengetikkan sandi orang lain.</li>
@@ -621,7 +630,7 @@ tr { break-inside: avoid; }
 <section class="bab">
   <h1 class="judul-bab"><span class="no">7</span>Admin TI</h1>
   <div class="kartu-peran"><span class="ikon c-admin">TI</span>
-    <dl><dt>Menu</dt><dd>Beranda, Reaksi &amp; insiden dan Laporan &amp; mutu (lihat), Akun pengguna, Kop surat, Data induk &amp; aturan, Jejak audit, Integrasi SATUSEHAT.</dd>
+    <dl><dt>Menu</dt><dd>Beranda, Reaksi &amp; insiden dan Laporan &amp; mutu (lihat), Akun pengguna, Kebijakan sandi, Kop surat, Data induk &amp; aturan, Jejak audit, Integrasi SATUSEHAT.</dd>
     <dt>Dapat</dt><dd>Mengelola akun dan peran, reset sandi, token API, profil instalasi, kop surat, UTD mitra, alat simpan, integrasi SATUSEHAT, membaca jejak audit.</dd>
     <dt>Tidak dapat</dt><dd>Mengerjakan pelayanan darah (permintaan, uji, pengeluaran, transfusi). Pisahkan akun admin dari akun klinis.</dd></dl></div>
 
@@ -631,6 +640,7 @@ tr { break-inside: avoid; }
     <li><b>Buat akun</b>: isi nama pengguna (huruf kecil, angka, titik, garis bawah, atau tanda hubung; 3–40 karakter), nama lengkap, NIP (opsional), peran, dan sandi sementara. Pengguna wajib mengganti sandi saat masuk pertama.</li>
     <li><b>Kelola</b> akun untuk mengubah nama, peran, atau menonaktifkan. Akun tidak pernah dihapus supaya jejak audit tetap dapat dirujuk; nonaktifkan pegawai yang pindah atau keluar.</li>
     <li><b>Reset sandi</b> bila pengguna lupa sandi atau akunnya terkunci; reset sekaligus membuka kunci. Serahkan sandi sementara secara langsung, bukan lewat pesan grup.</li>
+    <li><b>Kebijakan sandi</b> (menu Pengaturan → Kebijakan sandi): atur panjang minimal sandi, 4–64 karakter (bawaan 10). Berlaku untuk sandi yang dibuat, direset, atau diganti sesudahnya. Nilai di bawah 8 memunculkan peringatan karena mudah ditebak.</li>
     <li>Satu orang boleh memiliki lebih dari satu peran sesuai tugas (mis. teknisi yang juga kepala), tetapi hindari menggabungkan peran admin dengan peran klinis.</li>
   </ol>
 
@@ -663,6 +673,8 @@ tr { break-inside: avoid; }
     <li>Backup terenkripsi berjalan harian dan disalin ke lokasi kedua. <b>Uji pemulihan setiap 3 bulan</b> sesuai <code>docs/operasional.md</code>; frasa sandi backup disimpan di brankas.</li>
     <li>Pembaruan versi: ikuti <code>docs/pemasangan.md</code>; migrasi database berjalan otomatis. Umumkan jadwal pembaruan ke BDRS dan siapkan lembar darurat.</li>
     <li><b>Tinjau akun aktif setiap bulan</b> dan nonaktifkan akun yang tidak lagi diperlukan.</li>
+    <li><b>Sertifikat HTTPS</b>: pasang root CA di setiap komputer dan tablet lewat <code>http://&lt;alamat-server&gt;/sertifikat</code>, setelah mencocokkan sidik jari SHA-256-nya (perintah di <code>docs/pemasangan.md</code>). Jangan menghapus volume <code>caddy</code> di server; bila hilang, semua perangkat harus memasang ulang.</li>
+    <li><b>Backup</b> berjalan setiap hari pukul 01.00 dan disimpan 30 hari (<code>UTD_BACKUP_RETENSI_HARI</code>).</li>
   </ul>
 
   <div class="latihan"><h3>Latihan admin TI</h3><p class="akun">Akun: <code>admin</code> · durasi ±30 menit</p>

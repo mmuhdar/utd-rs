@@ -29,7 +29,13 @@
 
 ## TLS
 
-Proxy Caddy melayani HTTPS. Bawaannya memakai CA internal Caddy. Root CA-nya ada di volume `caddy` (`/data/caddy/pki/authorities/local/root.crt`) dan perlu dipasang di komputer klien. Bila RS punya sertifikat sendiri, ikuti petunjuk di `deploy/Caddyfile`. Port database tidak pernah dibuka ke jaringan.
+Proxy Caddy melayani HTTPS. Karena utd-rs berjalan di jaringan lokal RS, bawaannya memakai CA internal Caddy (root CA berlaku 10 tahun). Root CA itu dipasang **sekali di setiap komputer dan tablet** supaya browser tidak menampilkan peringatan:
+
+1. Dari perangkat klien, buka `http://<UTD_DOMAIN>/sertifikat` (HTTP biasa, tanpa "s"). Halaman ini berisi tombol unduh `utd-rs-root-ca.crt` dan langkah pemasangan untuk Windows, Firefox, Android, iPad/iPhone, dan Linux. Halaman Masuk juga menautkannya.
+2. Sebelum memasang, cocokkan sidik jari SHA-256 berkasnya dengan milik server. Di server (folder `utd-rs`): `docker compose cp proxy:/data/caddy/pki/authorities/local/root.crt utd-rs-root-ca.crt && openssl x509 -in utd-rs-root-ca.crt -noout -fingerprint -sha256`. Nilai yang sama tampil di Windows (tab *Details* → *Thumbprint* SHA-256 / sidik jari) dan Android saat memasang.
+3. Root CA disimpan di volume `caddy`. **Jangan hapus volume itu**: bila hilang, Caddy membuat CA baru dan semua perangkat harus memasang ulang. Ikutkan berkas root CA dalam arsip konfigurasi server.
+
+Selain halaman sertifikat, semua akses HTTP dialihkan ke HTTPS. Bila RS punya sertifikat sendiri, ikuti petunjuk di `deploy/Caddyfile`. Port database tidak pernah dibuka ke jaringan.
 
 ## Pembaruan versi (NFR-08)
 

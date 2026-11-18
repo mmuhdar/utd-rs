@@ -1,4 +1,5 @@
-# HTTPS untuk jaringan RS. Bawaan: sertifikat dari CA internal Caddy (pasang root CA-nya di komputer klien).
+# HTTPS untuk jaringan RS. Bawaan: sertifikat dari CA internal Caddy. Root CA-nya dipasang sekali di setiap
+# komputer/tablet klien lewat http://<alamat>/sertifikat (lihat docs/pemasangan.md).
 # Bila RS punya sertifikat sendiri, taruh di deploy/sertifikat/ lalu ganti baris tls menjadi:
 #   tls /sertifikat/utd.crt /sertifikat/utd.key
 # Klien yang membuka alamat IP tidak mengirim SNI; tanpa default_sni Caddy menolak jabat tangan TLS.
@@ -11,4 +12,24 @@
 	encode gzip
 	header Strict-Transport-Security "max-age=31536000"
 	reverse_proxy app:8080
+}
+
+# HTTP hanya untuk halaman pemasangan sertifikat root CA (sebelum klien memercayai HTTPS);
+# alamat lain dialihkan ke HTTPS.
+http://{$UTD_DOMAIN} {
+	handle /sertifikat/utd-rs-root-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition "attachment; filename=utd-rs-root-ca.crt"
+		file_server
+	}
+	handle /sertifikat* {
+		root * /srv/sertifikat-ca
+		rewrite * /index.html
+		file_server
+	}
+	handle {
+		redir https://{host}{uri} 308
+	}
 }

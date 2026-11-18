@@ -104,7 +104,7 @@ Pemisahan tugas yang ditegakkan sistem:
 
 ### M8 — Operasional (NFR-07..NFR-17)
 - Dockerfile multi-stage, `compose.yaml` produksi (app + PostgreSQL + backup terjadwal), dan `docs/pemasangan.md`.
-- Backup harian dengan `pg_dump`, terenkripsi bila `BACKUP_PASSPHRASE` diisi, rotasi 3 backup terbaru (dapat diatur `UTD_BACKUP_SIMPAN`), serta instruksi penyalinan off-site dan uji pemulihan.
+- Backup harian dengan `pg_dump`, terenkripsi bila `BACKUP_PASSPHRASE` diisi, retensi 30 hari (dapat diatur `UTD_BACKUP_RETENSI_HARI`), serta instruksi penyalinan off-site dan uji pemulihan.
 - **Mode darurat (downtime)**: halaman cetak stok dan golongan pasien aktif, serta SPO manual di `docs/operasional.md`.
 - Paket validasi: `docs/validasi.md` (URS → uji yang menutupnya).
 

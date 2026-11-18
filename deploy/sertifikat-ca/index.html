@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasang sertifikat utd-rs</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font: 15px/1.6 system-ui, sans-serif; color: #0b1220; background: #f4f5f8; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  .kartu { background: #fff; border: 1px solid #e4e7ec; border-radius: 14px; padding: 18px 20px; margin: 16px 0; }
+  .redup { color: #5d6b82; }
+  .unduh { display: inline-block; background: #0b1220; color: #fff; text-decoration: none; font-weight: 700; border-radius: 10px; padding: 12px 20px; margin: 6px 0 2px; }
+  .lanjut { display: inline-block; color: #0b1220; font-weight: 700; margin-top: 4px; }
+  ol { margin: 0; padding-left: 20px; } li { margin: 4px 0; }
+  code { background: #f0f2f5; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  .catatan { background: #fff6e5; border: 1px solid #f79009; color: #93370d; border-radius: 12px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pasang sertifikat utd-rs</h1>
+  <p class="redup">utd-rs berjalan di jaringan lokal rumah sakit dan memakai sertifikat HTTPS yang diterbitkan server ini sendiri. Pasang sertifikat akar (root CA) di bawah ini <b>sekali saja</b> di setiap komputer dan tablet, supaya browser tidak lagi menampilkan peringatan "koneksi tidak aman".</p>
+
+  <div class="kartu">
+    <a class="unduh" href="/sertifikat/utd-rs-root-ca.crt" download>Unduh sertifikat (utd-rs-root-ca.crt)</a>
+    <p class="redup" style="margin:8px 0 0">Untuk memastikan berkasnya asli, cocokkan sidik jari SHA-256 dengan yang diberikan admin TI.</p>
+  </div>
+
+  <div class="kartu">
+    <h2>Windows (Chrome, Edge)</h2>
+    <ol>
+      <li>Buka berkas yang diunduh, lalu klik <b>Install Certificate…</b> / <b>Pasang Sertifikat…</b></li>
+      <li>Pilih <b>Local Machine</b> (perlu izin administrator), lalu <b>Next</b>.</li>
+      <li>Pilih <b>Place all certificates in the following store</b> → <b>Browse…</b> → <b>Trusted Root Certification Authorities</b>.</li>
+      <li><b>Next</b> → <b>Finish</b>, lalu tutup dan buka lagi browser.</li>
+    </ol>
+  </div>
+
+  <div class="kartu">
+    <h2>Firefox (semua sistem)</h2>
+    <ol>
+      <li>Buka <b>Pengaturan → Privasi &amp; Keamanan → Sertifikat → Lihat Sertifikat…</b></li>
+      <li>Tab <b>Otoritas</b> → <b>Impor…</b>, pilih berkas, centang <b>Percayai CA ini untuk mengidentifikasi situs web</b>.</li>
+    </ol>
+  </div>
+
+  <div class="kartu">
+    <h2>Android (tablet ruang)</h2>
+    <ol>
+      <li>Unduh berkasnya.</li>
+      <li>Buka <b>Setelan → Keamanan &amp; privasi → Setelan keamanan lainnya → Enkripsi &amp; kredensial → Instal sertifikat → Sertifikat CA</b> (nama menu bisa sedikit berbeda per merek).</li>
+      <li>Pilih <b>Tetap instal</b>, lalu pilih berkas <code>utd-rs-root-ca.crt</code>.</li>
+    </ol>
+  </div>
+
+  <div class="kartu">
+    <h2>iPad / iPhone</h2>
+    <ol>
+      <li>Buka halaman ini di <b>Safari</b>, unduh, lalu pilih <b>Izinkan</b>.</li>
+      <li><b>Pengaturan → Profil Diunduh → Instal</b>.</li>
+      <li><b>Pengaturan → Umum → Mengenai → Pengaturan Kepercayaan Sertifikat</b>, aktifkan sertifikat <i>Caddy Local Authority</i>.</li>
+    </ol>
+  </div>
+
+  <div class="kartu">
+    <h2>Linux (Ubuntu)</h2>
+    <ol>
+      <li><code>sudo cp utd-rs-root-ca.crt /usr/local/share/ca-certificates/ &amp;&amp; sudo update-ca-certificates</code></li>
+      <li>Chrome/Chromium: <b>Setelan → Privasi dan keamanan → Keamanan → Kelola sertifikat</b>, impor di tab <b>Otoritas</b>.</li>
+    </ol>
+  </div>
+
+  <p class="catatan">Sertifikat ini hanya berlaku untuk server utd-rs di jaringan rumah sakit dan masa berlakunya 10 tahun. Jangan memasang sertifikat dari alamat lain yang tidak diberikan admin TI.</p>
+  <a class="lanjut" href="/" id="lanjut">Lanjut ke utd-rs →</a>
+  <script>document.getElementById('lanjut').href = 'https://' + location.host + '/';</script>
+</main>
+</body>
+</html>

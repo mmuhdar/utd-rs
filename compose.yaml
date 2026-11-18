@@ -45,6 +45,7 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./deploy/sertifikat:/sertifikat:ro
+      - ./deploy/sertifikat-ca:/srv/sertifikat-ca:ro
       - caddy:/data
 
   backup:
@@ -61,7 +62,7 @@ services:
       PGDATABASE: utdrs
       PGPASSWORD: ${UTD_DB_SANDI}
       BACKUP_PASSPHRASE: ${UTD_BACKUP_PASSPHRASE:?isi UTD_BACKUP_PASSPHRASE di .env}
-      BACKUP_SIMPAN: ${UTD_BACKUP_SIMPAN:-3}
+      BACKUP_RETENSI_HARI: ${UTD_BACKUP_RETENSI_HARI:-30}
       TZ: ${TZ:-Asia/Jakarta}
     volumes:
       - ${UTD_DIR_BACKUP:-./backup}:/backup

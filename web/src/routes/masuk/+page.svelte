@@ -98,6 +98,10 @@
 				<ShieldCheck class="mt-0.5 size-[18px] shrink-0" aria-hidden="true" />
 				Akun bersifat pribadi, jangan dipinjamkan. Sesi berakhir setelah 30 menit tanpa aktivitas, dan setiap tindakan tercatat atas nama Anda.
 			</p>
+			<p class="text-xs text-redup">
+				Browser menampilkan peringatan koneksi tidak aman?
+				<a class="font-semibold text-teks-2 underline" href="http://{location.host}/sertifikat">Pasang sertifikat utd-rs</a> sekali di perangkat ini.
+			</p>
 		</form>
 	</div>
 </main>
