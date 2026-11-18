@@ -212,7 +212,7 @@ utd-rs membantu pemenuhan regulasi, tetapi tidak menggantikan kewajiban RS. Doku
 Kebutuhan: Docker Engine ≥ 24 dengan Docker Compose v2.
 
 ```sh
-git clone <url-repo> utd-rs && cd utd-rs
+git clone https://github.com/mmuhdar/utd-rs.git && cd utd-rs
 cp deploy/env.contoh .env          # untuk mencoba, isi sandi dengan nilai acak apa saja
 docker compose up -d --build
 docker compose exec app /app/utdrs seed-demo
