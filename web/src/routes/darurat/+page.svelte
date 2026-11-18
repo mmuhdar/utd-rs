@@ -31,8 +31,7 @@
 		p.golongan_terverifikasi
 			? golongan(p.golongan_terverifikasi.abo, p.golongan_terverifikasi.rhesus)
 			: `Belum terverifikasi${p.abo_klinis ? ` (klinis ${golongan(p.abo_klinis, p.rhesus_klinis)})` : ''}`;
-	const teralokasi = (p: any) =>
-		p.alokasi.filter((a: any) => !a.dilepas_pada && !a.pengeluaran).map((a: any) => a.kantong.nomor as string);
+	const teralokasi = (p: any): string[] => p.kantong_teralokasi ?? [];
 </script>
 
 <svelte:head><title>Lembar darurat — utd-rs</title></svelte:head>

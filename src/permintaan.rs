@@ -322,6 +322,9 @@ async fn daftar(State(s): State<AppState>, p: Pengguna, Query(f): Query<FilterPe
                     'dialokasikan', (select count(*) from alokasi a where a.permintaan_id = r.id and a.dilepas_pada is null),
                     'dikeluarkan', (select count(*) from pengeluaran g join alokasi a on a.id = g.alokasi_id where a.permintaan_id = r.id),
                     'diminta', (select sum((b->>'jumlah')::int) from jsonb_array_elements(r.baris) b),
+                    'kantong_teralokasi', (select coalesce(jsonb_agg(k.nomor order by k.nomor), '[]') from alokasi a
+                        join kantong k on k.id = a.kantong_id where a.permintaan_id = r.id and a.dilepas_pada is null
+                          and not exists (select 1 from pengeluaran g where g.alokasi_id = a.id)),
                     'golongan_terverifikasi', (select jsonb_build_object('abo', g.abo, 'rhesus', g.rhesus) from pemeriksaan_golongan g
                         where g.no_rm = r.no_rm and g.tanda_tangan_id is not null and g.batal_alasan is null and not g.diskrepansi
                         order by g.dicatat_pada desc limit 1)) x

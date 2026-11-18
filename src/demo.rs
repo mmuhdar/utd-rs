@@ -145,12 +145,12 @@ pub async fn jalankan(state: AppState) -> anyhow::Result<()> {
                 "ffp" | "cryo" => id(&f1),
                 _ => id(&l1),
             };
-            kantong.push(json!({ "nomor": format!("=G99992620{n:04}00"), "nomor_donasi": format!("G99992620{n:04}"), "komponen": komponen,
+            kantong.push(json!({ "nomor": format!("G99992620{n:04}"), "nomor_donasi": format!("G99992620{n:04}"), "komponen": komponen,
                 "abo": gol.0, "rhesus": gol.1, "volume_ml": if komponen == "tc" { 50 } else { 250 },
                 "kedaluwarsa": waktu(hari * 24 * 60), "imltd_nonreaktif": true, "diterima": true, "alat_id": alat_id }));
         }
     }
-    kantong.push(json!({ "nomor": "=G999926209999", "komponen": "prc", "abo": "A", "rhesus": "pos", "kedaluwarsa": waktu(20 * 24 * 60),
+    kantong.push(json!({ "nomor": "G999926209999", "komponen": "prc", "abo": "A", "rhesus": "pos", "kedaluwarsa": waktu(20 * 24 * 60),
         "imltd_nonreaktif": true, "diterima": false, "alasan_tolak": "bocor" }));
     tek.post("/api/penerimaan", json!({ "utd_id": id(&utd), "nomor_dokumen_utd": "SPD/DEMO/001", "suhu_min_transport": 3.2, "suhu_maks_transport": 7.8,
         "petugas_utd": "Petugas UTD Demo", "kantong": kantong })).await?;
