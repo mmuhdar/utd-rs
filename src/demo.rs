@@ -51,7 +51,9 @@ impl Klien {
 }
 
 fn waktu(menit: i64) -> String {
-    (OffsetDateTime::now_utc() + Duration::minutes(menit)).format(&time::format_description::well_known::Rfc3339).unwrap_or_default()
+    (OffsetDateTime::now_utc() + Duration::minutes(menit))
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_default()
 }
 
 fn id(v: &Value) -> String {
@@ -66,7 +68,8 @@ fn golongan(abo: &str, rh: &str) -> Value {
 
 pub async fn jalankan(state: AppState) -> anyhow::Result<()> {
     let db = state.db.clone();
-    let ada: bool = sqlx::query_scalar("select exists (select 1 from akun where nama_pengguna = 'kepala')").fetch_one(&db).await?;
+    let ada: bool =
+        sqlx::query_scalar("select exists (select 1 from akun where nama_pengguna = 'kepala')").fetch_one(&db).await?;
     if ada {
         anyhow::bail!("Data demo sudah ada (akun 'kepala'). Pakai database kosong.");
     }
@@ -97,11 +100,20 @@ pub async fn jalankan(state: AppState) -> anyhow::Result<()> {
     let mut dokter = Klien::masuk(&app, "dokter").await?;
     let mut perawat = Klien::masuk(&app, "perawat").await?;
 
-    kepala.kirim("PUT", "/api/master/profil", Some(json!({ "nama_rs": "RS Demo Sejahtera (fiktif)", "kode_faskes": "9900001", "jenis": "utd_rs" }))).await?;
-    let utd = kepala.post("/api/master/utd", json!({ "kode": "UTD-DEMO", "nama": "UTD Kota Demo (fiktif)", "format_label": "isbt128" })).await?;
-    let alat = |kode: &str, nama: &str, jenis: &str, min: f64, maks: f64| {
-        json!({ "kode": kode, "nama": nama, "jenis": jenis, "suhu_min": min, "suhu_maks": maks, "nomor_seri": format!("SN-{kode}"), "lokasi": "Ruang BDRS" })
-    };
+    kepala
+        .kirim(
+            "PUT",
+            "/api/master/profil",
+            Some(json!({ "nama_rs": "RS Demo Sejahtera (fiktif)", "kode_faskes": "9900001", "jenis": "utd_rs" })),
+        )
+        .await?;
+    let utd = kepala
+        .post(
+            "/api/master/utd",
+            json!({ "kode": "UTD-DEMO", "nama": "UTD Kota Demo (fiktif)", "format_label": "isbt128" }),
+        )
+        .await?;
+    let alat = |kode: &str, nama: &str, jenis: &str, min: f64, maks: f64| json!({ "kode": kode, "nama": nama, "jenis": jenis, "suhu_min": min, "suhu_maks": maks, "nomor_seri": format!("SN-{kode}"), "lokasi": "Ruang BDRS" });
     let l1 = kepala.post("/api/master/alat", alat("LD-01", "Lemari darah 1", "lemari", 2.0, 6.0)).await?;
     kepala.post("/api/master/alat", alat("LD-02", "Lemari darah 2", "lemari", 2.0, 6.0)).await?;
     let f1 = kepala.post("/api/master/alat", alat("FP-01", "Freezer plasma", "freezer", -40.0, -25.0)).await?;
@@ -172,78 +184,166 @@ pub async fn jalankan(state: AppState) -> anyhow::Result<()> {
     // Siapkan permintaan sampai golongan terverifikasi; mengembalikan (permintaan, sampel).
     async fn siapkan(tek: &mut Klien, tek2: &mut Klien, pid: &str, abo: &str, rh: &str) -> anyhow::Result<String> {
         let sp = tek
-            .post(&format!("/api/permintaan/{pid}/sampel"), json!({ "diambil_pada": waktu(-40), "diambil_oleh": "Ners Ruang Demo",
-                "jenis": "edta", "penyimpanan": "suhu_ruang", "diterima": true }))
+            .post(
+                &format!("/api/permintaan/{pid}/sampel"),
+                json!({ "diambil_pada": waktu(-40), "diambil_oleh": "Ners Ruang Demo",
+                "jenis": "edta", "penyimpanan": "suhu_ruang", "diterima": true }),
+            )
             .await?;
         let g = tek.post(&format!("/api/sampel/{}/golongan", id(&sp)), golongan(abo, rh)).await?;
-        tek2.post(&format!("/api/golongan/{}/verifikasi", id(&g)), json!({ "setuju": true, "sandi": SANDI_DEMO })).await?;
+        tek2.post(&format!("/api/golongan/{}/verifikasi", id(&g)), json!({ "setuju": true, "sandi": SANDI_DEMO }))
+            .await?;
         Ok(id(&sp))
     }
-    async fn uji(tek: &mut Klien, tek2: &mut Klien, pid: &str, sid: &str, nomor: &str, abo: &str, rh: &str) -> anyhow::Result<Value> {
+    async fn uji(
+        tek: &mut Klien,
+        tek2: &mut Klien,
+        pid: &str,
+        sid: &str,
+        nomor: &str,
+        abo: &str,
+        rh: &str,
+    ) -> anyhow::Result<Value> {
         let u = tek
-            .post("/api/uji-silang", json!({ "permintaan_id": pid, "sampel_id": sid, "nomor_kantong": nomor, "metode": "gel",
-                "abo_kantong": abo, "rhesus_kantong": rh, "mayor": "neg", "minor": "neg", "autokontrol": "neg" }))
+            .post(
+                "/api/uji-silang",
+                json!({ "permintaan_id": pid, "sampel_id": sid, "nomor_kantong": nomor, "metode": "gel",
+                "abo_kantong": abo, "rhesus_kantong": rh, "mayor": "neg", "minor": "neg", "autokontrol": "neg" }),
+            )
             .await?;
-        tek2.post(&format!("/api/uji-silang/{}/verifikasi", id(&u)), json!({ "setuju": true, "sandi": SANDI_DEMO })).await
+        tek2.post(&format!("/api/uji-silang/{}/verifikasi", id(&u)), json!({ "setuju": true, "sandi": SANDI_DEMO }))
+            .await
     }
 
     // 1. Permintaan baru menunggu sampel.
-    dokter.post("/api/permintaan", minta("DEMO-0003", "Rawat Inap Melati", "rutin", json!([{ "komponen": "prc", "jumlah": 2 }]))).await?;
+    dokter
+        .post(
+            "/api/permintaan",
+            minta("DEMO-0003", "Rawat Inap Melati", "rutin", json!([{ "komponen": "prc", "jumlah": 2 }])),
+        )
+        .await?;
     // 2. Permintaan siap diambil (sudah diuji silang).
-    let p2 = dokter.post("/api/permintaan", minta("DEMO-0002", "Kamar Operasi", "elektif", json!([{ "komponen": "prc", "jumlah": 2 }]))).await?;
+    let p2 = dokter
+        .post(
+            "/api/permintaan",
+            minta("DEMO-0002", "Kamar Operasi", "elektif", json!([{ "komponen": "prc", "jumlah": 2 }])),
+        )
+        .await?;
     let s2 = siapkan(&mut tek, &mut tek2, &id(&p2), "O", "pos").await?;
     for i in 0..2 {
         uji(&mut tek, &mut tek2, &id(&p2), &s2, &cari("prc", "O", "pos", i), "O", "pos").await?;
     }
     // 3. Transfusi selesai dengan reaksi yang sedang ditelusuri.
-    let p3 = dokter.post("/api/permintaan", minta("DEMO-0001", "IGD", "darurat", json!([{ "komponen": "prc", "jumlah": 1 }]))).await?;
+    let p3 = dokter
+        .post("/api/permintaan", minta("DEMO-0001", "IGD", "darurat", json!([{ "komponen": "prc", "jumlah": 1 }])))
+        .await?;
     let s3 = siapkan(&mut tek, &mut tek2, &id(&p3), "A", "pos").await?;
     let nomor3 = cari("prc", "A", "pos", 0);
     let a3 = uji(&mut tek, &mut tek2, &id(&p3), &s3, &nomor3, "A", "pos").await?;
-    tek.post(&format!("/api/alokasi/{}/keluarkan", a3["alokasi_id"].as_str().unwrap_or_default()), json!({ "penerima_ruang": "Ners IGD Demo" })).await?;
+    tek.post(
+        &format!("/api/alokasi/{}/keluarkan", a3["alokasi_id"].as_str().unwrap_or_default()),
+        json!({ "penerima_ruang": "Ners IGD Demo" }),
+    )
+    .await?;
     let t3 = perawat
-        .post("/api/transfusi/verifikasi", json!({ "no_rm": "DEMO-0001", "tanggal_lahir": "1975-03-12", "nomor_kantong": nomor3,
-            "petugas_2": "perawat2", "sandi_petugas_2": SANDI_DEMO }))
+        .post(
+            "/api/transfusi/verifikasi",
+            json!({ "no_rm": "DEMO-0001", "tanggal_lahir": "1975-03-12", "nomor_kantong": nomor3,
+            "petugas_2": "perawat2", "sandi_petugas_2": SANDI_DEMO }),
+        )
         .await?;
     for tahap in ["pra", "15_menit"] {
-        perawat.post(&format!("/api/transfusi/{}/observasi", id(&t3)), json!({ "tahap": tahap, "suhu": 36.9, "nadi": 92, "sistolik": 112, "diastolik": 72 })).await?;
+        perawat
+            .post(
+                &format!("/api/transfusi/{}/observasi", id(&t3)),
+                json!({ "tahap": tahap, "suhu": 36.9, "nadi": 92, "sistolik": 112, "diastolik": 72 }),
+            )
+            .await?;
     }
     perawat.post(&format!("/api/transfusi/{}/observasi", id(&t3)), json!({ "tahap": "berkala", "suhu": 38.4, "nadi": 110, "sistolik": 108, "diastolik": 70, "keluhan": "Menggigil" })).await?;
-    perawat.post(&format!("/api/transfusi/{}/reaksi", id(&t3)), json!({ "gejala": ["demam", "menggigil"], "tindakan": "Transfusi dihentikan, NaCl 0,9%, lapor DPJP" })).await?;
-    perawat.post(&format!("/api/transfusi/{}/selesai", id(&t3)), json!({ "volume_masuk_ml": 120, "dihentikan": true, "catatan": "Reaksi demam" })).await?;
+    perawat
+        .post(
+            &format!("/api/transfusi/{}/reaksi", id(&t3)),
+            json!({ "gejala": ["demam", "menggigil"], "tindakan": "Transfusi dihentikan, NaCl 0,9%, lapor DPJP" }),
+        )
+        .await?;
+    perawat
+        .post(
+            &format!("/api/transfusi/{}/selesai", id(&t3)),
+            json!({ "volume_masuk_ml": 120, "dihentikan": true, "catatan": "Reaksi demam" }),
+        )
+        .await?;
     // 4. Transfusi trombosit sedang berjalan.
-    let p4 = dokter.post("/api/permintaan", minta("DEMO-0001", "IGD", "rutin", json!([{ "komponen": "tc", "jumlah": 1 }]))).await?;
+    let p4 = dokter
+        .post("/api/permintaan", minta("DEMO-0001", "IGD", "rutin", json!([{ "komponen": "tc", "jumlah": 1 }])))
+        .await?;
     let s4 = siapkan(&mut tek, &mut tek2, &id(&p4), "A", "pos").await?;
     let nomor4 = cari("tc", "A", "pos", 0);
     let u4 = tek
-        .post("/api/uji-silang", json!({ "permintaan_id": id(&p4), "sampel_id": s4, "nomor_kantong": nomor4, "metode": "gel",
-            "abo_kantong": "A", "rhesus_kantong": "pos", "minor": "neg" }))
+        .post(
+            "/api/uji-silang",
+            json!({ "permintaan_id": id(&p4), "sampel_id": s4, "nomor_kantong": nomor4, "metode": "gel",
+            "abo_kantong": "A", "rhesus_kantong": "pos", "minor": "neg" }),
+        )
         .await?;
-    let a4 = tek2.post(&format!("/api/uji-silang/{}/verifikasi", id(&u4)), json!({ "setuju": true, "sandi": SANDI_DEMO })).await?;
-    tek.post(&format!("/api/alokasi/{}/keluarkan", a4["alokasi_id"].as_str().unwrap_or_default()), json!({ "penerima_ruang": "Ners IGD Demo" })).await?;
+    let a4 = tek2
+        .post(&format!("/api/uji-silang/{}/verifikasi", id(&u4)), json!({ "setuju": true, "sandi": SANDI_DEMO }))
+        .await?;
+    tek.post(
+        &format!("/api/alokasi/{}/keluarkan", a4["alokasi_id"].as_str().unwrap_or_default()),
+        json!({ "penerima_ruang": "Ners IGD Demo" }),
+    )
+    .await?;
     perawat
-        .post("/api/transfusi/verifikasi", json!({ "no_rm": "DEMO-0001", "tanggal_lahir": "1975-03-12", "nomor_kantong": nomor4,
-            "petugas_2": "perawat2", "sandi_petugas_2": SANDI_DEMO }))
+        .post(
+            "/api/transfusi/verifikasi",
+            json!({ "no_rm": "DEMO-0001", "tanggal_lahir": "1975-03-12", "nomor_kantong": nomor4,
+            "petugas_2": "perawat2", "sandi_petugas_2": SANDI_DEMO }),
+        )
         .await?;
     // 5. Permintaan darurat pasien Rh-negatif menunggu.
-    dokter.post("/api/permintaan", minta("DEMO-0004", "IGD", "darurat", json!([{ "komponen": "prc", "jumlah": 2 }]))).await?;
+    dokter
+        .post("/api/permintaan", minta("DEMO-0004", "IGD", "darurat", json!([{ "komponen": "prc", "jumlah": 2 }])))
+        .await?;
 
     // Mode UTD-RS: satu donor dengan donasi yang menunggu uji saring.
     let d = tek.post("/api/donor", json!({ "nik": "9901010101900001", "nama": "Andi Donor (fiktif)", "tanggal_lahir": "1992-04-05", "jenis_kelamin": "L",
         "alamat": "Jl. Demo No. 1", "telepon": "0800000000" })).await?;
-    let sel = tek.post(&format!("/api/donor/{}/seleksi", id(&d)), json!({ "berat_kg": 68.0, "hb": 14.2, "sistolik": 120, "diastolik": 80,
-        "nadi": 76, "suhu": 36.5, "kuesioner_lolos": true, "keputusan": "diterima" })).await?;
-    let dn = tek.post(&format!("/api/seleksi/{}/donasi", id(&sel)), json!({ "nomor": "G999926300001", "jenis": "sukarela", "volume_ml": 350,
-        "jenis_kantong": "triple" })).await?;
+    let sel = tek
+        .post(
+            &format!("/api/donor/{}/seleksi", id(&d)),
+            json!({ "berat_kg": 68.0, "hb": 14.2, "sistolik": 120, "diastolik": 80,
+        "nadi": 76, "suhu": 36.5, "kuesioner_lolos": true, "keputusan": "diterima" }),
+        )
+        .await?;
+    let dn = tek
+        .post(
+            &format!("/api/seleksi/{}/donasi", id(&sel)),
+            json!({ "nomor": "G999926300001", "jenis": "sukarela", "volume_ml": 350,
+        "jenis_kantong": "triple" }),
+        )
+        .await?;
     let gd = tek.post(&format!("/api/donasi/{}/golongan", id(&dn)), golongan("B", "pos")).await?;
-    tek2.post(&format!("/api/golongan-donasi/{}/verifikasi", id(&gd)), json!({ "setuju": true, "sandi": SANDI_DEMO })).await?;
-    tek.post(&format!("/api/donasi/{}/olah", id(&dn)), json!({ "komponen": [
+    tek2.post(&format!("/api/golongan-donasi/{}/verifikasi", id(&gd)), json!({ "setuju": true, "sandi": SANDI_DEMO }))
+        .await?;
+    tek.post(
+        &format!("/api/donasi/{}/olah", id(&dn)),
+        json!({ "komponen": [
         { "komponen": "prc", "volume_ml": 200, "alat_id": id(&l1) },
-        { "komponen": "ffp", "volume_ml": 150, "alat_id": id(&f1) }] })).await?;
+        { "komponen": "ffp", "volume_ml": 150, "alat_id": id(&f1) }] }),
+    )
+    .await?;
     for p in ["hiv", "hbsag"] {
-        let u = tek.post(&format!("/api/donasi/{}/imltd", id(&dn)), json!({ "parameter": p, "metode": "chlia", "hasil": "nonreaktif" })).await?;
+        let u = tek
+            .post(
+                &format!("/api/donasi/{}/imltd", id(&dn)),
+                json!({ "parameter": p, "metode": "chlia", "hasil": "nonreaktif" }),
+            )
+            .await?;
         tek2.post(&format!("/api/imltd/{}/verifikasi", id(&u)), json!({ "setuju": true, "sandi": SANDI_DEMO })).await?;
     }
-    println!("Data demo dibuat. Akun: admin, kepala, teknisi, teknisi2, dokter, perawat, perawat2, auditor — sandi {SANDI_DEMO}.");
+    println!(
+        "Data demo dibuat. Akun: admin, kepala, teknisi, teknisi2, dokter, perawat, perawat2, auditor — sandi {SANDI_DEMO}."
+    );
     Ok(())
 }
