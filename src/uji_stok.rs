@@ -69,7 +69,9 @@ async fn pencairan_mempersingkat_kedaluwarsa(db: PgPool) {
     let mut b = Bdrs::siapkan(&db).await;
     let ids = b.terima(&[("F1", "ffp", "AB", "pos"), ("P1", "prc", "O", "neg")]).await;
     let v = b.teknisi.ok(&format!("/api/kantong/{}/cairkan", ids[0]), json!({ "alat_id": b.lemari })).await;
-    let exp = time::OffsetDateTime::parse(v["kedaluwarsa"].as_str().unwrap(), &time::format_description::well_known::Rfc3339).unwrap();
+    let exp =
+        time::OffsetDateTime::parse(v["kedaluwarsa"].as_str().unwrap(), &time::format_description::well_known::Rfc3339)
+            .unwrap();
     assert!(exp <= time::OffsetDateTime::now_utc() + time::Duration::hours(6));
     // Tidak bisa dicairkan dua kali, dan PRC tidak dicairkan.
     let (st, _) = b.teknisi.post(&format!("/api/kantong/{}/cairkan", ids[0]), json!({})).await;
@@ -87,7 +89,8 @@ async fn penyimpangan_suhu_mengarantina_lalu_dinilai(db: PgPool) {
 
     // Data logger memakai token API.
     let mut admin = Uji::sebagai(&db, "admin", &["admin"]).await;
-    let akun = admin.ok("/api/akun", json!({ "nama_pengguna": "logger1", "nama": "Logger L1", "peran": ["logger"] })).await;
+    let akun =
+        admin.ok("/api/akun", json!({ "nama_pengguna": "logger1", "nama": "Logger L1", "peran": ["logger"] })).await;
     let token = admin.ok(&format!("/api/akun/{}/token", akun["id"].as_str().unwrap()), json!({})).await;
     let mut logger = Uji::baru(db.clone());
     logger.bearer(token["token"].as_str().unwrap());
@@ -105,15 +108,48 @@ async fn penyimpangan_suhu_mengarantina_lalu_dinilai(db: PgPool) {
     assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
 
     // Teknisi tidak berwenang menilai; kepala menilai satu layak satu tidak.
-    let (st, _) = b.teknisi.post(&format!("/api/penyimpangan-suhu/{pid}/nilai"), json!({ "kantong_id": ids[0], "keputusan": "layak", "alasan": "x" })).await;
+    let (st, _) = b
+        .teknisi
+        .post(
+            &format!("/api/penyimpangan-suhu/{pid}/nilai"),
+            json!({ "kantong_id": ids[0], "keputusan": "layak", "alasan": "x" }),
+        )
+        .await;
     assert_eq!(st, StatusCode::FORBIDDEN);
-    b.kepala.ok(&format!("/api/penyimpangan-suhu/{pid}/nilai"), json!({ "kantong_id": ids[0], "keputusan": "layak", "alasan": "15 menit, 9,5 °C" })).await;
-    let (st, _) = b.kepala.post(&format!("/api/penyimpangan-suhu/{pid}/tutup"), json!({ "kesimpulan": "pintu terbuka", "sandi": crate::uji::SANDI })).await;
+    b.kepala
+        .ok(
+            &format!("/api/penyimpangan-suhu/{pid}/nilai"),
+            json!({ "kantong_id": ids[0], "keputusan": "layak", "alasan": "15 menit, 9,5 °C" }),
+        )
+        .await;
+    let (st, _) = b
+        .kepala
+        .post(
+            &format!("/api/penyimpangan-suhu/{pid}/tutup"),
+            json!({ "kesimpulan": "pintu terbuka", "sandi": crate::uji::SANDI }),
+        )
+        .await;
     assert_eq!(st, StatusCode::CONFLICT, "masih ada kantong belum dinilai");
-    b.kepala.ok(&format!("/api/penyimpangan-suhu/{pid}/nilai"), json!({ "kantong_id": ids[1], "keputusan": "tidak_layak", "alasan": "dekat sumber panas" })).await;
-    let (st, _) = b.kepala.post(&format!("/api/penyimpangan-suhu/{pid}/tutup"), json!({ "kesimpulan": "pintu terbuka", "sandi": "salah" })).await;
+    b.kepala
+        .ok(
+            &format!("/api/penyimpangan-suhu/{pid}/nilai"),
+            json!({ "kantong_id": ids[1], "keputusan": "tidak_layak", "alasan": "dekat sumber panas" }),
+        )
+        .await;
+    let (st, _) = b
+        .kepala
+        .post(
+            &format!("/api/penyimpangan-suhu/{pid}/tutup"),
+            json!({ "kesimpulan": "pintu terbuka", "sandi": "salah" }),
+        )
+        .await;
     assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
-    b.kepala.ok(&format!("/api/penyimpangan-suhu/{pid}/tutup"), json!({ "kesimpulan": "pintu terbuka", "sandi": crate::uji::SANDI })).await;
+    b.kepala
+        .ok(
+            &format!("/api/penyimpangan-suhu/{pid}/tutup"),
+            json!({ "kesimpulan": "pintu terbuka", "sandi": crate::uji::SANDI }),
+        )
+        .await;
     let (_, k) = b.teknisi.get("/api/kantong/lacak/A1").await;
     assert_eq!(k["status"], "tersedia");
     let (_, k) = b.teknisi.get("/api/kantong/lacak/A2").await;

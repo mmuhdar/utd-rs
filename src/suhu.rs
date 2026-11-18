@@ -72,11 +72,12 @@ async fn catat(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianSuhu>)
     let menyimpang = i.suhu < min || i.suhu > maks;
     let mut penyimpangan: Option<Uuid> = None;
     if menyimpang {
-        let terbuka: Option<(Uuid, f64)> =
-            sqlx::query_as("select id, suhu_ekstrem::float8 from penyimpangan_suhu where alat_id = $1 and status = 'terbuka'")
-                .bind(alat_id)
-                .fetch_optional(&mut *tx)
-                .await?;
+        let terbuka: Option<(Uuid, f64)> = sqlx::query_as(
+            "select id, suhu_ekstrem::float8 from penyimpangan_suhu where alat_id = $1 and status = 'terbuka'",
+        )
+        .bind(alat_id)
+        .fetch_optional(&mut *tx)
+        .await?;
         match terbuka {
             Some((id, ekstrem)) => {
                 let tengah = (min + maks) / 2.0;
@@ -116,12 +117,16 @@ async fn catat(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianSuhu>)
                         .bind(&alasan)
                         .execute(&mut *tx)
                         .await?;
-                    let st: String = sqlx::query_scalar("select status from kantong where id = $1").bind(k).fetch_one(&mut *tx).await?;
+                    let st: String = sqlx::query_scalar("select status from kantong where id = $1")
+                        .bind(k)
+                        .fetch_one(&mut *tx)
+                        .await?;
                     if st != "karantina" {
                         ubah_status(&mut tx, &p, k, &["tersedia", "dialokasikan"], "karantina", Some(&alasan)).await?;
                     }
                 }
-                audit::ubah(&mut tx, &p, "buka", "penyimpangan_suhu", id, json!({ "alat": kode, "suhu": i.suhu })).await?;
+                audit::ubah(&mut tx, &p, "buka", "penyimpangan_suhu", id, json!({ "alat": kode, "suhu": i.suhu }))
+                    .await?;
                 penyimpangan = Some(id);
             }
         }
@@ -139,7 +144,12 @@ struct Rentang {
 }
 
 /// GET /api/suhu/{alat_id} — bawaan 7 hari terakhir (setara grafik suhu 7 hari, §3.10.2).
-async fn riwayat(State(s): State<AppState>, p: Pengguna, Path(alat): Path<Uuid>, Query(r): Query<Rentang>) -> Hasil<Json<Value>> {
+async fn riwayat(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(alat): Path<Uuid>,
+    Query(r): Query<Rentang>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.lihat")?;
     let v: Value = sqlx::query_scalar(
         "select coalesce(jsonb_agg(to_jsonb(l) || jsonb_build_object('petugas', a.nama) order by l.waktu), '[]')
@@ -190,7 +200,12 @@ struct Penilaian {
     alasan: Option<String>,
 }
 
-async fn nilai(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(n): Json<Penilaian>) -> Hasil<Json<Value>> {
+async fn nilai(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(n): Json<Penilaian>,
+) -> Hasil<Json<Value>> {
     p.wajib("karantina.lepas")?;
     let alasan = wajib_teks(&n.alasan, "alasan", "Dasar penilaian (lama dan besar penyimpangan, jenis komponen)")?;
     if !matches!(n.keputusan.as_str(), "layak" | "tidak_layak") {
@@ -211,12 +226,16 @@ async fn nilai(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Jso
     .execute(&mut *tx)
     .await?;
     if r.rows_affected() == 0 {
-        return Err(Galat::Konflik("Kantong ini tidak menunggu penilaian pada penyimpangan yang masih terbuka.".into()));
+        return Err(Galat::Konflik(
+            "Kantong ini tidak menunggu penilaian pada penyimpangan yang masih terbuka.".into(),
+        ));
     }
     let keterangan = format!("Penilaian penyimpangan suhu: {alasan}");
     if n.keputusan == "layak" {
-        let (imltd, asal): (bool, String) =
-            sqlx::query_as("select imltd_nonreaktif, asal from kantong where id = $1").bind(n.kantong_id).fetch_one(&mut *tx).await?;
+        let (imltd, asal): (bool, String) = sqlx::query_as("select imltd_nonreaktif, asal from kantong where id = $1")
+            .bind(n.kantong_id)
+            .fetch_one(&mut *tx)
+            .await?;
         // Kantong donasi yang belum diluluskan tetap karantina sampai pelulusan.
         let belum_lulus: bool = asal == "donasi"
             && sqlx::query_scalar::<_, bool>(
@@ -241,19 +260,33 @@ struct Penutupan {
     sandi: Option<String>,
 }
 
-async fn tutup(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(t): Json<Penutupan>) -> Hasil<Json<Value>> {
+async fn tutup(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(t): Json<Penutupan>,
+) -> Hasil<Json<Value>> {
     p.wajib("karantina.lepas")?;
     let kesimpulan = wajib_teks(&t.kesimpulan, "kesimpulan", "Kesimpulan dan tindakan perbaikan")?;
     let mut tx = s.db.begin().await?;
-    let belum: i64 = sqlx::query_scalar("select count(*) from penilaian_kantong where penyimpangan_id = $1 and keputusan is null")
-        .bind(id)
-        .fetch_one(&mut *tx)
-        .await?;
+    let belum: i64 =
+        sqlx::query_scalar("select count(*) from penilaian_kantong where penyimpangan_id = $1 and keputusan is null")
+            .bind(id)
+            .fetch_one(&mut *tx)
+            .await?;
     if belum > 0 {
         return Err(Galat::Konflik(format!("Masih ada {belum} kantong yang belum dinilai.")));
     }
-    tanda_tangan::sendiri(&mut tx, &p, t.sandi.as_deref().unwrap_or(""), "penutupan penyimpangan suhu", "penyimpangan_suhu", id, &json!({ "kesimpulan": kesimpulan }))
-        .await?;
+    tanda_tangan::sendiri(
+        &mut tx,
+        &p,
+        t.sandi.as_deref().unwrap_or(""),
+        "penutupan penyimpangan suhu",
+        "penyimpangan_suhu",
+        id,
+        &json!({ "kesimpulan": kesimpulan }),
+    )
+    .await?;
     let n = sqlx::query(
         "update penyimpangan_suhu set status = 'ditutup', kesimpulan = $2, ditutup_oleh = $3, ditutup_pada = now()
          where id = $1 and status = 'terbuka'",

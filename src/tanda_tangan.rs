@@ -35,7 +35,8 @@ pub async fn sendiri(
     id: impl ToString,
     isi: &Value,
 ) -> Hasil<Uuid> {
-    let hash: String = sqlx::query_scalar("select sandi_hash from akun where id = $1").bind(p.akun_id).fetch_one(&mut *conn).await?;
+    let hash: String =
+        sqlx::query_scalar("select sandi_hash from akun where id = $1").bind(p.akun_id).fetch_one(&mut *conn).await?;
     if !sandi_cocok(&hash, sandi) {
         return Err(tolak("sandi", "Kata sandi salah. Tanda tangan memerlukan kata sandi Anda sendiri."));
     }
@@ -74,6 +75,7 @@ pub async fn petugas_lain(
 }
 
 /// Verifikasi kedua oleh pengguna yang masuk: harus berbeda dari penginput.
+#[allow(clippy::too_many_arguments)]
 pub async fn verifikasi_kedua(
     conn: &mut PgConnection,
     p: &Pengguna,

@@ -58,8 +58,10 @@ async fn ubah_status_ba(
     alasan: Option<&str>,
     ba: Option<Uuid>,
 ) -> Hasil<Value> {
-    let k: Option<(String, String)> =
-        sqlx::query_as("select status, nomor from kantong where id = $1 for update").bind(id).fetch_optional(&mut *conn).await?;
+    let k: Option<(String, String)> = sqlx::query_as("select status, nomor from kantong where id = $1 for update")
+        .bind(id)
+        .fetch_optional(&mut *conn)
+        .await?;
     let (status, nomor) = k.ok_or_else(|| Galat::TidakDitemukan("Kantong tidak ditemukan.".into()))?;
     if !dari.contains(&status.as_str()) {
         return Err(Galat::Konflik(format!("Kantong {nomor} berstatus {status}; tindakan ini tidak bisa dilakukan.")));
@@ -73,8 +75,8 @@ async fn ubah_status_ba(
     .bind(ke)
     .bind(alasan)
     .bind(ba)
-        .fetch_one(&mut *conn)
-        .await?;
+    .fetch_one(&mut *conn)
+    .await?;
     audit::catat(
         conn,
         Some(p),
@@ -110,7 +112,11 @@ struct BarisPermintaanUtd {
     jumlah: i32,
 }
 
-async fn buat_permintaan_utd(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianPermintaanUtd>) -> Hasil<Json<Value>> {
+async fn buat_permintaan_utd(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Json(i): Json<IsianPermintaanUtd>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     if !matches!(i.jenis.as_str(), "rutin" | "khusus" | "darurat") {
         return Err(tolak("jenis", "Pilih jenis permintaan: rutin, khusus, atau darurat."));
@@ -119,12 +125,19 @@ async fn buat_permintaan_utd(State(s): State<AppState>, p: Pengguna, Json(i): Js
         return Err(tolak("baris", "Isi minimal satu baris komponen."));
     }
     for b in &i.baris {
-        if !KOMPONEN.contains(&b.komponen.as_str()) || !ABO.contains(&b.abo.as_str()) || !matches!(b.rhesus.as_str(), "pos" | "neg") || b.jumlah < 1 {
+        if !KOMPONEN.contains(&b.komponen.as_str())
+            || !ABO.contains(&b.abo.as_str())
+            || !matches!(b.rhesus.as_str(), "pos" | "neg")
+            || b.jumlah < 1
+        {
             return Err(tolak("baris", "Setiap baris perlu komponen, golongan, rhesus, dan jumlah minimal 1."));
         }
     }
     if i.jenis == "darurat" && teks(&i.catatan).is_none() {
-        return Err(tolak("catatan", "Permintaan darurat ke UTD perlu keterangan alasan dan data pasien bila darah langka."));
+        return Err(tolak(
+            "catatan",
+            "Permintaan darurat ke UTD perlu keterangan alasan dan data pasien bila darah langka.",
+        ));
     }
     let mut tx = s.db.begin().await?;
     let v: Value = sqlx::query_scalar(
@@ -158,7 +171,12 @@ struct UbahStatus {
     status: String,
 }
 
-async fn status_permintaan_utd(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(u): Json<UbahStatus>) -> Hasil<Json<Value>> {
+async fn status_permintaan_utd(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(u): Json<UbahStatus>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     if !matches!(u.status.as_str(), "dipenuhi" | "batal") {
         return Err(tolak("status", "Status hanya bisa diubah menjadi dipenuhi atau batal."));
@@ -240,7 +258,10 @@ async fn terima(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianPener
                 });
             }
             if k.kedaluwarsa <= sekarang {
-                galat.push(GalatIsian { isian: isian("kedaluwarsa"), pesan: "Kantong sudah kedaluwarsa; tolak dan kembalikan.".into() });
+                galat.push(GalatIsian {
+                    isian: isian("kedaluwarsa"),
+                    pesan: "Kantong sudah kedaluwarsa; tolak dan kembalikan.".into(),
+                });
             }
             if k.alat_id.is_none() {
                 galat.push(GalatIsian { isian: isian("alat_id"), pesan: "Pilih alat simpan tujuan.".into() });
@@ -329,8 +350,10 @@ async fn periksa_alat(conn: &mut PgConnection, alat: Uuid, komponen: &str) -> Ha
     .fetch_optional(&mut *conn)
     .await?;
     let (kode, jenis, aktif, menyimpang) = r.ok_or_else(|| tolak("alat_id", "Alat simpan tidak ditemukan."))?;
-    let perlu: String =
-        sqlx::query_scalar("select jenis_alat from aturan_komponen where komponen = $1").bind(komponen).fetch_one(&mut *conn).await?;
+    let perlu: String = sqlx::query_scalar("select jenis_alat from aturan_komponen where komponen = $1")
+        .bind(komponen)
+        .fetch_one(&mut *conn)
+        .await?;
     if !aktif {
         return Err(tolak("alat_id", format!("Alat {kode} sudah tidak aktif.")));
     }
@@ -338,7 +361,10 @@ async fn periksa_alat(conn: &mut PgConnection, alat: Uuid, komponen: &str) -> Ha
         return Err(tolak("alat_id", format!("Alat {kode} sedang mengalami penyimpangan suhu; pilih alat lain.")));
     }
     if jenis != perlu {
-        return Err(tolak("alat_id", format!("Komponen {} harus disimpan di {perlu}, bukan di {jenis} ({kode}).", komponen.to_uppercase())));
+        return Err(tolak(
+            "alat_id",
+            format!("Komponen {} harus disimpan di {perlu}, bukan di {jenis} ({kode}).", komponen.to_uppercase()),
+        ));
     }
     Ok(())
 }
@@ -433,7 +459,12 @@ struct Alasan {
 }
 
 /// Pencairan FFP/kriopresipitat: kedaluwarsa dipersingkat sesuai aturan komponen (Permenkes 91/2015 §5.5.2 no. 4).
-async fn cairkan(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(a): Json<Alasan>) -> Hasil<Json<Value>> {
+async fn cairkan(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(a): Json<Alasan>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     let mut tx = s.db.begin().await?;
     let v: Option<Value> = sqlx::query_scalar(
@@ -450,14 +481,30 @@ async fn cairkan(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, J
     .fetch_optional(&mut *tx)
     .await?;
     let v = v.ok_or_else(|| {
-        Galat::Konflik("Hanya FFP atau kriopresipitat yang tersedia, belum kedaluwarsa, dan belum dicairkan yang bisa dicairkan.".into())
+        Galat::Konflik(
+            "Hanya FFP atau kriopresipitat yang tersedia, belum kedaluwarsa, dan belum dicairkan yang bisa dicairkan."
+                .into(),
+        )
     })?;
-    audit::ubah(&mut tx, &p, "cairkan", "kantong", id, json!({ "kedaluwarsa": v["kedaluwarsa"], "dicairkan_pada": v["dicairkan_pada"] })).await?;
+    audit::ubah(
+        &mut tx,
+        &p,
+        "cairkan",
+        "kantong",
+        id,
+        json!({ "kedaluwarsa": v["kedaluwarsa"], "dicairkan_pada": v["dicairkan_pada"] }),
+    )
+    .await?;
     tx.commit().await?;
     Ok(Json(v))
 }
 
-async fn pindah(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(a): Json<Alasan>) -> Hasil<Json<Value>> {
+async fn pindah(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(a): Json<Alasan>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     let alat = a.alat_id.ok_or_else(|| tolak("alat_id", "Pilih alat simpan tujuan."))?;
     let mut tx = s.db.begin().await?;
@@ -466,7 +513,8 @@ async fn pindah(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Js
             .bind(id)
             .fetch_optional(&mut *tx)
             .await?;
-    let (komponen, lama, status, dicairkan) = k.ok_or_else(|| Galat::TidakDitemukan("Kantong tidak ditemukan.".into()))?;
+    let (komponen, lama, status, dicairkan) =
+        k.ok_or_else(|| Galat::TidakDitemukan("Kantong tidak ditemukan.".into()))?;
     if !matches!(status.as_str(), "karantina" | "tersedia" | "dialokasikan") {
         return Err(Galat::Konflik(format!("Kantong berstatus {status} tidak lagi di BDRS.")));
     }
@@ -491,16 +539,23 @@ async fn pindah(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Js
     Ok(Json(json!({})))
 }
 
-async fn karantina(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(a): Json<Alasan>) -> Hasil<Json<Value>> {
+async fn karantina(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(a): Json<Alasan>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     let alasan = wajib_teks(&a.alasan, "alasan", "Alasan karantina")?;
     let mut tx = s.db.begin().await?;
     // Kantong teralokasi dilepas dulu dari permintaannya.
-    sqlx::query("update alokasi set dilepas_pada = now(), alasan_lepas = $2 where kantong_id = $1 and dilepas_pada is null")
-        .bind(id)
-        .bind(format!("Dikarantina: {alasan}"))
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "update alokasi set dilepas_pada = now(), alasan_lepas = $2 where kantong_id = $1 and dilepas_pada is null",
+    )
+    .bind(id)
+    .bind(format!("Dikarantina: {alasan}"))
+    .execute(&mut *tx)
+    .await?;
     let v = ubah_status(&mut tx, &p, id, &["tersedia", "dialokasikan"], "karantina", Some(alasan)).await?;
     tx.commit().await?;
     Ok(Json(v))
@@ -508,21 +563,49 @@ async fn karantina(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>,
 
 /// Melepas karantina hanya oleh penanggung jawab BDRS, dengan tanda tangan. Kantong hasil donasi sendiri
 /// keluar dari karantina hanya lewat pelulusan.
-async fn lepas_karantina(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(a): Json<Alasan>) -> Hasil<Json<Value>> {
+async fn lepas_karantina(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(a): Json<Alasan>,
+) -> Hasil<Json<Value>> {
     p.wajib("karantina.lepas")?;
     let alasan = wajib_teks(&a.alasan, "alasan", "Alasan pelepasan karantina")?;
     let mut tx = s.db.begin().await?;
     let k: Option<(String, bool, OffsetDateTime)> =
-        sqlx::query_as("select asal, imltd_nonreaktif, kedaluwarsa from kantong where id = $1").bind(id).fetch_optional(&mut *tx).await?;
+        sqlx::query_as("select asal, imltd_nonreaktif, kedaluwarsa from kantong where id = $1")
+            .bind(id)
+            .fetch_optional(&mut *tx)
+            .await?;
     let (asal, imltd, kedaluwarsa) = k.ok_or_else(|| Galat::TidakDitemukan("Kantong tidak ditemukan.".into()))?;
     if asal == "donasi" {
         return Err(Galat::Konflik("Kantong hasil donasi sendiri keluar dari karantina lewat pelulusan.".into()));
     }
-    if !imltd || kedaluwarsa <= OffsetDateTime::now_utc() {
-        return Err(Galat::Konflik("Kantong reaktif IMLTD atau kedaluwarsa tidak boleh dilepas dari karantina.".into()));
-    }
-    tanda_tangan::sendiri(&mut tx, &p, a.sandi.as_deref().unwrap_or(""), "pelepasan karantina", "kantong", id, &json!({ "alasan": alasan }))
+    let pernah_keluar: bool = sqlx::query_scalar("select exists (select 1 from pengeluaran where kantong_id = $1)")
+        .bind(id)
+        .fetch_one(&mut *tx)
         .await?;
+    if pernah_keluar {
+        return Err(Galat::Konflik(
+            "Kantong yang pernah dikeluarkan ke ruang tidak boleh kembali ke stok; kembalikan ke UTD atau musnahkan."
+                .into(),
+        ));
+    }
+    if !imltd || kedaluwarsa <= OffsetDateTime::now_utc() {
+        return Err(Galat::Konflik(
+            "Kantong reaktif IMLTD atau kedaluwarsa tidak boleh dilepas dari karantina.".into(),
+        ));
+    }
+    tanda_tangan::sendiri(
+        &mut tx,
+        &p,
+        a.sandi.as_deref().unwrap_or(""),
+        "pelepasan karantina",
+        "kantong",
+        id,
+        &json!({ "alasan": alasan }),
+    )
+    .await?;
     let v = ubah_status(&mut tx, &p, id, &["karantina"], "tersedia", Some(alasan)).await?;
     tx.commit().await?;
     Ok(Json(v))
@@ -560,11 +643,17 @@ pub const ALASAN_AKHIR: [&str; 10] = [
 ];
 
 /// POST /api/berita-acara — pengembalian ke UTD (Permenkes 91/2015 §5.10) atau pemusnahan (PP 28/2024 Pasal 297).
-async fn buat_berita_acara(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianBeritaAcara>) -> Hasil<Json<Value>> {
+async fn buat_berita_acara(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Json(i): Json<IsianBeritaAcara>,
+) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     match i.jenis.as_str() {
         "pengembalian" if i.utd_id.is_none() => return Err(tolak("utd_id", "Pilih UTD tujuan pengembalian.")),
-        "pemusnahan" if teks(&i.metode).is_none() => return Err(tolak("metode", "Isi metode pemusnahan (mis. insinerator limbah medis).")),
+        "pemusnahan" if teks(&i.metode).is_none() => {
+            return Err(tolak("metode", "Isi metode pemusnahan (mis. insinerator limbah medis)."));
+        }
         "pengembalian" | "pemusnahan" => {}
         _ => return Err(tolak("jenis", "Pilih pengembalian atau pemusnahan.")),
     }
@@ -591,12 +680,17 @@ async fn buat_berita_acara(State(s): State<AppState>, p: Pengguna, Json(i): Json
     let ke = if i.jenis == "pengembalian" { "dikembalikan" } else { "dimusnahkan" };
     for k in &i.kantong {
         // Kantong yang sudah keluar ke ruang tetapi tidak jadi ditransfusikan juga diakhiri di sini.
-        let ditransfusi: bool =
-            sqlx::query_scalar("select exists (select 1 from transfusi where kantong_id = $1)").bind(k.id).fetch_one(&mut *tx).await?;
+        let ditransfusi: bool = sqlx::query_scalar("select exists (select 1 from transfusi where kantong_id = $1)")
+            .bind(k.id)
+            .fetch_one(&mut *tx)
+            .await?;
         if ditransfusi {
-            return Err(Galat::Konflik("Kantong yang sudah ditransfusikan tidak bisa dikembalikan atau dimusnahkan.".into()));
+            return Err(Galat::Konflik(
+                "Kantong yang sudah ditransfusikan tidak bisa dikembalikan atau dimusnahkan.".into(),
+            ));
         }
-        ubah_status_ba(&mut tx, &p, k.id, &["karantina", "tersedia", "dikeluarkan"], ke, Some(&k.alasan), Some(ba_id)).await?;
+        ubah_status_ba(&mut tx, &p, k.id, &["karantina", "tersedia", "dikeluarkan"], ke, Some(&k.alasan), Some(ba_id))
+            .await?;
     }
     audit::ubah(&mut tx, &p, "buat", "berita_acara", ba_id, ba.clone()).await?;
     tx.commit().await?;
@@ -670,7 +764,12 @@ async fn lacak(State(s): State<AppState>, p: Pengguna, Path(nomor): Path<String>
         audit::catat(
             &mut tx,
             Some(&p),
-            Jejak { aksi: "lihat", objek: "kantong", objek_id: v["id"].as_str().map(String::from), ..Default::default() },
+            Jejak {
+                aksi: "lihat",
+                objek: "kantong",
+                objek_id: v["id"].as_str().map(String::from),
+                ..Default::default()
+            },
         )
         .await?;
     }

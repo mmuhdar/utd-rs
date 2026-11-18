@@ -7,13 +7,18 @@ mod cli;
 mod config;
 mod error;
 mod master;
+mod permintaan;
+mod pratransfusi;
 mod stok;
 mod suhu;
 mod tanda_tangan;
+mod transfusi;
 #[cfg(test)]
 mod uji;
 #[cfg(test)]
 mod uji_stok;
+#[cfg(test)]
+mod uji_transfusi;
 
 use axum::extract::Request;
 use axum::http::header::{CACHE_CONTROL, CONTENT_TYPE};
@@ -47,6 +52,9 @@ pub fn router(state: AppState) -> Router {
         .merge(master::rute())
         .merge(stok::rute())
         .merge(suhu::rute())
+        .merge(permintaan::rute())
+        .merge(pratransfusi::rute())
+        .merge(transfusi::rute())
         .fallback(|| async { Galat::TidakDitemukan("Alamat API tidak dikenal.".into()) })
         .layer(middleware::from_fn(hanya_json));
     let web = ServeDir::new(&state.cfg.dir_web).fallback(ServeFile::new(format!("{}/index.html", state.cfg.dir_web)));

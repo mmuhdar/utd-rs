@@ -188,7 +188,11 @@ fn token_acak() -> anyhow::Result<[u8; 32]> {
 }
 
 /// Token hanya ditampilkan sekali; database menyimpan hash-nya.
-async fn terbitkan_token(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>) -> Hasil<Json<serde_json::Value>> {
+async fn terbitkan_token(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+) -> Hasil<Json<serde_json::Value>> {
     p.wajib("akun.kelola")?;
     let peran: Option<Vec<String>> =
         sqlx::query_scalar("select peran from akun where id = $1 and aktif").bind(id).fetch_optional(&s.db).await?;

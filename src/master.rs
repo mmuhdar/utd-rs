@@ -51,7 +51,8 @@ async fn simpan_profil(State(s): State<AppState>, p: Pengguna, Json(i): Json<Isi
         return Err(tolak("jenis", "Pilih BDRS atau UTD-RS."));
     }
     let mut tx = s.db.begin().await?;
-    let sebelum: Value = sqlx::query_scalar("select to_jsonb(p) from profil_instalasi p for update").fetch_one(&mut *tx).await?;
+    let sebelum: Value =
+        sqlx::query_scalar("select to_jsonb(p) from profil_instalasi p for update").fetch_one(&mut *tx).await?;
     let sesudah: Value = sqlx::query_scalar(
         "update profil_instalasi p set nama_rs = $1, kode_faskes = $2, jenis = $3, diubah_pada = now() returning to_jsonb(p)",
     )
@@ -63,7 +64,13 @@ async fn simpan_profil(State(s): State<AppState>, p: Pengguna, Json(i): Json<Isi
     audit::catat(
         &mut tx,
         Some(&p),
-        Jejak { aksi: "ubah", objek: "profil_instalasi", sebelum: Some(sebelum), sesudah: Some(sesudah.clone()), ..Default::default() },
+        Jejak {
+            aksi: "ubah",
+            objek: "profil_instalasi",
+            sebelum: Some(sebelum),
+            sesudah: Some(sesudah.clone()),
+            ..Default::default()
+        },
     )
     .await?;
     tx.commit().await?;
@@ -71,9 +78,11 @@ async fn simpan_profil(State(s): State<AppState>, p: Pengguna, Json(i): Json<Isi
 }
 
 async fn daftar_utd(State(s): State<AppState>, _p: Pengguna) -> Hasil<Json<Value>> {
-    let v: Value = sqlx::query_scalar("select coalesce(jsonb_agg(to_jsonb(u) order by u.aktif desc, u.nama), '[]') from utd_mitra u")
-        .fetch_one(&s.db)
-        .await?;
+    let v: Value = sqlx::query_scalar(
+        "select coalesce(jsonb_agg(to_jsonb(u) order by u.aktif desc, u.nama), '[]') from utd_mitra u",
+    )
+    .fetch_one(&s.db)
+    .await?;
     Ok(Json(v))
 }
 
@@ -102,16 +111,24 @@ async fn simpan_utd(s: &AppState, p: &Pengguna, id: Option<Uuid>, i: IsianUtd) -
          values (coalesce($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6) returning to_jsonb(utd_mitra)"
     };
     let v: Option<Value> = sqlx::query_scalar(sql)
-    .bind(id)
-    .bind(kode)
-    .bind(nama)
-    .bind(teks(&i.alamat))
-    .bind(&i.format_label)
-    .bind(i.aktif.unwrap_or(true))
-    .fetch_optional(&mut *tx)
-    .await?;
+        .bind(id)
+        .bind(kode)
+        .bind(nama)
+        .bind(teks(&i.alamat))
+        .bind(&i.format_label)
+        .bind(i.aktif.unwrap_or(true))
+        .fetch_optional(&mut *tx)
+        .await?;
     let v = v.ok_or_else(|| Galat::TidakDitemukan("UTD tidak ditemukan.".into()))?;
-    audit::ubah(&mut tx, p, if id.is_some() { "ubah" } else { "buat" }, "utd_mitra", v["id"].as_str().unwrap_or_default(), v.clone()).await?;
+    audit::ubah(
+        &mut tx,
+        p,
+        if id.is_some() { "ubah" } else { "buat" },
+        "utd_mitra",
+        v["id"].as_str().unwrap_or_default(),
+        v.clone(),
+    )
+    .await?;
     tx.commit().await?;
     Ok(Json(v))
 }
@@ -120,7 +137,12 @@ async fn buat_utd(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianUtd
     simpan_utd(&s, &p, None, i).await
 }
 
-async fn ubah_utd(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(i): Json<IsianUtd>) -> Hasil<Json<Value>> {
+async fn ubah_utd(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(i): Json<IsianUtd>,
+) -> Hasil<Json<Value>> {
     simpan_utd(&s, &p, Some(id), i).await
 }
 
@@ -172,19 +194,27 @@ async fn simpan_alat(s: &AppState, p: &Pengguna, id: Option<Uuid>, i: IsianAlat)
          returning to_jsonb(alat_simpan)"
     };
     let v: Option<Value> = sqlx::query_scalar(sql)
-    .bind(id)
-    .bind(kode)
-    .bind(nama)
-    .bind(teks(&i.nomor_seri))
-    .bind(&i.jenis)
-    .bind(i.suhu_min)
-    .bind(i.suhu_maks)
-    .bind(teks(&i.lokasi))
-    .bind(i.aktif.unwrap_or(true))
-    .fetch_optional(&mut *tx)
-    .await?;
+        .bind(id)
+        .bind(kode)
+        .bind(nama)
+        .bind(teks(&i.nomor_seri))
+        .bind(&i.jenis)
+        .bind(i.suhu_min)
+        .bind(i.suhu_maks)
+        .bind(teks(&i.lokasi))
+        .bind(i.aktif.unwrap_or(true))
+        .fetch_optional(&mut *tx)
+        .await?;
     let v = v.ok_or_else(|| Galat::TidakDitemukan("Alat simpan tidak ditemukan.".into()))?;
-    audit::ubah(&mut tx, p, if id.is_some() { "ubah" } else { "buat" }, "alat_simpan", v["id"].as_str().unwrap_or_default(), v.clone()).await?;
+    audit::ubah(
+        &mut tx,
+        p,
+        if id.is_some() { "ubah" } else { "buat" },
+        "alat_simpan",
+        v["id"].as_str().unwrap_or_default(),
+        v.clone(),
+    )
+    .await?;
     tx.commit().await?;
     Ok(Json(v))
 }
@@ -193,7 +223,12 @@ async fn buat_alat(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianAl
     simpan_alat(&s, &p, None, i).await
 }
 
-async fn ubah_alat(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uuid>, Json(i): Json<IsianAlat>) -> Hasil<Json<Value>> {
+async fn ubah_alat(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(i): Json<IsianAlat>,
+) -> Hasil<Json<Value>> {
     simpan_alat(&s, &p, Some(id), i).await
 }
 
@@ -217,20 +252,29 @@ struct IsianAturan {
 }
 
 /// Aturan klinis hanya diubah penanggung jawab BDRS, dengan alasan (ADR 0004).
-async fn ubah_aturan(State(s): State<AppState>, p: Pengguna, Path(komponen): Path<String>, Json(i): Json<IsianAturan>) -> Hasil<Json<Value>> {
+async fn ubah_aturan(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(komponen): Path<String>,
+    Json(i): Json<IsianAturan>,
+) -> Hasil<Json<Value>> {
     p.wajib("aturan.kelola")?;
     let alasan = wajib_teks(&i.alasan, "alasan", "Alasan perubahan aturan")?;
     if !matches!(i.uji_silang.as_str(), "mayor_minor" | "minor" | "tidak_perlu") {
         return Err(tolak("uji_silang", "Pilih aturan uji silang yang dikenal."));
     }
     let mut tx = s.db.begin().await?;
-    let sebelum: Option<Value> = sqlx::query_scalar("select to_jsonb(a) from aturan_komponen a where komponen = $1 for update")
-        .bind(&komponen)
-        .fetch_optional(&mut *tx)
-        .await?;
+    let sebelum: Option<Value> =
+        sqlx::query_scalar("select to_jsonb(a) from aturan_komponen a where komponen = $1 for update")
+            .bind(&komponen)
+            .fetch_optional(&mut *tx)
+            .await?;
     let sebelum = sebelum.ok_or_else(|| Galat::TidakDitemukan("Komponen tidak dikenal.".into()))?;
     if sebelum["berisi_sel_merah"] == true && i.uji_silang != "mayor_minor" {
-        return Err(tolak("uji_silang", "Komponen berisi sel darah merah wajib uji silang mayor dan minor (Permenkes 91/2015 §5.7.3 B)."));
+        return Err(tolak(
+            "uji_silang",
+            "Komponen berisi sel darah merah wajib uji silang mayor dan minor (Permenkes 91/2015 §5.7.3 B).",
+        ));
     }
     let sesudah: Value = sqlx::query_scalar(
         "update aturan_komponen a set uji_silang = $2, masa_simpan_jam = $3, jam_setelah_cair = $4, jam_peringatan = $5,
