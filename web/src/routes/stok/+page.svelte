@@ -10,9 +10,11 @@
 	import DialogSandi from '#lib/DialogSandi.svelte';
 	import StatusKantong from '#lib/StatusKantong.svelte';
 	import { sesi } from '#lib/sesi.svelte.ts';
-	import { KOMPONEN, NAMA_KOMPONEN, golongan, waktu } from '#lib/format.ts';
+	import { KOMPONEN, golongan, waktu } from '#lib/format.ts';
 	import { ABO, RHESUS, alatUntuk, labelAlat, type Alat } from '#lib/stok/stok.ts';
 	import Kedaluwarsa from '#lib/stok/Kedaluwarsa.svelte';
+	import Golongan from '#lib/Golongan.svelte';
+	import Pindai from '#lib/Pindai.svelte';
 	import PackagePlus from '@lucide/svelte/icons/package-plus';
 
 	type Kantong = {
@@ -109,39 +111,59 @@
 
 <svelte:head><title>Stok kantong — utd-rs</title></svelte:head>
 
-<div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-	<h1>Stok kantong</h1>
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+	<div>
+		<h1>Stok kantong</h1>
+		{#if stok.data}
+			<p class="mt-1 font-medium text-redup">
+				{stok.data.filter((k) => k.status === 'tersedia').length} tersedia · {stok.data.filter((k) => k.status === 'karantina').length} karantina ·
+				{stok.data.filter((k) => k.status === 'dialokasikan').length} dialokasikan
+			</p>
+		{/if}
+	</div>
 	{#if kelola}
-		<a class="btn" href="/stok/terima"><PackagePlus class="size-4" aria-hidden="true" />Terima dari UTD</a>
+		<a class="btn btn--utama" href="/stok/terima"><PackagePlus class="size-4" aria-hidden="true" />Terima dari UTD</a>
 	{/if}
 </div>
 
-<form class="panel mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Filter stok" onsubmit={(e) => e.preventDefault()}>
+<div class="panel mb-4 p-4">
+	<Pindai
+		id="pindai-stok"
+		label="Pindai label kantong atau ketik nomornya, lalu Enter untuk melacak"
+		autofocus
+		onpindai={(v) => goto(`/lacak/${encodeURIComponent(v)}`)}
+	/>
+</div>
+
+<form class="mb-4 flex flex-wrap items-end gap-3" aria-label="Filter stok" onsubmit={(e) => e.preventDefault()}>
+	<div role="group" aria-label="Komponen" class="flex flex-wrap gap-0.5 rounded-[10px] bg-halus p-1">
+		{#each [['', 'Semua'], ...Object.entries(KOMPONEN)] as [k, n] (k)}
+			<button
+				type="button"
+				class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-redup hover:text-teks aria-pressed:bg-kartu aria-pressed:font-semibold aria-pressed:text-teks aria-pressed:shadow-kartu"
+				aria-pressed={filter('komponen') === k}
+				onclick={() => ubahFilter('komponen', k)}>{n}</button
+			>
+		{/each}
+	</div>
 	<div>
-		<label class="label" for="f-komponen">Komponen</label>
-		<select id="f-komponen" class="input" value={filter('komponen')} onchange={(e) => ubahFilter('komponen', e.currentTarget.value)}>
-			<option value="">Semua komponen</option>
-			{#each Object.entries(NAMA_KOMPONEN) as [k, n] (k)}<option value={k}>{n}</option>{/each}
+		<label class="sr-only" for="f-abo">Golongan ABO</label>
+		<select id="f-abo" class="input w-auto" value={filter('abo')} onchange={(e) => ubahFilter('abo', e.currentTarget.value)}>
+			<option value="">Semua golongan</option>
+			{#each ABO as a (a)}<option value={a}>Golongan {a}</option>{/each}
 		</select>
 	</div>
 	<div>
-		<label class="label" for="f-abo">Golongan ABO</label>
-		<select id="f-abo" class="input" value={filter('abo')} onchange={(e) => ubahFilter('abo', e.currentTarget.value)}>
-			<option value="">Semua</option>
-			{#each ABO as a (a)}<option value={a}>{a}</option>{/each}
-		</select>
-	</div>
-	<div>
-		<label class="label" for="f-rhesus">Rhesus</label>
-		<select id="f-rhesus" class="input" value={filter('rhesus')} onchange={(e) => ubahFilter('rhesus', e.currentTarget.value)}>
-			<option value="">Semua</option>
+		<label class="sr-only" for="f-rhesus">Rhesus</label>
+		<select id="f-rhesus" class="input w-auto" value={filter('rhesus')} onchange={(e) => ubahFilter('rhesus', e.currentTarget.value)}>
+			<option value="">Semua rhesus</option>
 			{#each Object.entries(RHESUS) as [k, n] (k)}<option value={k}>{n}</option>{/each}
 		</select>
 	</div>
 	<div>
-		<label class="label" for="f-status">Status</label>
-		<select id="f-status" class="input" value={filter('status')} onchange={(e) => ubahFilter('status', e.currentTarget.value)}>
-			<option value="">Di bank darah (karantina, tersedia, dialokasikan)</option>
+		<label class="sr-only" for="f-status">Status</label>
+		<select id="f-status" class="input w-auto" value={filter('status')} onchange={(e) => ubahFilter('status', e.currentTarget.value)}>
+			<option value="">Semua di bank darah</option>
 			<option value="tersedia">Tersedia</option>
 			<option value="karantina">Karantina</option>
 			<option value="dialokasikan">Dialokasikan</option>
@@ -150,8 +172,10 @@
 </form>
 
 <section class="panel" aria-labelledby="judul-tabel">
-	<h2 id="judul-tabel" class="mb-1">Kantong, kedaluwarsa terdekat lebih dulu (FEFO)</h2>
-	{#if stok.data}<p class="mb-3 text-sm text-redup">{stok.data.length} kantong</p>{/if}
+	<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+		<h2 id="judul-tabel">Kedaluwarsa terdekat lebih dulu (FEFO)</h2>
+		{#if stok.data}<p class="text-sm text-redup">{stok.data.length} kantong</p>{/if}
+	</div>
 	<Keadaan sumber={stok}>
 		{#snippet kosong()}<p>Tidak ada kantong yang cocok dengan filter ini.</p>{/snippet}
 		{#snippet children(data)}
@@ -171,13 +195,13 @@
 					<tbody>
 						{#each data as k (k.id)}
 							<tr>
-								<td><a class="mono text-utama hover:underline" href="/lacak/{encodeURIComponent(k.nomor)}">{k.nomor}</a></td>
+								<td><a class="mono font-semibold hover:underline" href="/lacak/{encodeURIComponent(k.nomor)}">{k.nomor}</a></td>
 								<td>
 									{KOMPONEN[k.komponen]}
 									{#if k.volume_ml}<span class="block text-xs text-redup">{k.volume_ml} mL</span>{/if}
 									{#if k.dicairkan_pada}<span class="block text-xs text-waspada">Dicairkan {waktu(k.dicairkan_pada)}</span>{/if}
 								</td>
-								<td class="font-semibold whitespace-nowrap">{golongan(k.abo, k.rhesus)}</td>
+								<td><Golongan abo={k.abo} rhesus={k.rhesus} /></td>
 								<td><Kedaluwarsa nilai={k.kedaluwarsa} mendekati={k.mendekati_kedaluwarsa} /></td>
 								<td>
 									<StatusKantong status={k.status} />
@@ -202,7 +226,7 @@
 	</Keadaan>
 </section>
 
-<dialog bind:this={dialog} class="m-auto w-full max-w-md rounded-lg border border-garis bg-kartu p-0 text-teks backdrop:bg-black/50">
+<dialog bind:this={dialog} class="dialog">
 	{#if kantong}
 		<form class="flex flex-col gap-4 p-5" onsubmit={submit}>
 			<h2>{JUDUL[jenis]}</h2>

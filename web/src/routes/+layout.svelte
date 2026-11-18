@@ -32,12 +32,27 @@
 	const grup = $derived(
 		GRUP.map((g) => ({
 			...g,
-			menu: g.menu.filter((m) => m.hak.some((h) => sesi.boleh(h)) && (!m.utd || sesi.modeUtd))
+			menu: g.menu.filter((m) => (!m.hak.length || m.hak.some((h) => sesi.boleh(h))) && (!m.utd || sesi.modeUtd))
 		})).filter((g) => g.menu.length)
 	);
 
-	const aktif = (href: string) =>
-		page.url.pathname === href || (href !== '/' && page.url.pathname.startsWith(href + '/') && href !== '/permintaan' && href !== '/stok');
+	// "dr. Kepala BDRS" -> "KB": gelar (berakhiran titik) dilewati.
+	const inisial = (nama: string) =>
+		nama
+			.split(/\s+/)
+			.filter((k) => k && !k.endsWith('.'))
+			.slice(0, 2)
+			.map((k) => k[0].toUpperCase())
+			.join('');
+
+	// Menu aktif = awalan jalur terpanjang, jadi /permintaan/12 menyorot "Permintaan darah", /permintaan/baru menyorot "Buat permintaan".
+	const semuaHref = GRUP.flatMap((g) => g.menu.map((m) => m.href));
+	const hrefAktif = $derived(
+		semuaHref
+			.filter((h) => page.url.pathname === h || (h !== '/' && page.url.pathname.startsWith(h + '/')))
+			.sort((a, b) => b.length - a.length)[0]
+	);
+	const aktif = (href: string) => href === hrefAktif;
 </script>
 
 {#if publik}
@@ -47,53 +62,75 @@
 {:else}
 	<div class="min-h-screen lg:flex">
 		<a href="#isi" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 btn">Lewati ke isi</a>
-		<header class="tanpa-cetak flex items-center gap-3 border-b border-garis bg-kartu px-4 py-2 lg:hidden">
-			<button class="btn btn--teks" aria-label="Buka menu" aria-expanded={menuTerbuka} onclick={() => (menuTerbuka = !menuTerbuka)}>
+		<header class="tanpa-cetak flex items-center gap-3 bg-samping px-4 py-2.5 text-white lg:hidden">
+			<button
+				class="btn btn--teks text-samping-teks hover:bg-samping-2"
+				aria-label="Buka menu"
+				aria-expanded={menuTerbuka}
+				onclick={() => (menuTerbuka = !menuTerbuka)}
+			>
 				<Menu class="size-5" aria-hidden="true" />
 			</button>
-			<span class="font-semibold">utd-rs</span>
+			<span class="font-extrabold">utd-rs</span>
 		</header>
 		<nav
-			class="tanpa-cetak {menuTerbuka ? 'block' : 'hidden'} w-full shrink-0 border-r border-garis bg-kartu lg:sticky lg:top-0 lg:block lg:h-screen lg:w-60 lg:overflow-y-auto"
+			class="tanpa-cetak {menuTerbuka
+				? 'flex'
+				: 'hidden'} w-full shrink-0 flex-col gap-5 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto"
 			aria-label="Menu utama"
 		>
-			<a href="/" class="flex items-center gap-2 border-b border-garis px-4 py-3" onclick={() => (menuTerbuka = false)}>
-				<Droplet class="size-6 text-bahaya" aria-hidden="true" />
-				<span>
-					<span class="block font-semibold">utd-rs</span>
-					<span class="block text-xs text-redup">{sesi.profil.nama_rs}</span>
+			<a href="/" class="flex items-center gap-2.5 px-1.5" onclick={() => (menuTerbuka = false)}>
+				<span class="grid size-9 shrink-0 place-items-center rounded-[11px] bg-linear-to-br from-[#f43f5e] to-merek-gelap">
+					<Droplet class="size-5 text-white" strokeWidth={2.5} aria-hidden="true" />
+				</span>
+				<span class="min-w-0">
+					<span class="block text-[1.05rem] leading-tight font-extrabold text-white">utd-rs</span>
+					<span class="block truncate text-xs font-medium text-samping-redup">{sesi.profil.nama_rs}</span>
 				</span>
 			</a>
 			{#each grup as g (g.judul)}
-				<div class="px-2 py-2">
-					<p class="px-2 pb-1 text-xs font-semibold tracking-wide text-redup uppercase">{g.judul}</p>
-					<ul>
+				<div>
+					{#if g.judul}
+						<p class="px-2.5 pb-1.5 text-[0.73rem] font-bold tracking-widest text-samping-redup uppercase">{g.judul}</p>
+					{/if}
+					<ul class="flex flex-col gap-0.5">
 						{#each g.menu as m (m.href)}
 							<li>
 								<a
 									href={m.href}
-									class="block rounded-md px-2 py-1.5 text-sm hover:bg-halus aria-[current=page]:bg-info-latar aria-[current=page]:font-semibold aria-[current=page]:text-utama"
+									class="group flex items-center gap-3 rounded-[10px] px-2.5 py-2 text-sm font-medium transition-colors hover:bg-samping-2 hover:text-white aria-[current=page]:bg-samping-2 aria-[current=page]:font-semibold aria-[current=page]:text-white"
 									aria-current={aktif(m.href) ? 'page' : undefined}
-									onclick={() => (menuTerbuka = false)}>{m.label}</a
+									onclick={() => (menuTerbuka = false)}
 								>
+									<m.ikon class="size-[18px] shrink-0 text-samping-redup group-hover:text-white group-aria-[current=page]:text-white" aria-hidden="true" />
+									<span class="flex-1">{m.label}</span>
+									{#if aktif(m.href)}<span class="size-1.5 rounded-full bg-[#fb7185]" aria-hidden="true"></span>{/if}
+								</a>
 							</li>
 						{/each}
 					</ul>
 				</div>
 			{/each}
-			<div class="border-t border-garis px-4 py-3 text-sm">
-				<a href="/akun-saya" class="block font-medium hover:underline">{sesi.profil.nama}</a>
-				<p class="text-xs text-redup">{sesi.profil.peran.join(', ')}</p>
+			<div class="mt-auto flex items-center gap-2.5 rounded-xl bg-samping-2 px-3 py-2.5">
+				<span class="grid size-9 shrink-0 place-items-center rounded-full bg-merek text-sm font-bold text-white" aria-hidden="true"
+					>{inisial(sesi.profil.nama)}</span
+				>
+				<a href="/akun-saya" class="min-w-0 flex-1 hover:underline">
+					<span class="block truncate text-sm font-semibold text-white">{sesi.profil.nama}</span>
+					<span class="block truncate text-xs font-medium text-samping-redup capitalize">{sesi.profil.peran.join(', ')}</span>
+				</a>
 				<button
-					class="btn btn--teks mt-2 -ml-3"
+					class="grid size-9 cursor-pointer place-items-center rounded-lg text-samping-redup hover:bg-samping hover:text-white"
+					aria-label="Keluar"
+					title="Keluar"
 					onclick={async () => {
 						await sesi.keluar();
 						goto('/masuk');
-					}}><LogOut class="size-4" aria-hidden="true" />Keluar</button
+					}}><LogOut class="size-[18px]" aria-hidden="true" /></button
 				>
 			</div>
 		</nav>
-		<main id="isi" class="min-w-0 flex-1 p-4 lg:p-6">
+		<main id="isi" class="min-w-0 flex-1 px-4 py-5 lg:px-8 lg:py-6">
 			{@render children()}
 		</main>
 	</div>

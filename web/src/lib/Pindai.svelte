@@ -21,11 +21,11 @@
 <div>
 	<label class="label" for={id}>{label}</label>
 	<div class="relative">
-		<ScanBarcode class="pointer-events-none absolute top-2.5 left-3 size-5 text-redup" aria-hidden="true" />
+		<ScanBarcode class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-fokus" aria-hidden="true" />
 		<input
 			bind:this={el}
 			{id}
-			class="input mono pl-10"
+			class="input mono min-h-12 rounded-xl pl-11 text-base placeholder:font-sans focus:border-fokus focus:ring-4 focus:ring-fokus/15 focus:outline-none"
 			autocomplete="off"
 			spellcheck="false"
 			{placeholder}

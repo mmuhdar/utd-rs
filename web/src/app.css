@@ -1,49 +1,97 @@
-/* Desain utd-rs (docs/desain.md): Swiss minimal, padat, mode terang bawaan; warna hanya lewat token. */
+/* Desain utd-rs (docs/desain.md, design/utd-rs.figcraft): modern klinis, mode terang bawaan; warna hanya lewat token. */
 @import 'tailwindcss';
-@import '@fontsource/fira-sans/400.css';
-@import '@fontsource/fira-sans/500.css';
-@import '@fontsource/fira-sans/600.css';
-@import '@fontsource/fira-code/500.css';
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+@import '@fontsource/plus-jakarta-sans/800.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 
 @theme {
-	--font-sans: 'Fira Sans', system-ui, sans-serif;
-	--font-mono: 'Fira Code', ui-monospace, monospace;
-	--color-latar: #f8fafc;
+	--font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+	/* Plex Mono: nol bertitik dan G tidak mirip 6 — penting untuk nomor kantong. */
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	--color-latar: #f4f5f8;
 	--color-kartu: #ffffff;
-	--color-teks: #0f172a;
-	--color-redup: #475569;
-	--color-garis: #cbd5e1;
-	--color-halus: #f1f5f9;
-	--color-utama: #0e7490;
-	--color-utama-gelap: #155e75;
+	--color-teks: #0b1220;
+	--color-teks-2: #344054;
+	--color-redup: #5d6b82;
+	--color-garis: #e4e7ec;
+	--color-garis-kuat: #c4cad4;
+	--color-halus: #f0f2f5;
+	--color-utama: #0b1220;
+	--color-utama-gelap: #263247;
 	--color-pada-utama: #ffffff;
-	--color-bahaya: #b91c1c;
-	--color-bahaya-latar: #fef2f2;
-	--color-waspada: #92400e;
-	--color-waspada-latar: #fffbeb;
-	--color-aman: #15803d;
-	--color-aman-latar: #f0fdf4;
-	--color-info-latar: #ecfeff;
+	--color-fokus: #2e6bff;
+	--color-merek: #d0103a;
+	--color-merek-gelap: #8e0c2a;
+
+	--color-samping: #0d1424;
+	--color-samping-2: #18213a;
+	--color-samping-teks: #c9d0de;
+	--color-samping-redup: #8a94ad;
+
+	--color-aman: #05603a;
+	--color-aman-latar: #e9f9ef;
+	--color-aman-titik: #12b76a;
+	--color-waspada: #93370d;
+	--color-waspada-latar: #fff6e5;
+	--color-waspada-titik: #f79009;
+	--color-bahaya: #b42318;
+	--color-bahaya-latar: #feeeec;
+	--color-bahaya-titik: #f04438;
+	--color-bahaya-isi: #d92d20;
+	--color-info: #1d44b8;
+	--color-info-latar: #eaf1ff;
+	--color-info-titik: #2e6bff;
+
+	/* Golongan darah: warna label ISBT 128 (O biru, A kuning, B merah muda, AB putih). */
+	--color-gol-o: #dce9ff;
+	--color-gol-o-teks: #163d9c;
+	--color-gol-a: #fff3b8;
+	--color-gol-a-teks: #6b4405;
+	--color-gol-b: #ffe1f1;
+	--color-gol-b-teks: #8f1352;
+	--color-gol-ab: #ffffff;
+	--color-gol-ab-teks: #344054;
+
+	--shadow-kartu: 0 1px 2px rgb(16 24 40 / 0.05);
+	--shadow-angkat: 0 24px 48px -12px rgb(16 24 40 / 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
 		--color-latar: #0b1220;
-		--color-kartu: #111a2b;
-		--color-teks: #e2e8f0;
-		--color-redup: #94a3b8;
-		--color-garis: #334155;
-		--color-halus: #1e293b;
-		--color-utama: #22d3ee;
-		--color-utama-gelap: #67e8f9;
-		--color-pada-utama: #082f49;
-		--color-bahaya: #fca5a5;
-		--color-bahaya-latar: #3b1212;
-		--color-waspada: #fcd34d;
-		--color-waspada-latar: #33260a;
-		--color-aman: #86efac;
-		--color-aman-latar: #0f2e1b;
-		--color-info-latar: #0c2a33;
+		--color-kartu: #121a2b;
+		--color-teks: #e6eaf2;
+		--color-teks-2: #c3cad8;
+		--color-redup: #98a2b8;
+		--color-garis: #263046;
+		--color-garis-kuat: #3a4660;
+		--color-halus: #1a2336;
+		--color-utama: #f4f5f8;
+		--color-utama-gelap: #d5dae3;
+		--color-pada-utama: #0b1220;
+		--color-samping: #070b14;
+		--color-samping-2: #172036;
+		--color-aman: #6ce9a6;
+		--color-aman-latar: #0b2a1b;
+		--color-waspada: #fec84b;
+		--color-waspada-latar: #2e2108;
+		--color-bahaya: #fda29b;
+		--color-bahaya-latar: #3a1210;
+		--color-info: #9db9ff;
+		--color-info-latar: #14224a;
+		--color-gol-o: #17295a;
+		--color-gol-o-teks: #b9d0ff;
+		--color-gol-a: #3a2f08;
+		--color-gol-a-teks: #fde68a;
+		--color-gol-b: #4a1530;
+		--color-gol-b-teks: #fbcfe8;
+		--color-gol-ab: #121a2b;
+		--color-gol-ab-teks: #e6eaf2;
 	}
 }
 
@@ -56,14 +104,14 @@
 		line-height: 1.5;
 	}
 	:focus-visible {
-		outline: 3px solid var(--color-utama);
+		outline: 3px solid var(--color-fokus);
 		outline-offset: 2px;
 	}
 	h1 {
-		@apply text-xl font-semibold;
+		@apply text-[1.85rem] leading-tight font-extrabold tracking-tight;
 	}
 	h2 {
-		@apply text-base font-semibold;
+		@apply text-base font-bold;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		* {
@@ -79,72 +127,127 @@
 			background: white;
 			color: black;
 		}
+		.panel {
+			box-shadow: none;
+		}
 	}
 }
 
 @layer components {
 	.btn {
-		@apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-garis bg-kartu px-3.5 py-2 text-sm font-medium transition-colors duration-150 hover:bg-halus disabled:cursor-not-allowed disabled:opacity-50;
+		@apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-garis-kuat bg-kartu px-3.5 py-2 text-sm font-semibold shadow-kartu transition-colors duration-150 hover:bg-halus disabled:cursor-not-allowed disabled:opacity-50;
 	}
 	.btn--utama {
-		@apply border-utama bg-utama text-pada-utama hover:bg-utama-gelap;
+		@apply border-utama bg-utama text-pada-utama shadow-none hover:bg-utama-gelap;
 	}
 	.btn--bahaya {
-		@apply border-bahaya bg-bahaya text-white hover:opacity-90;
+		@apply border-bahaya-isi bg-bahaya-isi text-white shadow-none hover:opacity-90;
 	}
 	.btn--teks {
-		@apply border-transparent bg-transparent text-utama hover:bg-halus;
+		@apply border-transparent bg-transparent text-teks-2 shadow-none hover:bg-halus;
 	}
 	.btn--besar {
-		@apply min-h-12 px-5 text-base;
+		@apply min-h-12 rounded-xl px-5 text-base;
 	}
 	.label {
-		@apply mb-1 block text-sm font-medium;
+		@apply mb-1.5 block text-sm font-semibold text-teks-2;
 	}
 	.input {
-		@apply block min-h-10 w-full rounded-md border border-garis bg-kartu px-3 py-2 text-sm placeholder:text-redup aria-[invalid=true]:border-bahaya;
+		@apply block min-h-10 w-full rounded-[10px] border border-garis-kuat bg-kartu px-3 py-2 text-sm shadow-kartu placeholder:text-redup aria-[invalid=true]:border-2 aria-[invalid=true]:border-bahaya-titik;
 	}
 	.mono {
-		@apply font-mono tracking-tight;
+		@apply font-mono font-medium;
 	}
 	.panel {
-		@apply rounded-lg border border-garis bg-kartu p-4;
+		@apply rounded-2xl border border-garis bg-kartu p-5 shadow-kartu;
 	}
 	.tabel {
-		@apply w-full border-collapse text-sm;
+		@apply w-full border-separate border-spacing-0 text-sm;
 	}
 	.tabel th {
-		@apply border-b border-garis px-3 py-2 text-left text-xs font-semibold tracking-wide text-redup uppercase;
+		@apply bg-halus/70 px-3 py-2.5 text-left text-[0.73rem] font-bold tracking-wider text-redup uppercase first:rounded-l-[10px] last:rounded-r-[10px];
 	}
 	.tabel td {
-		@apply border-b border-halus px-3 py-2 align-top;
+		@apply border-b border-garis/70 px-3 py-3 align-top;
 	}
-	.tabel tbody tr:hover {
-		@apply bg-halus;
+	.tabel tbody tr:hover > * {
+		@apply bg-halus/60;
 	}
+	/* Chip status: titik + teks, tidak pernah hanya warna. */
 	.chip {
-		@apply inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+		--titik: var(--color-redup);
+		@apply inline-flex items-center gap-1.5 rounded-full bg-halus px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-teks-2;
 	}
-	.chip--netral {
-		@apply border-garis bg-halus text-teks;
+	.chip::before {
+		content: '';
+		@apply size-1.5 shrink-0 rounded-full;
+		background: var(--titik);
+	}
+	.chip--polos::before {
+		display: none;
 	}
 	.chip--aman {
-		@apply border-aman/30 bg-aman-latar text-aman;
+		--titik: var(--color-aman-titik);
+		@apply bg-aman-latar text-aman;
 	}
 	.chip--waspada {
-		@apply border-waspada/30 bg-waspada-latar text-waspada;
+		--titik: var(--color-waspada-titik);
+		@apply bg-waspada-latar text-waspada;
 	}
 	.chip--bahaya {
-		@apply border-bahaya/30 bg-bahaya-latar text-bahaya;
+		--titik: var(--color-bahaya-titik);
+		@apply bg-bahaya-latar text-bahaya;
 	}
 	.chip--info {
-		@apply border-utama/30 bg-info-latar text-utama;
+		--titik: var(--color-info-titik);
+		@apply bg-info-latar text-info;
+	}
+	/* Golongan darah; Rh− diberi garis tepi supaya tidak hanya dibedakan lewat tanda minus. */
+	.gol {
+		@apply inline-flex min-w-9 items-center justify-center rounded-lg px-2 py-0.5 text-sm font-extrabold tracking-wide whitespace-nowrap;
+	}
+	.gol--kecil {
+		@apply min-w-7 rounded-md px-1.5 py-0 text-xs;
+	}
+	.gol--besar {
+		@apply min-w-14 rounded-xl px-3.5 py-1.5 text-2xl;
+	}
+	.gol--o {
+		@apply bg-gol-o text-gol-o-teks;
+	}
+	.gol--a {
+		@apply bg-gol-a text-gol-a-teks;
+	}
+	.gol--b {
+		@apply bg-gol-b text-gol-b-teks;
+	}
+	.gol--ab {
+		@apply bg-gol-ab text-gol-ab-teks ring-1 ring-garis-kuat ring-inset;
+	}
+	.gol--neg {
+		@apply ring-[1.5px] ring-current ring-inset;
+	}
+	/* Peringatan klinis: ikon pertama tampil dalam kotak berwarna. */
+	.peringatan,
+	.catatan {
+		@apply flex items-start gap-3 rounded-[14px] border p-4 font-medium;
 	}
 	.peringatan {
-		@apply flex items-start gap-3 rounded-lg border-2 border-bahaya bg-bahaya-latar p-4 font-medium text-bahaya;
+		@apply border-bahaya-titik bg-bahaya-latar text-bahaya;
 	}
 	.catatan {
-		@apply flex items-start gap-3 rounded-lg border border-waspada/40 bg-waspada-latar p-3 text-sm text-waspada;
+		@apply border-waspada-titik bg-waspada-latar text-sm text-waspada;
+	}
+	.peringatan > svg:first-child,
+	.catatan > svg:first-child {
+		box-sizing: content-box;
+		@apply mt-0 size-[18px] shrink-0 rounded-[9px] p-[7px] text-white;
+	}
+	.peringatan > svg:first-child {
+		@apply bg-bahaya-titik;
+	}
+	.catatan > svg:first-child {
+		@apply bg-waspada-titik;
 	}
 	.form-grid {
 		@apply grid gap-4 sm:grid-cols-2;
@@ -159,6 +262,15 @@
 		@apply flex flex-col gap-2 py-2;
 	}
 	.kerangka__baris {
-		@apply block h-8 animate-pulse rounded bg-halus;
+		@apply block h-8 animate-pulse rounded-lg bg-halus;
+	}
+	.dialog {
+		@apply m-auto w-full max-w-[480px] rounded-[20px] border border-garis bg-kartu p-0 text-teks shadow-angkat backdrop:bg-[#0b1220]/60;
+	}
+	.dialog > form:not([class*='p-']) {
+		@apply p-6;
+	}
+	.judul-kecil {
+		@apply text-[0.73rem] font-bold tracking-wider text-redup uppercase;
 	}
 }

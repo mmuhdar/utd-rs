@@ -5,6 +5,12 @@
 	import PesanAksi from '#lib/PesanAksi.svelte';
 	import { sesi, type Profil } from '#lib/sesi.svelte.ts';
 	import Droplet from '@lucide/svelte/icons/droplet';
+	import ShieldCheck from '@lucide/svelte/icons/shield-check';
+	import ScanBarcode from '@lucide/svelte/icons/scan-barcode';
+	import PenLine from '@lucide/svelte/icons/pen-line';
+	import User from '@lucide/svelte/icons/user';
+	import Lock from '@lucide/svelte/icons/lock';
+	import LogIn from '@lucide/svelte/icons/log-in';
 
 	let nama_pengguna = $state('');
 	let sandi = $state('');
@@ -23,25 +29,84 @@
 
 <svelte:head><title>Masuk — utd-rs</title></svelte:head>
 
-<main class="flex min-h-screen items-center justify-center p-4">
-	<form class="panel flex w-full max-w-sm flex-col gap-4 p-6" onsubmit={masuk}>
-		<div class="flex items-center gap-2">
-			<Droplet class="size-7 text-bahaya" aria-hidden="true" />
-			<div>
-				<h1>utd-rs</h1>
-				<p class="text-sm text-redup">Bank darah rumah sakit</p>
+<main class="flex min-h-screen bg-kartu">
+	<section
+		class="hidden flex-1 flex-col justify-between bg-linear-to-tr from-[#2a0612] via-[#7a0b25] to-[#c2133a] p-14 text-white lg:flex"
+		aria-label="Tentang utd-rs"
+	>
+		<div class="flex items-center gap-3">
+			<span class="grid size-11 place-items-center rounded-[13px] bg-linear-to-br from-[#f43f5e] to-merek-gelap">
+				<Droplet class="size-6" strokeWidth={2.5} aria-hidden="true" />
+			</span>
+			<span>
+				<span class="block text-lg leading-tight font-extrabold">utd-rs</span>
+				<span class="block text-xs font-medium text-white/70">Bank Darah RS</span>
+			</span>
+		</div>
+		<div class="max-w-xl">
+			<p class="text-5xl leading-[1.1] font-extrabold tracking-tight">Setiap kantong tertelusur, dari UTD sampai samping tempat tidur.</p>
+			<p class="mt-5 max-w-lg text-lg leading-relaxed font-medium text-[#ffd5de]">
+				Sistem informasi bank darah rumah sakit sesuai Permenkes 91 Tahun 2015 — penerimaan, uji pratransfusi, pengeluaran, dan pemantauan
+				transfusi dalam satu alur.
+			</p>
+		</div>
+		<ul class="flex flex-wrap gap-2.5 text-sm font-semibold">
+			<li class="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2">
+				<ShieldCheck class="size-4" aria-hidden="true" />Jejak audit berantai
+			</li>
+			<li class="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2">
+				<ScanBarcode class="size-4" aria-hidden="true" />Pindai ISBT 128
+			</li>
+			<li class="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2">
+				<PenLine class="size-4" aria-hidden="true" />Tanda tangan elektronik
+			</li>
+		</ul>
+	</section>
+
+	<div class="flex w-full items-center justify-center p-6 lg:w-[620px] lg:shrink-0">
+		<form class="flex w-full max-w-[400px] flex-col gap-5" onsubmit={masuk}>
+			<div class="mb-1 flex items-center gap-2.5 lg:hidden">
+				<span class="grid size-10 place-items-center rounded-xl bg-linear-to-br from-[#f43f5e] to-merek-gelap">
+					<Droplet class="size-5 text-white" strokeWidth={2.5} aria-hidden="true" />
+				</span>
+				<span class="text-lg font-extrabold">utd-rs</span>
 			</div>
-		</div>
-		<div>
-			<label class="label" for="nama">Nama pengguna</label>
-			<input id="nama" class="input" autocomplete="username" bind:value={nama_pengguna} required />
-		</div>
-		<div>
-			<label class="label" for="sandi">Kata sandi</label>
-			<input id="sandi" class="input" type="password" autocomplete="current-password" bind:value={sandi} required />
-		</div>
-		<PesanAksi {aksi} />
-		<button class="btn btn--utama btn--besar" disabled={aksi.sibuk}>{aksi.sibuk ? 'Memeriksa…' : 'Masuk'}</button>
-		<p class="text-xs text-redup">Akun bersifat pribadi. Jangan meminjamkan akun; setiap tindakan tercatat atas nama Anda.</p>
-	</form>
+			<div>
+				<h1>Masuk</h1>
+				<p class="mt-1 font-medium text-redup">Instalasi Bank Darah Rumah Sakit</p>
+			</div>
+			<div>
+				<label class="label" for="nama">Nama pengguna</label>
+				<div class="relative">
+					<User class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-redup" aria-hidden="true" />
+					<input id="nama" class="input min-h-12 rounded-xl pl-11 text-base" autocomplete="username" bind:value={nama_pengguna} required />
+				</div>
+			</div>
+			<div>
+				<label class="label" for="sandi">Kata sandi</label>
+				<div class="relative">
+					<Lock class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-redup" aria-hidden="true" />
+					<input
+						id="sandi"
+						class="input min-h-12 rounded-xl pl-11 text-base"
+						type="password"
+						autocomplete="current-password"
+						aria-describedby="sandi-bantuan"
+						bind:value={sandi}
+						required
+					/>
+				</div>
+				<p id="sandi-bantuan" class="mt-1.5 text-xs text-redup">Akun terkunci sementara setelah 5 kali salah sandi.</p>
+			</div>
+			<PesanAksi {aksi} />
+			<button class="btn btn--utama btn--besar w-full" disabled={aksi.sibuk}>
+				<LogIn class="size-5" aria-hidden="true" />{aksi.sibuk ? 'Memeriksa…' : 'Masuk'}
+			</button>
+			<hr class="border-garis" />
+			<p class="flex items-start gap-2.5 text-sm leading-relaxed font-medium text-redup">
+				<ShieldCheck class="mt-0.5 size-[18px] shrink-0" aria-hidden="true" />
+				Akun bersifat pribadi, jangan dipinjamkan. Sesi berakhir setelah 30 menit tanpa aktivitas, dan setiap tindakan tercatat atas nama Anda.
+			</p>
+		</form>
+	</div>
 </main>
