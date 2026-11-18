@@ -13,7 +13,7 @@
 1. Salin repositori ke server, misalnya `/srv/utd-rs`.
 2. Siapkan konfigurasi: `cp deploy/env.contoh .env`, lalu isi `.env`.
    - `UTD_DB_SANDI` dan `UTD_BACKUP_PASSPHRASE`: acak dan panjang. Frasa backup juga disimpan di brankas terpisah, karena tanpa frasa itu backup tidak bisa dipulihkan.
-   - `UTD_DOMAIN`: nama host yang dipakai klien. Daftarkan di DNS internal RS.
+   - `UTD_DOMAIN`: nama host yang dipakai klien. Daftarkan di DNS internal RS. Bila belum ada DNS internal, isi dengan alamat IP server (mis. `192.168.1.10`); klien membuka `https://<alamat-ip>`.
    - `UTD_DIR_BACKUP` dan `UTD_DIR_OFFSITE`: dua lokasi berbeda.
    - Kunci berkasnya: `chmod 600 .env`.
 3. Jalankan `docker compose up -d --build`.

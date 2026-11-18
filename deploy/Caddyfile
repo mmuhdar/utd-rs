@@ -1,6 +1,11 @@
 # HTTPS untuk jaringan RS. Bawaan: sertifikat dari CA internal Caddy (pasang root CA-nya di komputer klien).
 # Bila RS punya sertifikat sendiri, taruh di deploy/sertifikat/ lalu ganti baris tls menjadi:
 #   tls /sertifikat/utd.crt /sertifikat/utd.key
+# Klien yang membuka alamat IP tidak mengirim SNI; tanpa default_sni Caddy menolak jabat tangan TLS.
+{
+	default_sni {$UTD_DOMAIN}
+}
+
 {$UTD_DOMAIN} {
 	tls internal
 	encode gzip
