@@ -1,5 +1,6 @@
 <!-- Detail reaksi transfusi untuk penelusuran BDRS: data lengkap, form telusur, penutupan bertanda tangan. Dapat dicetak. -->
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -69,7 +70,8 @@
 		{@const t = r.transfusi}
 		{@const k = t.kantong}
 		{@const s = STATUS_REAKSI[r.status]}
-		<p class="mb-2 hidden text-sm print:block">{sesi.profil?.nama_rs} · Laporan dan penelusuran reaksi transfusi · dicetak {waktu(new Date().toISOString())}</p>
+		<div class="mb-3"><Kop cetakSaja /></div>
+		<p class="mb-2 hidden text-sm print:block">Laporan dan penelusuran reaksi transfusi · dicetak {waktu(new Date().toISOString())}</p>
 		<p class="tanpa-cetak text-sm"><a class="text-utama hover:underline" href="/reaksi">Reaksi & insiden</a></p>
 		<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
 			<div>

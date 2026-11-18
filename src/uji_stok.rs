@@ -163,3 +163,37 @@ async fn penyimpangan_suhu_mengarantina_lalu_dinilai(db: PgPool) {
     let (_, d) = b.teknisi.get(&format!("/api/berita-acara/{}", ba["id"].as_str().unwrap())).await;
     assert_eq!(d["kantong"][0]["nomor"], "A2");
 }
+
+#[sqlx::test]
+async fn kop_surat_validasi_dan_audit(db: PgPool) {
+    let mut admin = Uji::sebagai(&db, "admin1", &["admin"]).await;
+    let mut tek = Uji::sebagai(&db, "tek1", &["teknisi"]).await;
+    let (st, k) = tek.get("/api/master/kop").await;
+    assert_eq!(st, StatusCode::OK);
+    assert_eq!(k["unit"], "Instalasi Bank Darah");
+    assert!(k["nama_rs_profil"].is_string());
+
+    let png = "data:image/png;base64,iVBORw0KGgo=";
+    let isi = json!({ "nama_rs": "RSUD Uji", "alamat": "Jl. Uji 1", "logo_kiri": png });
+    let (st, _) = tek.kirim("PUT", "/api/master/kop", Some(isi.clone())).await;
+    assert_eq!(st, StatusCode::FORBIDDEN);
+
+    // Berlabel PNG tetapi isinya JPEG: ditolak per isian.
+    let palsu = json!({ "logo_kiri": "data:image/png;base64,/9j/4AAQ" });
+    let (st, g) = admin.kirim("PUT", "/api/master/kop", Some(palsu)).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(g["isian"][0]["isian"], "logo_kiri");
+
+    let (st, k) = admin.kirim("PUT", "/api/master/kop", Some(isi)).await;
+    assert_eq!(st, StatusCode::OK);
+    assert_eq!(k["logo_kiri"], png);
+    assert_eq!(k["unit"], "");
+
+    // Jejak audit mencatat sidik logo, bukan gambarnya.
+    let sesudah: serde_json::Value =
+        sqlx::query_scalar("select sesudah from audit where objek = 'kop_surat' order by urutan desc limit 1")
+            .fetch_one(&db)
+            .await
+            .unwrap();
+    assert!(sesudah["logo_kiri"].as_str().unwrap().starts_with("sha256:"));
+}

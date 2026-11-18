@@ -29,6 +29,6 @@ SvelteKit 3 + Svelte 5 runes, SPA statis. Ikuti `docs/desain.md`:
 
 - warna hanya lewat token;
 - status selalu berupa teks + warna;
-- `Keadaan` untuk data, `Aksi` + `PesanAksi` untuk formulir, `Isian` untuk field, `Pindai` untuk barcode, `DialogSandi` untuk tanda tangan, `Golongan` untuk lencana golongan darah;
+- `Keadaan` untuk data, `Aksi` + `PesanAksi` untuk formulir, `Isian` untuk field, `Pindai` untuk barcode, `DialogSandi` untuk tanda tangan, `Golongan` untuk lencana golongan darah, `Kop` di atas setiap dokumen cetak;
 - import `#lib/...` dengan ekstensi;
 - semua teks UI berbahasa Indonesia.

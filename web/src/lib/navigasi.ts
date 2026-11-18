@@ -15,6 +15,7 @@ import Printer from '@lucide/svelte/icons/printer';
 import ScanSearch from '@lucide/svelte/icons/scan-search';
 import Send from '@lucide/svelte/icons/send';
 import ShieldCheck from '@lucide/svelte/icons/shield-check';
+import Stamp from '@lucide/svelte/icons/stamp';
 import TestTubes from '@lucide/svelte/icons/test-tubes';
 import Thermometer from '@lucide/svelte/icons/thermometer';
 import Truck from '@lucide/svelte/icons/truck';
@@ -65,6 +66,7 @@ export const GRUP: Grup[] = [
 		judul: 'Pengaturan',
 		menu: [
 			{ href: '/admin/akun', ikon: Users, label: 'Akun pengguna', hak: ['akun.kelola'] },
+			{ href: '/admin/kop', ikon: Stamp, label: 'Kop surat', hak: ['master.kelola'] },
 			{ href: '/admin/master', ikon: Database, label: 'Data induk & aturan', hak: ['master.kelola', 'aturan.kelola'] },
 			{ href: '/admin/audit', ikon: ShieldCheck, label: 'Jejak audit', hak: ['audit.lihat'] },
 			{ href: '/admin/integrasi', ikon: Plug, label: 'Integrasi SATUSEHAT', hak: ['integrasi.kelola'] }

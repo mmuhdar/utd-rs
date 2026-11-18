@@ -1,4 +1,4 @@
-//! Data induk (SPEK M1): profil instalasi, UTD mitra, alat simpan, aturan komponen (ADR 0004).
+//! Data induk (SPEK M1): profil instalasi, kop surat, UTD mitra, alat simpan, aturan komponen (ADR 0004).
 
 use crate::AppState;
 use crate::audit::{self, Jejak};
@@ -14,6 +14,7 @@ use uuid::Uuid;
 pub fn rute() -> Router<AppState> {
     Router::new()
         .route("/master/profil", get(profil).put(simpan_profil))
+        .route("/master/kop", get(kop).put(simpan_kop))
         .route("/master/utd", get(daftar_utd).post(buat_utd))
         .route("/master/utd/{id}", put(ubah_utd))
         .route("/master/alat", get(daftar_alat).post(buat_alat))
@@ -69,6 +70,117 @@ async fn simpan_profil(State(s): State<AppState>, p: Pengguna, Json(i): Json<Isi
             objek: "profil_instalasi",
             sebelum: Some(sebelum),
             sesudah: Some(sesudah.clone()),
+            ..Default::default()
+        },
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(Json(sesudah))
+}
+
+/// GET /api/master/kop — kop surat untuk dokumen cetak; dibaca semua pengguna yang mencetak.
+async fn kop(State(s): State<AppState>, _p: Pengguna) -> Hasil<Json<Value>> {
+    let v: Value = sqlx::query_scalar(
+        "select to_jsonb(k) || jsonb_build_object('nama_rs_profil', p.nama_rs) from kop_surat k, profil_instalasi p",
+    )
+    .fetch_one(&s.db)
+    .await?;
+    Ok(Json(v))
+}
+
+#[derive(Deserialize)]
+struct IsianKop {
+    pemerintah: Option<String>,
+    nama_rs: Option<String>,
+    unit: Option<String>,
+    alamat: Option<String>,
+    kontak: Option<String>,
+    akreditasi: Option<String>,
+    logo_kiri: Option<String>,
+    logo_kanan: Option<String>,
+}
+
+const LOGO_MAKS: usize = 512 * 1024;
+
+/// Baris teks kop: dipangkas, boleh kosong, paling panjang 200 karakter.
+fn baris_kop<'a>(t: &'a Option<String>, isian: &str, label: &str) -> Hasil<&'a str> {
+    let t = t.as_deref().map(str::trim).unwrap_or("");
+    if t.chars().count() > 200 {
+        return Err(tolak(isian, format!("{label} paling panjang 200 karakter.")));
+    }
+    Ok(t)
+}
+
+/// Logo: kosong, atau data URI PNG/JPEG yang isinya benar-benar PNG/JPEG dan paling besar 512 KB.
+pub fn logo_kop<'a>(t: &'a Option<String>, isian: &str, label: &str) -> Hasil<&'a str> {
+    use base64::Engine;
+    let t = t.as_deref().unwrap_or("");
+    if t.is_empty() {
+        return Ok(t);
+    }
+    let salah = || tolak(isian, format!("{label}: unggah berkas PNG atau JPEG."));
+    let (jenis, isi) = t.strip_prefix("data:image/").and_then(|r| r.split_once(";base64,")).ok_or_else(salah)?;
+    let bytes = base64::engine::general_purpose::STANDARD.decode(isi).map_err(|_| salah())?;
+    if bytes.len() > LOGO_MAKS {
+        return Err(tolak(isian, format!("{label}: ukuran paling besar 512 KB.")));
+    }
+    let cocok = match jenis {
+        "png" => bytes.starts_with(&[0x89, b'P', b'N', b'G']),
+        "jpeg" => bytes.starts_with(&[0xff, 0xd8, 0xff]),
+        _ => false,
+    };
+    if !cocok {
+        return Err(salah());
+    }
+    Ok(t)
+}
+
+/// Di jejak audit logo dicatat sebagai sidik SHA-256, bukan isi gambarnya.
+fn ringkas_logo(mut v: Value) -> Value {
+    use sha2::{Digest, Sha256};
+    for k in ["logo_kiri", "logo_kanan"] {
+        if let Some(s) = v.get(k).and_then(Value::as_str).filter(|s| !s.is_empty()) {
+            v[k] = Value::String(format!("sha256:{}", hex::encode(Sha256::digest(s.as_bytes()))));
+        }
+    }
+    v
+}
+
+async fn simpan_kop(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianKop>) -> Hasil<Json<Value>> {
+    p.wajib("master.kelola")?;
+    let pemerintah = baris_kop(&i.pemerintah, "pemerintah", "Pemerintah daerah")?;
+    let nama_rs = baris_kop(&i.nama_rs, "nama_rs", "Nama rumah sakit")?;
+    let unit = baris_kop(&i.unit, "unit", "Unit")?;
+    let alamat = baris_kop(&i.alamat, "alamat", "Alamat")?;
+    let kontak = baris_kop(&i.kontak, "kontak", "Kontak")?;
+    let akreditasi = baris_kop(&i.akreditasi, "akreditasi", "Akreditasi")?;
+    let logo_kiri = logo_kop(&i.logo_kiri, "logo_kiri", "Logo kiri")?;
+    let logo_kanan = logo_kop(&i.logo_kanan, "logo_kanan", "Logo kanan")?;
+    let mut tx = s.db.begin().await?;
+    let sebelum: Value =
+        sqlx::query_scalar("select to_jsonb(k) from kop_surat k for update").fetch_one(&mut *tx).await?;
+    let sesudah: Value = sqlx::query_scalar(
+        "update kop_surat k set pemerintah = $1, nama_rs = $2, unit = $3, alamat = $4, kontak = $5, akreditasi = $6,
+             logo_kiri = $7, logo_kanan = $8, diubah_pada = now() returning to_jsonb(k)",
+    )
+    .bind(pemerintah)
+    .bind(nama_rs)
+    .bind(unit)
+    .bind(alamat)
+    .bind(kontak)
+    .bind(akreditasi)
+    .bind(logo_kiri)
+    .bind(logo_kanan)
+    .fetch_one(&mut *tx)
+    .await?;
+    audit::catat(
+        &mut tx,
+        Some(&p),
+        Jejak {
+            aksi: "ubah",
+            objek: "kop_surat",
+            sebelum: Some(ringkas_logo(sebelum)),
+            sesudah: Some(ringkas_logo(sesudah.clone())),
             ..Default::default()
         },
     )

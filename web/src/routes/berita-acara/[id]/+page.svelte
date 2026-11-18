@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -26,7 +27,7 @@
 		{@const kembali = d.jenis === 'pengembalian'}
 		{@const kantong = d.kantong ?? []}
 		<article class="panel print:border-0 print:p-0">
-			<p class="text-sm text-redup">{sesi.profil?.nama_rs} · Bank Darah Rumah Sakit</p>
+			<div class="mb-5"><Kop /></div>
 			<h1 class="mb-4">
 				Berita acara {kembali ? 'pengembalian kantong darah ke UTD' : 'pemusnahan kantong darah'}
 				<span class="mono">{d.nomor}</span>

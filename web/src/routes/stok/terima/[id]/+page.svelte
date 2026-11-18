@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -27,7 +28,7 @@
 	{#snippet children(d)}
 		{@const kantong = d.kantong ?? []}
 		<article class="panel print:border-0 print:p-0">
-			<p class="text-sm text-redup">{sesi.profil?.nama_rs} · Bank Darah Rumah Sakit</p>
+			<div class="mb-5"><Kop /></div>
 			<h1 class="mb-4">Berita serah terima kantong darah <span class="mono">{d.nomor}</span></h1>
 			<dl class="mb-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
 				<div><dt class="text-redup">Diterima</dt><dd>{waktu(d.diterima_pada)}</dd></div>

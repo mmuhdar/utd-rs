@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { page } from '$app/state';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
@@ -79,7 +80,8 @@
 		{@const st = STATUS_PERMINTAAN[p.status]}
 		{@const aktif = ['diminta', 'diproses', 'siap'].includes(p.status)}
 		{@const gol = p.golongan_terverifikasi}
-		<p class="mb-2 hidden text-sm print:block">{sesi.profil?.nama_rs} · Formulir permintaan darah · dicetak {waktu(new Date().toISOString())}</p>
+		<div class="mb-3"><Kop cetakSaja /></div>
+		<p class="mb-2 hidden text-sm print:block">Formulir permintaan darah · dicetak {waktu(new Date().toISOString())}</p>
 		<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
 			<div>
 				<nav class="tanpa-cetak mb-1 flex items-center gap-1.5 text-sm font-medium text-redup" aria-label="Jalur">

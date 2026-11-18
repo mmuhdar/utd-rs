@@ -44,5 +44,9 @@ Arahnya **modern klinis**: permukaan terang dan lega, bilah samping gelap, dan w
   - untuk petugas kedua, dialog meminta nama pengguna dan sandinya sendiri.
 - **Tahap permintaan** (`routes/permintaan/[id]/Tahap.svelte`): enam tahap dari sampel sampai transfusi, dihitung dari data permintaan.
 - **Tablet ruang**: target sentuh minimal 44px (`.btn--besar`). Hasil pindai yang baru terbaca berwarna biru (info), bukan hijau, karena pencocokan baru dilakukan server setelah petugas kedua menandatangani.
+- **Kop surat** (`Kop.svelte`, diatur di Pengaturan → Kop surat, pola sama dengan lis-rebuild):
+  - logo kiri, identitas RS di tengah (pemerintah daerah, nama RS, unit, alamat, kontak, akreditasi), logo kanan, dan garis ganda di bawah;
+  - baris yang kosong tidak dicetak;
+  - dipasang di berita acara, serah terima, Formulir 3, dan lembar darurat; di formulir permintaan dan laporan reaksi hanya tampil saat dicetak (`cetakSaja`).
 - **Cetak**: elemen layar diberi `.tanpa-cetak`. Berita acara, formulir, laporan, dan lembar darurat rapi di kertas A4.
 - **Empat keadaan data** (`Keadaan.svelte`): memuat, kosong, galat, dan penuh.

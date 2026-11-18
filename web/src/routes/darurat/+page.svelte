@@ -1,5 +1,6 @@
 <!-- Lembar cetak untuk downtime (NFR-12): dicetak berkala supaya pelayanan tetap jalan saat sistem mati. -->
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { api } from '#lib/api.ts';
 	import { Sumber } from '#lib/sumber.svelte.ts';
 	import Keadaan from '#lib/Keadaan.svelte';
@@ -46,8 +47,8 @@
 
 <div class="flex flex-col gap-4 print:gap-3 print:text-[9pt]">
 	<header>
-		<p class="text-sm text-redup">{sesi.profil?.nama_rs} · Bank Darah Rumah Sakit</p>
-		<h1>Lembar darurat stok dan golongan pasien</h1>
+		<Kop />
+		<h1 class="mt-4">Lembar darurat stok dan golongan pasien</h1>
 		<p class="text-sm">Dicetak {waktu(dicetak)} oleh {sesi.profil?.nama}. Data sesudah waktu ini tidak tercantum.</p>
 	</header>
 

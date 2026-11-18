@@ -1,5 +1,6 @@
 <!-- Formulir laporan BDRS (Permenkes 83/2014 Pasal 51; Permenkes 91/2015 §7.2.2), rapi saat dicetak di A4. -->
 <script lang="ts">
+	import Kop from '#lib/Kop.svelte';
 	import { KOMPONEN, golongan, tanggal, waktu } from '#lib/format.ts';
 
 	type Gol = { komponen: string; abo: string; rhesus: string };
@@ -41,10 +42,10 @@
 {/snippet}
 
 <article class="formulir flex flex-col gap-5">
-	<header class="border-b-2 border-teks pb-3 text-center">
-		<p class="text-lg font-semibold uppercase">{d.profil.nama_rs}</p>
+	<Kop />
+	<header class="text-center">
+		<h2 class="text-base">Laporan Kegiatan Bank Darah Rumah Sakit</h2>
 		<p class="text-sm">Kode faskes: <span class="mono">{d.profil.kode_faskes ?? '—'}</span></p>
-		<h2 class="mt-2 text-base">Laporan Kegiatan Bank Darah Rumah Sakit</h2>
 		<p class="text-sm">Periode {namaBulan(d.bulan)}</p>
 	</header>
 
