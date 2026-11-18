@@ -1,48 +1,65 @@
 # Handoff — utd-rs
 
-Diperbarui: 2026-11-18 (sesi otonom; semua keputusan terbuka diambil sendiri sesuai arahan pemilik proyek)
+Diperbarui: 2026-11-19
 
-## Status: versi 0.1 lengkap, siap UAT
+## Status
 
-Semua tiket di `docs/TIKET.md` (T00–T16) selesai dan di-commit di `main`.
+- **Versi 0.1 selesai** dan dirilis open source (AGPL-3.0) di https://github.com/mmuhdar/utd-rs.
+  - Tiket T00–T16 selesai.
+  - Desain baru (FigCraft) sudah diterapkan ke semua layar.
+  - Fitur tambahan: kop surat, judul dan logo aplikasi dari kop, tema terang/gelap, kebijakan sandi.
+  - Dokumentasi: README lengkap, pedoman penggunaan dan pelatihan per peran (`docs/pedoman/Pedoman-Penggunaan-utd-rs.pdf`).
+  - Uji: backend 23/23, frontend 6/6.
+- **Sudah terpasang di server BDRS rumah sakit.** Alamat server, akun SSH, dan detail pemasangannya sengaja tidak dicatat di repo publik ini; ada di catatan lokal pemilik proyek.
+  - Database masih kosong; baru ada akun `admin` dengan sandi sementara.
+  - Backup berjalan setiap hari pukul 01.00 WITA, dengan retensi 30 hari.
+  - Root CA bisa diunduh lewat `http://<alamat-server>/sertifikat`.
 
-- **Riset regulasi**: `docs/research/regulasi-utd-rs.md`. Isinya 34 FR, 22 NFR, dan 15 pertanyaan terbuka.
-- **Keputusan atas pertanyaan terbuka**: tabel di awal `docs/SPEK.md`. Keputusan yang sulit dibalik dicatat di `docs/adr/0001–0007`.
-- **Glosarium**: `GLOSSARY.md`. Konvensi kode untuk agen: `CLAUDE.md`.
-- **Backend Rust** (axum + PostgreSQL), 20 uji ujung ke ujung `#[sqlx::test]`, clippy bersih. Cakupannya:
-  - alur BDRS: penerimaan, stok, suhu, permintaan, golongan, uji silang, alokasi/darurat, pengeluaran, verifikasi samping tempat tidur, observasi, reaksi, berita acara;
-  - mode UTD-RS: donor, cekal, seleksi, IMLTD, pelulusan, look-back;
-  - laporan;
-  - token API untuk SIMRS dan logger;
-  - outbox SATUSEHAT.
-- **Frontend SvelteKit**: ±35 layar. `npm run check` bersih, `npm test` (6 uji) lulus. Semua rute disapu di browser tanpa galat runtime. Alur sampel → golongan dicoba manual lewat UI. Lembar darurat diperiksa dalam mode cetak dan layar transfusi pada ukuran tablet.
-- **Docker produksi** (`compose.yaml`: app, PostgreSQL 17, Caddy TLS, backup terenkripsi): diuji penuh. App sehat di balik HTTPS, admin pertama berhasil dibuat, backup tersalin ke offsite. Pemulihan backup juga diuji, dan rantai audit tetap utuh.
-- **Dokumen**: README, `docs/pemasangan.md`, `docs/operasional.md`, `docs/kepatuhan.md`, `docs/validasi.md`, `docs/desain.md`.
+## Cara memperbarui server
 
-## Cara melanjutkan
+Bila server tidak bisa mengakses GitHub, npm, atau crates.io, build image di mesin dev lalu kirim lewat SSH:
+
+```sh
+UTD_VERSI=0.1.0 UTD_DB_SANDI=x UTD_BACKUP_PASSPHRASE=x docker compose -p utd-rs build
+docker save utd-rs:0.1.0 utd-rs-backup:latest | gzip -1 | ssh <pengguna>@<server> 'gunzip | docker load'
+# salin compose.yaml / deploy/ bila berubah (tar … | ssh … 'tar xzf - -C ~/utd-rs'), lalu:
+ssh <pengguna>@<server> 'cd ~/utd-rs && docker compose up -d --pull never'
+```
+
+Jangan pernah menjalankan `docker compose down -v`: volume `caddy` menyimpan root CA, dan volume `db` menyimpan data.
+
+## Tindak lanjut (sesi berikutnya)
+
+1. **Pengaturan awal di server** (masuk sebagai `admin`, ganti sandi sementara):
+   - profil instalasi: nama RS dan mode BDRS atau UTD-RS;
+   - kop surat dan logo;
+   - UTD mitra dan alat simpan beserta rentang suhunya;
+   - kebijakan sandi;
+   - akun petugas per peran.
+2. **Backup**:
+   - `UTD_BACKUP_PASSPHRASE` sudah disimpan pemilik proyek di pengelola sandi (selesai 2026-11-19);
+   - pindahkan `UTD_DIR_OFFSITE` ke NAS atau disk lain, karena saat ini masih di disk yang sama;
+   - lakukan uji pemulihan pertama (`docs/operasional.md`).
+3. **UAT di RS** memakai `docs/validasi.md`, dengan pemindai barcode dan data logger suhu yang nyata. Kepala BDRS meninjau pedoman dan menyesuaikannya dengan SPO RS.
+4. **SATUSEHAT**: verifikasi URL extension FHIR `BiologicallyDerivedProduct` di sandbox (`shortcut:` di `src/integrasi.rs`).
+5. **Konfirmasi hukum** (`docs/kepatuhan.md`):
+   - status PSE untuk sistem on-prem;
+   - berlakunya Permenkes 24/2022 setelah PP 28/2024;
+   - PP 33/2026;
+   - pengganti Permenkes 83/2014 dan 91/2015.
+6. **Integrasi rust-simrs** (`../rust-simrs`, F-PNJ-04): `POST /api/permintaan` dan `GET /api/permintaan/{id}` lewat token berperan `simrs`.
+7. **Penyempurnaan UI**:
+   - galat sandi tampil di dalam `DialogSandi`;
+   - pencarian global (ada di desain, belum dibuat);
+   - tabel uji silang di detail permintaan masih melebar;
+   - detail transfusi baru dua kolom di lebar ≥ 1280 px;
+   - desain FigCraft untuk layar selain 8 layar yang ada.
+8. **Data demo dev** berisi artefak pengujian: penyimpangan suhu terbuka di LD-01, KNC, dan uji silang golongan beda. Isi ulang di database kosong sebelum dipakai untuk pelatihan.
+
+## Lingkungan dev
 
 ```sh
 scripts/dev-db.sh start && scripts/cargo.sh test      # cargo jalan di container (mesin ini tanpa compiler C)
 scripts/dev-server.sh seed-demo && scripts/dev-server.sh   # :8080, akun demo bersandi demo-utd-rs
 cd web && npm run dev
 ```
-
-## Tindak lanjut yang disarankan
-
-1. **UAT di RS** memakai `docs/validasi.md`, dan uji dengan pemindai barcode serta data logger suhu yang nyata.
-2. **SATUSEHAT**: verifikasi URL extension FHIR `BiologicallyDerivedProduct` di sandbox. Docs publik tidak memuatnya, jadi URL saat ini ditandai `shortcut:` di `src/integrasi.rs`.
-3. **Penyempurnaan UI** dari laporan agen layar:
-   - galat sandi tampil di dalam `DialogSandi`, dan dialog tetap terbuka;
-   - ganti `confirm()` bawaan browser dengan dialog sendiri (mode instalasi, cabut token);
-   - form ubah identitas donor;
-   - endpoint daftar tetap (gejala reaksi, alasan tolak sampel), karena saat ini disalin di `web/src/lib/pelayanan/darah.ts`;
-   - daftar `objek` untuk filter audit;
-   - tampilan payload outbox;
-   - laporan triwulanan UTD (saat ini per bulan);
-   - saran kantong O Rh− / AB untuk alokasi darurat.
-4. **Konfirmasi hukum** (lihat `docs/kepatuhan.md`):
-   - status PSE untuk sistem on-prem;
-   - berlakunya Permenkes 24/2022 setelah PP 28/2024;
-   - PP 33/2026;
-   - pantau Permenkes pengganti 83/2014 dan 91/2015.
-5. **Integrasi dengan rustSIMRS** (`../rust-simrs`, F-PNJ-04): SIMRS memanggil `POST /api/permintaan` dan membaca `GET /api/permintaan/{id}` lewat token API berperan `simrs`.
