@@ -74,7 +74,7 @@
 				<section class="panel" aria-labelledby="j-pratinjau">
 					<h2 id="j-pratinjau" class="mb-1">Pratinjau</h2>
 					<p class="mb-4 text-sm text-redup">Kira-kira seperti di kertas A4. Tampilan cetak sebenarnya mengikuti dokumen.</p>
-					<div class="rounded-xl border border-garis bg-white p-6 text-black">
+					<div class="rounded-xl border border-garis p-6">
 						<Kop kop={isi} />
 						<p class="mt-4 text-center text-sm font-bold">BERITA ACARA PEMUSNAHAN KANTONG DARAH</p>
 						<p class="mono text-center text-xs">BA-261118-0001</p>

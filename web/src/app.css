@@ -61,8 +61,10 @@
 	--shadow-angkat: 0 24px 48px -12px rgb(16 24 40 / 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
+/* Tema gelap dipilih lewat data-tema (lib/tema.svelte.ts); hanya di layar, cetakan selalu terang. */
+@media screen {
+	:root[data-tema='gelap'] {
+		color-scheme: dark;
 		--color-latar: #0b1220;
 		--color-kartu: #121a2b;
 		--color-teks: #e6eaf2;
@@ -98,6 +100,7 @@
 @layer base {
 	html {
 		font-size: 15px;
+		color-scheme: light;
 	}
 	body {
 		@apply bg-latar text-teks font-sans antialiased;

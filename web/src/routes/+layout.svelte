@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { sesi } from '#lib/sesi.svelte.ts';
 	import { GRUP } from '#lib/navigasi.ts';
+	import GantiTema from '#lib/GantiTema.svelte';
 	import Droplet from '@lucide/svelte/icons/droplet';
 	import Menu from '@lucide/svelte/icons/menu';
 	import LogOut from '@lucide/svelte/icons/log-out';
@@ -76,7 +77,7 @@
 		<nav
 			class="tanpa-cetak {menuTerbuka
 				? 'flex'
-				: 'hidden'} w-full shrink-0 flex-col gap-5 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto"
+				: 'hidden'} w-full shrink-0 flex-col gap-4 bg-samping px-3.5 py-5 text-samping-teks lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:overflow-y-auto"
 			aria-label="Menu utama"
 		>
 			<a href="/" class="flex items-center gap-2.5 px-1.5" onclick={() => (menuTerbuka = false)}>
@@ -98,7 +99,7 @@
 							<li>
 								<a
 									href={m.href}
-									class="group flex items-center gap-3 rounded-[10px] px-2.5 py-2 text-sm font-medium transition-colors hover:bg-samping-2 hover:text-white aria-[current=page]:bg-samping-2 aria-[current=page]:font-semibold aria-[current=page]:text-white"
+									class="group flex items-center gap-3 rounded-[10px] px-2.5 py-[7px] text-sm font-medium transition-colors hover:bg-samping-2 hover:text-white aria-[current=page]:bg-samping-2 aria-[current=page]:font-semibold aria-[current=page]:text-white"
 									aria-current={aktif(m.href) ? 'page' : undefined}
 									onclick={() => (menuTerbuka = false)}
 								>
@@ -111,7 +112,8 @@
 					</ul>
 				</div>
 			{/each}
-			<div class="mt-auto flex items-center gap-2.5 rounded-xl bg-samping-2 px-3 py-2.5">
+			<div class="mt-auto">
+			<div class="flex items-center gap-2.5 rounded-xl bg-samping-2 px-3 py-2.5">
 				<span class="grid size-9 shrink-0 place-items-center rounded-full bg-merek text-sm font-bold text-white" aria-hidden="true"
 					>{inisial(sesi.profil.nama)}</span
 				>
@@ -119,6 +121,7 @@
 					<span class="block truncate text-sm font-semibold text-white">{sesi.profil.nama}</span>
 					<span class="block truncate text-xs font-medium text-samping-redup capitalize">{sesi.profil.peran.join(', ')}</span>
 				</a>
+				<GantiTema />
 				<button
 					class="grid size-9 cursor-pointer place-items-center rounded-lg text-samping-redup hover:bg-samping hover:text-white"
 					aria-label="Keluar"
@@ -128,6 +131,7 @@
 						goto('/masuk');
 					}}><LogOut class="size-[18px]" aria-hidden="true" /></button
 				>
+			</div>
 			</div>
 		</nav>
 		<main id="isi" class="min-w-0 flex-1 px-4 py-5 lg:px-8 lg:py-6">

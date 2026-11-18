@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PilihTema from '#lib/PilihTema.svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
@@ -48,3 +49,9 @@
 	<PesanAksi {aksi} />
 	<button class="btn btn--utama self-start" disabled={aksi.sibuk}>Simpan</button>
 </form>
+
+<section class="panel mt-4 flex max-w-md flex-col gap-3" aria-labelledby="j-tampilan">
+	<h2 id="j-tampilan">Tampilan</h2>
+	<p class="text-sm text-redup">Berlaku di browser ini. "Ikuti sistem" memakai setelan terang/gelap komputer atau tablet. Dokumen cetak selalu terang.</p>
+	<PilihTema />
+</section>

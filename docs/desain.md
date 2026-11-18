@@ -15,7 +15,10 @@ Arahnya **modern klinis**: permukaan terang dan lega, bilah samping gelap, dan w
 
 ## Warna
 
-- **Mode terang** adalah bawaan. Mode gelap mengikuti setelan sistem. Alasannya: ruang lab terang dan banyak layar yang dicetak.
+- **Tema** bisa dipilih: terang, gelap, atau ikuti sistem (bawaan). Pilihan disimpan per browser di `localStorage` (`utd-tema`).
+  - Pengguna mengganti tema lewat tombol di kartu pengguna bilah samping, halaman Akun saya, atau pojok halaman Masuk.
+  - `static/tema.js` memasang `data-tema` di `<html>` sebelum halaman digambar, jadi layar tidak berkedip. `lib/tema.svelte.ts` mengikuti perubahan setelan sistem.
+  - Token gelap hanya berlaku di layar (`@media screen`). Dokumen cetak selalu terang.
 - Warna **hanya lewat token**:
   - netral: `teks`, `teks-2`, `redup`, `garis`, `garis-kuat`, `halus`, `latar`, `kartu`;
   - aksi utama: `utama` (tinta gelap untuk tombol utama);

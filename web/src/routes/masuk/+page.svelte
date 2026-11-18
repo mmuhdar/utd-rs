@@ -3,6 +3,7 @@
 	import { api } from '#lib/api.ts';
 	import { Aksi } from '#lib/aksi.svelte.ts';
 	import PesanAksi from '#lib/PesanAksi.svelte';
+	import PilihTema from '#lib/PilihTema.svelte';
 	import { sesi, type Profil } from '#lib/sesi.svelte.ts';
 	import Droplet from '@lucide/svelte/icons/droplet';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
@@ -63,7 +64,8 @@
 		</ul>
 	</section>
 
-	<div class="flex w-full items-center justify-center p-6 lg:w-[620px] lg:shrink-0">
+	<div class="relative flex w-full items-center justify-center p-6 lg:w-[620px] lg:shrink-0">
+		<div class="absolute top-5 right-5 w-56"><PilihTema /></div>
 		<form class="flex w-full max-w-[400px] flex-col gap-5" onsubmit={masuk}>
 			<div class="mb-1 flex items-center gap-2.5 lg:hidden">
 				<span class="grid size-10 place-items-center rounded-xl bg-linear-to-br from-[#f43f5e] to-merek-gelap">
