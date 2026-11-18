@@ -211,4 +211,9 @@ async fn mutasi_wajib_json(db: PgPool) {
     let req = Request::builder().method("POST").uri("/api/auth/masuk").body(Body::from("nama_pengguna=a")).unwrap();
     let res = u.app.clone().oneshot(req).await.unwrap();
     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    // JSON rusak dari axum dibungkus menjadi pesan berbahasa Indonesia.
+    let mut u = Uji::baru(u.db.clone());
+    let (st, v) = u.kirim("POST", "/api/auth/masuk", Some(json!({ "nama_pengguna": 1 }))).await;
+    assert_eq!(st, StatusCode::BAD_REQUEST);
+    assert!(v["pesan"].as_str().unwrap().starts_with("Data yang dikirim tidak sesuai"), "{v}");
 }

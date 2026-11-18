@@ -30,6 +30,7 @@ pub fn rute() -> Router<AppState> {
         .route("/donasi", get(daftar_donasi))
         .route("/donasi/{id}", get(detail_donasi))
         .route("/donasi/{id}/golongan", post(golongan))
+        .route("/donasi/{id}/gagal", post(gagal))
         .route("/golongan-donasi/{id}/verifikasi", post(verifikasi_golongan))
         .route("/donasi/{id}/imltd", post(imltd))
         .route("/imltd/{id}/verifikasi", post(verifikasi_imltd))
@@ -450,6 +451,18 @@ async fn ambil_darah(
             .fetch_optional(&mut *tx)
             .await?;
     let (donor, keputusan, baru) = r.ok_or_else(|| Galat::TidakDitemukan("Seleksi tidak ditemukan.".into()))?;
+    if let Some(rm) = teks(&i.untuk_no_rm) {
+        let ada: bool = sqlx::query_scalar("select exists (select 1 from pasien where no_rm = $1)")
+            .bind(rm)
+            .fetch_one(&mut *tx)
+            .await?;
+        if !ada {
+            return Err(tolak(
+                "untuk_no_rm",
+                "Pasien dengan No. RM ini belum terdaftar di bank darah; daftarkan lewat permintaan darahnya dulu.",
+            ));
+        }
+    }
     if keputusan != "diterima" {
         return Err(Galat::Konflik("Donor tidak lolos seleksi; darah tidak boleh diambil.".into()));
     }
@@ -512,6 +525,7 @@ async fn detail_donasi(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uu
             'imltd', (select coalesce(jsonb_agg(to_jsonb(u) || jsonb_build_object('petugas', a.nama, 'terverifikasi', u.tanda_tangan_id is not null)
                          order by u.parameter), '[]') from uji_imltd u join akun a on a.id = u.dicatat_oleh
                       where u.donasi_id = n.id and u.batal_alasan is null),
+            'lookback_id', (select l.id from lookback l where l.donasi_pemicu = n.id order by l.dibuat_pada desc limit 1),
             'kantong', (select coalesce(jsonb_agg(to_jsonb(k) || jsonb_build_object('lulus',
                            exists (select 1 from tanda_tangan t where t.objek = 'kantong' and t.objek_id = k.id::text and t.makna = 'pelulusan'))
                            order by k.komponen), '[]') from kantong k where k.donasi_id = n.id))
@@ -521,6 +535,35 @@ async fn detail_donasi(State(s): State<AppState>, p: Pengguna, Path(id): Path<Uu
     .fetch_optional(&s.db)
     .await?;
     Ok(Json(v.ok_or_else(|| Galat::TidakDitemukan("Donasi tidak ditemukan.".into()))?))
+}
+
+#[derive(Deserialize)]
+struct Gagal {
+    alasan: Option<String>,
+}
+
+/// Donasi yang gagal diambil (mis. aliran berhenti, volume kurang) ditandai gagal, belum diolah.
+async fn gagal(
+    State(s): State<AppState>,
+    p: Pengguna,
+    Path(id): Path<Uuid>,
+    Json(g): Json<Gagal>,
+) -> Hasil<Json<Value>> {
+    p.wajib("donor.kelola")?;
+    let alasan = wajib_teks(&g.alasan, "alasan", "Alasan donasi gagal")?;
+    let mut tx = s.db.begin().await?;
+    let n = sqlx::query("update donasi set status = 'gagal', catatan = $2 where id = $1 and status = 'diambil'")
+        .bind(id)
+        .bind(alasan)
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
+    if n == 0 {
+        return Err(Galat::Konflik("Hanya donasi yang belum diolah yang bisa ditandai gagal.".into()));
+    }
+    audit::ubah(&mut tx, &p, "gagal", "donasi", id, json!({ "alasan": alasan })).await?;
+    tx.commit().await?;
+    Ok(Json(json!({})))
 }
 
 // ---------- Golongan dan IMLTD donasi ----------

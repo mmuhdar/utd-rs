@@ -304,9 +304,15 @@ async fn terima(State(s): State<AppState>, p: Pengguna, Json(i): Json<IsianPener
     } else {
         None
     };
-    for k in &i.kantong {
+    for (n, k) in i.kantong.iter().enumerate() {
         if let Some(alat) = k.alat_id.filter(|_| k.diterima) {
-            periksa_alat(&mut tx, alat, &k.komponen).await?;
+            periksa_alat(&mut tx, alat, &k.komponen).await.map_err(|g| match g {
+                Galat::Validasi(mut v) => {
+                    v.iter_mut().for_each(|e| e.isian = format!("kantong.{n}.alat_id"));
+                    Galat::Validasi(v)
+                }
+                g => g,
+            })?;
         }
         let nomor = teks(&k.nomor).unwrap_or_default();
         let kantong: Value = sqlx::query_scalar(
@@ -388,7 +394,9 @@ async fn detail_penerimaan(State(s): State<AppState>, p: Pengguna, Path(id): Pat
     p.wajib("stok.lihat")?;
     let v: Option<Value> = sqlx::query_scalar(
         "select to_jsonb(r) || jsonb_build_object('utd', to_jsonb(u), 'petugas_bdrs', a.nama,
-                'kantong', (select jsonb_agg(to_jsonb(k) order by k.nomor) from kantong k where k.penerimaan_id = r.id))
+                'kantong', (select jsonb_agg(to_jsonb(k) || jsonb_build_object('ditolak_saat_terima',
+                    coalesce((select b.catatan like 'Ditolak saat penerimaan%' from berita_acara b where b.id = k.berita_acara_id), false))
+                    order by k.nomor) from kantong k where k.penerimaan_id = r.id))
          from penerimaan r join utd_mitra u on u.id = r.utd_id join akun a on a.id = r.diterima_oleh where r.id = $1",
     )
     .bind(id)
@@ -467,6 +475,10 @@ async fn cairkan(
 ) -> Hasil<Json<Value>> {
     p.wajib("stok.kelola")?;
     let mut tx = s.db.begin().await?;
+    // Plasma yang dicairkan disimpan di lemari 2–6 °C.
+    if let Some(alat) = a.alat_id {
+        periksa_alat(&mut tx, alat, "prc").await?;
+    }
     let v: Option<Value> = sqlx::query_scalar(
         "update kantong k set dicairkan_pada = now(),
                 kedaluwarsa = least(k.kedaluwarsa, now() + make_interval(hours => r.jam_setelah_cair)),
@@ -758,7 +770,7 @@ async fn lacak(State(s): State<AppState>, p: Pengguna, Path(nomor): Path<String>
                           join pasien ps on ps.no_rm = t.no_rm where t.kantong_id = k.id),
             'reaksi', (select coalesce(jsonb_agg(to_jsonb(r)), '[]') from reaksi r join transfusi t on t.id = r.transfusi_id
                        where t.kantong_id = k.id),
-            'penyimpangan_suhu', (select coalesce(jsonb_agg(to_jsonb(n) || jsonb_build_object('alat', a.kode)), '[]')
+            'penyimpangan_suhu', (select coalesce(jsonb_agg(to_jsonb(n) || jsonb_build_object('alat', a.kode, 'mulai', ps.mulai)), '[]')
                                   from penilaian_kantong n join penyimpangan_suhu ps on ps.id = n.penyimpangan_id
                                   join alat_simpan a on a.id = ps.alat_id where n.kantong_id = k.id),
             'berita_acara', (select to_jsonb(b) from berita_acara b where b.id = k.berita_acara_id))

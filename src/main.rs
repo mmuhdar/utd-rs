@@ -95,6 +95,22 @@ async fn hanya_json(req: Request, next: Next) -> Response {
         return Galat::Permintaan("Permintaan harus berformat JSON.".into()).into_response();
     }
     let mut res = next.run(req).await;
+    // Penolakan ekstraktor axum (JSON/path/query rusak) berupa teks berbahasa Inggris; dibungkus menjadi galat
+    // berbahasa Indonesia supaya antarmuka selalu menerima `{pesan}`.
+    let teks_polos =
+        res.headers().get(CONTENT_TYPE).and_then(|v| v.to_str().ok()).is_some_and(|v| v.starts_with("text/plain"));
+    if teks_polos && res.status().is_client_error() {
+        let rincian = axum::body::to_bytes(res.into_body(), 4096)
+            .await
+            .map(|b| String::from_utf8_lossy(&b).into_owned())
+            .unwrap_or_default();
+        let mut r = Galat::Permintaan(format!(
+            "Data yang dikirim tidak sesuai format yang diharapkan ({rincian}). Periksa isian, lalu coba lagi."
+        ))
+        .into_response();
+        r.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
+        return r;
+    }
     res.headers_mut().insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
     res
 }

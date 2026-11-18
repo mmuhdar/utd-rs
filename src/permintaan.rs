@@ -321,7 +321,10 @@ async fn daftar(State(s): State<AppState>, p: Pengguna, Query(f): Query<FilterPe
            select to_jsonb(r) || jsonb_build_object('pasien', to_jsonb(ps),
                     'dialokasikan', (select count(*) from alokasi a where a.permintaan_id = r.id and a.dilepas_pada is null),
                     'dikeluarkan', (select count(*) from pengeluaran g join alokasi a on a.id = g.alokasi_id where a.permintaan_id = r.id),
-                    'diminta', (select sum((b->>'jumlah')::int) from jsonb_array_elements(r.baris) b)) x
+                    'diminta', (select sum((b->>'jumlah')::int) from jsonb_array_elements(r.baris) b),
+                    'golongan_terverifikasi', (select jsonb_build_object('abo', g.abo, 'rhesus', g.rhesus) from pemeriksaan_golongan g
+                        where g.no_rm = r.no_rm and g.tanda_tangan_id is not null and g.batal_alasan is null and not g.diskrepansi
+                        order by g.dicatat_pada desc limit 1)) x
            from permintaan r join pasien ps on ps.no_rm = r.no_rm
            where r.status = any(coalesce(string_to_array($1, ','), array['diminta', 'diproses', 'siap']))
              and ($2::text is null or r.no_rm = $2)
