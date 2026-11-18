@@ -16,6 +16,6 @@ Urutan pengerjaan. Setiap tiket selesai bila ada ujinya dan `scripts/cargo.sh te
 - [x] T11 Mode UTD-RS: donor, cekal, seleksi, donasi, IMLTD, pengolahan, pelulusan, look-back (M5)
 - [x] T12 Laporan: Formulir 3, mutu (C:T), perencanaan, ketersediaan (M6)
 - [x] T13 Integrasi SIMRS lewat token API + outbox & klien SATUSEHAT (M7)
-- [ ] T14 Web: kerangka, masuk, navigasi per peran, layar semua modul (desain lewat ui-ux-pro-max)
-- [ ] T15 Docker produksi, backup, mode darurat, dokumen pemasangan/operasional/kepatuhan/validasi (M8)
+- [x] T14 Web: kerangka, masuk, navigasi per peran, layar semua modul (desain lewat ui-ux-pro-max)
+- [x] T15 Docker produksi, backup, mode darurat, dokumen pemasangan/operasional/kepatuhan/validasi (M8)
 - [x] T16 Data demo fiktif (`utdrs seed-demo`)
