@@ -181,14 +181,14 @@ async fn periksa_golongan(
 }
 
 #[derive(Deserialize)]
-struct Verifikasi {
+pub struct Verifikasi {
     setuju: bool,
     sandi: Option<String>,
     alasan: Option<String>,
 }
 
 /// Verifikasi kedua: setuju → ditandatangani; tidak setuju → hasil dibatalkan dan boleh diinput ulang.
-async fn verifikasi(
+pub async fn verifikasi(
     conn: &mut PgConnection,
     p: &Pengguna,
     tabel: &str,

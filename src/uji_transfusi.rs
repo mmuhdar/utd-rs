@@ -239,6 +239,26 @@ async fn alur_lengkap_sampai_reaksi(db: PgPool) {
     assert_eq!(l["status"], "ditransfusikan");
     assert_eq!(l["transfusi"]["pasien"]["no_rm"], "RM001");
     assert_eq!(l["reaksi"].as_array().unwrap().len(), 1);
+
+    // Laporan bulanan dan mutu.
+    let (st, f3) = a.b.kepala.get("/api/laporan/formulir3").await;
+    assert_eq!(st, StatusCode::OK, "{f3}");
+    assert_eq!(f3["c_pemakaian_per_ruang"][0]["ruang"], "IGD");
+    assert_eq!(f3["c_pemakaian_per_ruang"][0]["ditransfusikan"]["prc"], 1);
+    assert_eq!(f3["d_reaksi_transfusi"][0]["nomor_kantong"], "PRC-A1");
+    assert_eq!(f3["b_penerimaan_dari_utd"].as_array().unwrap().len(), 3);
+    let (_, m) = a.b.kepala.get("/api/laporan/mutu").await;
+    assert_eq!(
+        m["rasio_ct"][0]["rasio"],
+        "1.00".parse::<serde_json::Number>().map(Value::Number).unwrap_or(json!(1.0)),
+        "{m}"
+    );
+    let (st, _) = a.b.kepala.get("/api/laporan/mutu?bulan=2026-13").await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY);
+    let (_, rencana) = a.b.kepala.get("/api/laporan/perencanaan").await;
+    assert!(rencana.as_array().unwrap().iter().any(|r| r["komponen"] == "prc" && r["abo"] == "A"));
+    let (_, ada) = a.b.kepala.get("/api/laporan/ketersediaan").await;
+    assert!(ada["stok"].is_array());
     let _ = k;
 }
 
@@ -349,4 +369,31 @@ async fn ffp_minor_dan_koreksi_observasi(db: PgPool) {
         .kirim("PUT", "/api/master/aturan-komponen/ffp", Some(json!({ "uji_silang": "tidak_perlu", "masa_simpan_jam": 8760, "jam_setelah_cair": 6, "jam_peringatan": 720, "alasan": "Keputusan komite transfusi" })))
         .await;
     assert_eq!(st, StatusCode::OK);
+}
+
+#[sqlx::test]
+async fn simrs_lewat_token_api(db: PgPool) {
+    let mut admin = Uji::sebagai(&db, "admin", &["admin"]).await;
+    let (st, _) = admin
+        .post("/api/akun", json!({ "nama_pengguna": "simrs", "nama": "SIMRS", "peran": ["simrs", "dokter"] }))
+        .await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "akun layanan tidak boleh digabung peran manusia");
+    let akun = admin.ok("/api/akun", json!({ "nama_pengguna": "simrs", "nama": "SIMRS", "peran": ["simrs"] })).await;
+    let token = admin.ok(&format!("/api/akun/{}/token", akun["id"].as_str().unwrap()), json!({})).await;
+    let mut simrs = Uji::baru(db.clone());
+    simrs.bearer(token["token"].as_str().unwrap());
+    let mut isi = permintaan("RM777", "rutin", json!([{ "komponen": "prc", "jumlah": 2 }]));
+    isi["dokter"] = json!("dr. Budi, Sp.PD");
+    isi["rujukan_simrs"] = json!("ORD-123");
+    let v = simrs.ok("/api/permintaan", isi).await;
+    assert_eq!(v["sumber"], "simrs");
+    let (_, d) = simrs.get(&format!("/api/permintaan/{}", v["id"].as_str().unwrap())).await;
+    assert_eq!(d["pasien"]["sumber"], "simrs");
+    // SIMRS tidak boleh memproses permintaan atau membaca stok.
+    let (st, _) = simrs.get("/api/stok").await;
+    assert_eq!(st, StatusCode::FORBIDDEN);
+    // Akun layanan tidak bisa masuk dengan sandi; token yang dicabut tidak berlaku.
+    admin.ok(&format!("/api/akun/{}/token/cabut", akun["id"].as_str().unwrap()), json!({})).await;
+    let (st, _) = simrs.get("/api/permintaan").await;
+    assert_eq!(st, StatusCode::UNAUTHORIZED);
 }

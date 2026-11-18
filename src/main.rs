@@ -5,7 +5,10 @@ mod audit;
 mod auth;
 mod cli;
 mod config;
+mod donor;
 mod error;
+mod integrasi;
+mod laporan;
 mod master;
 mod permintaan;
 mod pratransfusi;
@@ -15,6 +18,8 @@ mod tanda_tangan;
 mod transfusi;
 #[cfg(test)]
 mod uji;
+#[cfg(test)]
+mod uji_donor;
 #[cfg(test)]
 mod uji_stok;
 #[cfg(test)]
@@ -55,6 +60,9 @@ pub fn router(state: AppState) -> Router {
         .merge(permintaan::rute())
         .merge(pratransfusi::rute())
         .merge(transfusi::rute())
+        .merge(donor::rute())
+        .merge(integrasi::rute())
+        .merge(laporan::rute())
         .fallback(|| async { Galat::TidakDitemukan("Alamat API tidak dikenal.".into()) })
         .layer(middleware::from_fn(hanya_json));
     let web = ServeDir::new(&state.cfg.dir_web).fallback(ServeFile::new(format!("{}/index.html", state.cfg.dir_web)));
@@ -116,6 +124,9 @@ async fn main() -> anyhow::Result<()> {
         return cli::jalankan(&db, &args).await;
     }
     let alamat: SocketAddr = cfg.alamat.parse()?;
+    if let Some(ss) = cfg.satusehat.clone() {
+        tokio::spawn(integrasi::jalankan(db.clone(), ss));
+    }
     let state = AppState { db, cfg: Arc::new(cfg) };
     tracing::info!(%alamat, "utd-rs berjalan");
     let listener = tokio::net::TcpListener::bind(alamat).await?;

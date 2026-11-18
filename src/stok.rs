@@ -691,6 +691,15 @@ async fn buat_berita_acara(
         }
         ubah_status_ba(&mut tx, &p, k.id, &["karantina", "tersedia", "dikeluarkan"], ke, Some(&k.alasan), Some(ba_id))
             .await?;
+        // Kantong donasi sendiri yang sudah dilaporkan lulus ke SATUSEHAT juga dilaporkan pemusnahannya (ADR 0006).
+        let dilaporkan: bool =
+            sqlx::query_scalar("select exists (select 1 from outbox where kantong_id = $1 and peristiwa = 'lulus')")
+                .bind(k.id)
+                .fetch_one(&mut *tx)
+                .await?;
+        if ke == "dimusnahkan" && dilaporkan {
+            crate::integrasi::antre_produk(&mut tx, k.id, "musnah").await?;
+        }
     }
     audit::ubah(&mut tx, &p, "buat", "berita_acara", ba_id, ba.clone()).await?;
     tx.commit().await?;
