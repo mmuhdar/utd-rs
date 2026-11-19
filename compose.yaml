@@ -24,7 +24,8 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://utdrs:${UTD_DB_SANDI}@db:5432/utdrs
+      # UTD_DB_NAMA=utdrs_demo di .env memakai database demo terpisah (dibuat manual, tidak dibackup).
+      DATABASE_URL: postgres://utdrs:${UTD_DB_SANDI}@db:5432/${UTD_DB_NAMA:-utdrs}
       UTD_COOKIE_SECURE: '1'
       UTD_DI_BALIK_PROXY: '1'
       TZ: ${TZ:-Asia/Jakarta}

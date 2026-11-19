@@ -48,3 +48,16 @@ Data logger mengirim suhu lewat API, atau petugas mencatat manual minimal dua ka
 | Uji pemulihan backup | 3 bulanan | Admin TI |
 | Tinjau aturan komponen dan aturan donor terhadap regulasi terbaru (pantau pengganti Permenkes 83/2014 & 91/2015) | Tahunan | Penanggung jawab BDRS |
 | Simulasi downtime | Tahunan | BDRS + TI |
+
+## Database demo untuk pelatihan
+
+Data demo diisi ke database terpisah `utdrs_demo`, sehingga data asli di `utdrs` tidak tercampur (ADR 0003: data tidak dihapus). Database demo tidak ikut dibackup.
+
+```sh
+docker compose exec db createdb -U utdrs utdrs_demo
+echo UTD_DB_NAMA=utdrs_demo >> .env
+docker compose run --rm app seed-demo      # akun demo bersandi demo-utd-rs
+docker compose up -d --pull never app
+```
+
+Kembali ke data asli: hapus baris `UTD_DB_NAMA` dari `.env`, lalu `docker compose up -d --pull never app`.

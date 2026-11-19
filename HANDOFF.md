@@ -11,7 +11,7 @@ Diperbarui: 2026-11-19
   - Dokumentasi: README lengkap, pedoman penggunaan dan pelatihan per peran (`docs/pedoman/Pedoman-Penggunaan-utd-rs.pdf`).
   - Uji: backend 23/23, frontend 6/6.
 - **Sudah terpasang di server BDRS rumah sakit.** Alamat server, akun SSH, dan detail pemasangannya sengaja tidak dicatat di repo publik ini; ada di catatan lokal pemilik proyek.
-  - Database masih kosong; baru ada akun `admin` dengan sandi sementara.
+  - **Saat ini app memakai database demo `utdrs_demo`** (`UTD_DB_NAMA=utdrs_demo` di `.env`, diisi `seed-demo` 2026-11-19). Data asli di database `utdrs` tidak tersentuh dan tetap dibackup. Cara kembali ada di `docs/operasional.md`.
   - Backup berjalan setiap hari pukul 01.00 WITA, dengan retensi 30 hari.
   - Root CA bisa diunduh lewat `http://<alamat-server>/sertifikat`.
 
